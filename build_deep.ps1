@@ -7,10 +7,13 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $gpp = $null
 $gcc = $null
-foreach ($candidate in @(
+$candidates = @()
+if ($env:OLHO_GXX) { $candidates += $env:OLHO_GXX }
+$candidates += @(
     'C:\msys64\ucrt64\bin\g++.exe',
     'C:\msys64\mingw64\bin\g++.exe'
-)) {
+)
+foreach ($candidate in $candidates) {
     if (Test-Path $candidate) {
         $gpp = $candidate
         $gcc = Join-Path (Split-Path $candidate -Parent) 'gcc.exe'
@@ -123,7 +126,13 @@ $guiSources = @(
     (Join-Path $root 'cloud/service/job_queue.cpp'),
     (Join-Path $root 'cloud/enterprise/audit.cpp')
 )
-$qtPkg = 'C:\msys64\ucrt64\bin\pkg-config.exe'
+$qtPkg = $env:OLHO_PKGCONFIG
+if (-not $qtPkg) { $qtPkg = 'C:\msys64\ucrt64\bin\pkg-config.exe' }
+if (-not (Test-Path $qtPkg)) {
+    $c = Get-Command pkg-config -ErrorAction SilentlyContinue
+    if ($c) { $qtPkg = $c.Source }
+}
+if (-not (Test-Path $qtPkg)) { throw 'pkg-config not found' }
 $qtFlags = ((& $qtPkg --cflags --libs Qt6Widgets Qt6Network) -join ' ') -split '\s+'
 & $gpp -std=c++17 -O2 -fms-extensions '-Wl,--no-insert-timestamp' -mwindows -I $root `
     -o $guiOut @guiSources @qtFlags -lcomdlg32 -lshell32 -lole32 -lgdi32 -lpsapi -lbcrypt -lwinhttp -lws2_32 -lcrypt32

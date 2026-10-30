@@ -1,7 +1,10 @@
 ﻿# Build and run the Phase 0 cloud-core unit tests.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$gpp = 'C:\msys64\ucrt64\bin\g++.exe'
+$gpp = $env:OLHO_GXX
+if (-not $gpp) { $gpp = 'C:\msys64\ucrt64\bin\g++.exe' }
+if (-not (Test-Path $gpp)) { $c = Get-Command g++ -ErrorAction SilentlyContinue; if ($c) { $gpp = $c.Source } }
+if (-not $gpp -or -not (Test-Path $gpp)) { throw 'g++ not found' }
 $out = Join-Path $root 'cloud_core_test.exe'
 $smoke = Join-Path $root 'cloud_transport_smoke.exe'
 $auth = Join-Path $root 'cloud_auth.exe'

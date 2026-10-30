@@ -1,6 +1,9 @@
 ﻿$ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$gpp = 'C:\msys64\ucrt64\bin\g++.exe'
+$gpp = $env:OLHO_GXX
+if (-not $gpp) { $gpp = 'C:\msys64\ucrt64\bin\g++.exe' }
+if (-not (Test-Path $gpp)) { $c = Get-Command g++ -ErrorAction SilentlyContinue; if ($c) { $gpp = $c.Source } }
+if (-not $gpp -or -not (Test-Path $gpp)) { throw 'g++ not found' }
 # The worker collects in-process, so it links the collector, transport and
 # DPAPI vault directly instead of launching OlhoDeDeus_deep.exe.
 $sources = @(
