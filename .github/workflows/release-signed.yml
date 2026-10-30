@@ -1,14 +1,12 @@
 ﻿name: Release
-permissions:
-  contents: read
 on:
   workflow_dispatch:
 jobs:
-  signed-release:
+  probe:
     runs-on: windows-latest
     steps:
       - name: Secret probe
         shell: pwsh
         run: |
-          $s = '${{ secrets.RELEASE_PRIVATE_KEY_B64 }}'
-          Write-Host "secret length: $($s.Length)"
+          $s = '${{ secrets.GITHUB_TOKEN }}'
+          Write-Host "token length: $($s.Length)"
