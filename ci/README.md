@@ -78,3 +78,18 @@ Verify:
 For a test certificate use `-AllowUntrusted`; production requires a
 trusted certificate and `Status = Valid`. Authenticode signing must run
 before `build_release.ps1`, because signing changes every binary hash.
+## GitHub release workflow
+
+`.github/workflows/release.yml` runs on `v*` tags or manual dispatch.
+
+Secrets required:
+
+- `RELEASE_PRIVATE_KEY_B64`: base64 of the ECDSA private key;
+- `RELEASE_PUBLIC_KEY_B64`: base64 of the public key.
+
+The workflow decodes the keys into `RUNNER_TEMP`, runs the full gate with
+`-Package`, uploads the signed ZIP/signature/manifest, and removes the
+private key in an `always()` step.
+
+Authenticode is not part of this workflow until a real code-signing
+certificate and HSM/TPM custody exist.
