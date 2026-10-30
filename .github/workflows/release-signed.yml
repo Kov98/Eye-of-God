@@ -7,13 +7,8 @@ jobs:
   signed-release:
     runs-on: windows-latest
     steps:
-      - name: Materialize release keys
+      - name: Secret probe
         shell: pwsh
-        env:
-          RELEASE_PRIVATE_KEY_B64: dGVzdA==
-          RELEASE_PUBLIC_KEY_B64: dGVzdA==
         run: |
-          $keyDir = Join-Path $env:RUNNER_TEMP 'release_key'
-          New-Item -ItemType Directory -Force -Path $keyDir | Out-Null
-          [IO.File]::WriteAllBytes((Join-Path $keyDir 'release.priv'), [Convert]::FromBase64String($env:RELEASE_PRIVATE_KEY_B64))
-          Write-Host 'keys materialized'
+          $s = '${{ secrets.RELEASE_PRIVATE_KEY_B64 }}'
+          Write-Host "secret length: $($s.Length)"
