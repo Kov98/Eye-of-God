@@ -7,9 +7,17 @@ on:
       - 'v*'
   workflow_dispatch:
 jobs:
-  probe:
+  signed-release:
     runs-on: windows-latest
     steps:
-      - name: Probe
+      - name: Materialize release keys
         shell: pwsh
-        run: Write-Host 'release probe'
+        env:
+          RELEASE_PRIVATE_KEY_B64: ${{ secrets.RELEASE_PRIVATE_KEY_B64 }}
+          RELEASE_PUBLIC_KEY_B64: ${{ secrets.RELEASE_PUBLIC_KEY_B64 }}
+        run: |
+          $keyDir = Join-Path $env:RUNNER_TEMP 'release_key'
+          New-Item -ItemType Directory -Force -Path $keyDir | Out-Null
+          [IO.File]::WriteAllBytes((Join-Path $keyDir 'release.priv'), [Convert]::FromBase64String($env:RELEASE_PRIVATE_KEY_B64))
+          [IO.File]::WriteAllBytes((Join-Path $keyDir 'release.pub'), [Convert]::FromBase64String($env:RELEASE_PUBLIC_KEY_B64))
+          Write-Host 'keys materialized'
