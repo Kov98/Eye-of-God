@@ -1,72 +1,10 @@
 ﻿name: Release
-
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
-
-permissions:
-  contents: read
-
 jobs:
-  signed-release:
+  probe:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup MSYS2 UCRT64
-        id: msys2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: UCRT64
-          update: false
-          install: >-
-            mingw-w64-ucrt-x86_64-gcc
-            mingw-w64-ucrt-x86_64-qt6-base
-            mingw-w64-ucrt-x86_64-pkgconf
-
-      - name: Materialize release keys
+      - name: Probe
         shell: pwsh
-        env:
-          RELEASE_PRIVATE_KEY_B64: ${{ secrets.RELEASE_PRIVATE_KEY_B64 }}
-          RELEASE_PUBLIC_KEY_B64: ${{ secrets.RELEASE_PUBLIC_KEY_B64 }}
-        run: |
-          $keyDir = Join-Path $env:RUNNER_TEMP 'release_key'
-          New-Item -ItemType Directory -Force -Path $keyDir | Out-Null
-          [IO.File]::WriteAllBytes((Join-Path $keyDir 'release.priv'), [Convert]::FromBase64String($env:RELEASE_PRIVATE_KEY_B64))
-          [IO.File]::WriteAllBytes((Join-Path $keyDir 'release.pub'), [Convert]::FromBase64String($env:RELEASE_PUBLIC_KEY_B64))
-          icacls (Join-Path $keyDir 'release.priv') /inheritance:r /grant:r "$($env:USERNAME):(R,W)" | Out-Null
-
-      - name: Build, test and sign release
-        shell: pwsh
-        env:
-          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
-        run: |
-          $env:OLHO_GXX = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\g++.exe'
-          $env:OLHO_PKGCONFIG = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\pkg-config.exe'
-          $env:OLHO_OPENSSL = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\openssl.exe'
-          $env:OLHO_PYTHON = (Get-Command python).Source
-          $keyDir = Join-Path $env:RUNNER_TEMP 'release_key'
-          .\ci\build_and_test.ps1 -Package `
-            -PrivateKey (Join-Path $keyDir 'release.priv') `
-            -PublicKey (Join-Path $keyDir 'release.pub')
-
-      - name: Upload release
-        uses: actions/upload-artifact@v4
-        with:
-          name: signed-release
-          path: |
-            releases/**/*.zip
-            releases/**/*.zip.sha256
-            releases/**/*.zip.sig
-            releases/**/release_manifest.json
-            releases/**/SHA256SUMS.txt
-          if-no-files-found: error
-
-      - name: Remove private key
-        if: always()
-        shell: pwsh
-        run: |
-          $keyDir = Join-Path $env:RUNNER_TEMP 'release_key'
-          Remove-Item $keyDir -Recurse -Force -ErrorAction SilentlyContinue
+        run: Write-Host 'release probe'
