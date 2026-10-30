@@ -2,6 +2,9 @@
 permissions:
   contents: read
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 jobs:
   probe:
