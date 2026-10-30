@@ -8,5 +8,5 @@ jobs:
       - name: Secret probe
         shell: pwsh
         run: |
-          $s = '${{ secrets.GITHUB_TOKEN }}'
-          Write-Host "token length: $($s.Length)"
+          $s = '${{ secrets.THIS_SECRET_DOES_NOT_EXIST }}'
+          Write-Host "secret length: $($s.Length)"
