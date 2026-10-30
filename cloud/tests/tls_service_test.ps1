@@ -2,6 +2,7 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path))
 $openssl = $env:OLHO_OPENSSL
+if (-not $openssl -and $env:OLHO_GXX) { $openssl = Join-Path (Split-Path $env:OLHO_GXX -Parent) 'openssl.exe' }
 if (-not $openssl) { $openssl = 'C:\msys64\ucrt64\bin\openssl.exe' }
 if (-not (Test-Path $openssl)) { $openssl = (Get-Command openssl -ErrorAction SilentlyContinue).Source }
 if (-not (Test-Path $openssl)) { throw 'openssl not found' }

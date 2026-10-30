@@ -29,6 +29,7 @@ jobs:
         run: |
           $env:OLHO_GXX = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\g++.exe'
           $env:OLHO_PKGCONFIG = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\pkg-config.exe'
+          $env:OLHO_OPENSSL = Join-Path $env:MSYS2_LOCATION 'ucrt64\bin\openssl.exe'
           $env:OLHO_PYTHON = (Get-Command python).Source
           .\ci\build_and_test.ps1
 

@@ -43,18 +43,12 @@ function RunExe([string]$relative) {
     if ($LASTEXITCODE -ne 0) { throw "$relative failed with $LASTEXITCODE" }
 }
 
-$env:PATH = 'C:\msys64\ucrt64\bin;' + $env:PATH
+if ($env:OLHO_GXX) { $env:PATH = (Split-Path $env:OLHO_GXX -Parent) + ';' + $env:PATH }
 
 Gate 'cloud core build' { RunPs (Join-Path $root 'build_cloud.ps1') }
 Gate 'cloud core tests' { RunExe 'cloud_core_test.exe' }
 Gate 'db import tests' { RunExe 'cloud_db_import_test.exe' }
 Gate 'queue lease tests' { RunExe 'job_queue_lease_test.exe' }
-if (-not $SkipIntegration) {
-    Gate 'worker integration' {
-        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'cloud\tests\worker_integration.ps1')
-        if ($LASTEXITCODE -ne 0) { throw "worker integration failed with $LASTEXITCODE" }
-    }
-}
 Gate 'desktop build' { RunPs (Join-Path $root 'build_deep.ps1') }
 Gate 'service build' { RunPs (Join-Path $root 'build_service.ps1') }
 if (-not $SkipIntegration) {
@@ -64,6 +58,12 @@ if (-not $SkipIntegration) {
     }
 }
 Gate 'worker build' { RunPs (Join-Path $root 'build_worker.ps1') }
+if (-not $SkipIntegration) {
+    Gate 'worker integration' {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'cloud\tests\worker_integration.ps1')
+        if ($LASTEXITCODE -ne 0) { throw "worker integration failed with $LASTEXITCODE" }
+    }
+}
 if (-not $SkipIntegration) {
     Gate 'live pause/resume/cancel' {
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'cloud\tests\live_state_test.ps1')

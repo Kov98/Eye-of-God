@@ -68,6 +68,29 @@ $collectSources = @(
 & $gpp -std=c++17 -O2 -Wall -Wextra -I $root -o $collect @collectSources -lwinhttp -lcrypt32 -lbcrypt -lws2_32
 if ($LASTEXITCODE -ne 0) { throw "cloud collect build failed: $LASTEXITCODE" }
 Write-Host "built $collect"
+$gcc = Join-Path (Split-Path $gpp -Parent) 'gcc.exe'
+$sqliteDir = Join-Path $root 'third_party\sqlite'
+$sqliteObj = Join-Path $sqliteDir 'sqlite3.o'
+if (-not (Test-Path $sqliteObj) -or (Get-Item (Join-Path $sqliteDir 'sqlite3.c')).LastWriteTime -gt (Get-Item $sqliteObj).LastWriteTime) {
+    & $gcc -O2 -c (Join-Path $sqliteDir 'sqlite3.c') -o $sqliteObj
+    if ($LASTEXITCODE -ne 0) { throw "sqlite build failed: $LASTEXITCODE" }
+}
+$dbTest = Join-Path $root 'cloud_db_import_test.exe'
+& $gpp -std=c++17 -O2 -fms-extensions -I $root -I (Join-Path $root 'third_party') -I $sqliteDir `
+    -o $dbTest (Join-Path $root 'cloud\tests\cloud_db_import_test.cpp') `
+    (Join-Path $root 'cloud\db\cloud_db_import.cpp') (Join-Path $root 'case_db.cpp') `
+    (Join-Path $root 'cloud\core\cloud_core.cpp') $sqliteObj -lbcrypt
+if ($LASTEXITCODE -ne 0) { throw "db import test build failed: $LASTEXITCODE" }
+Write-Host "built $dbTest"
+$leaseTest = Join-Path $root 'job_queue_lease_test.exe'
+& $gpp -std=c++17 -O2 -fms-extensions -I $root -I (Join-Path $root 'third_party') `
+    -o $leaseTest (Join-Path $root 'cloud\tests\job_queue_lease_test.cpp') `
+    (Join-Path $root 'cloud\service\job_queue.cpp') (Join-Path $root 'cloud\enterprise\secret_store.cpp') `
+    (Join-Path $root 'cloud\core\dpapi_token_vault.cpp') (Join-Path $root 'cloud\core\cloud_core.cpp') `
+    -lcrypt32 -lbcrypt -ladvapi32 -lws2_32
+if ($LASTEXITCODE -ne 0) { throw "lease test build failed: $LASTEXITCODE" }
+Write-Host "built $leaseTest"
+
 & $out
 if ($LASTEXITCODE -ne 0) { throw "cloud core tests failed: $LASTEXITCODE" }
 Write-Host "cloud core tests: PASS"
