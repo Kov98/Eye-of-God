@@ -325,3 +325,8 @@ distribuído pelo produto; o operador deve gerar e custodiar o seu.
 .\ci\sign_authenticode.ps1 -Files <exe> -PfxPath <codesign.pfx>
 .\ci\verify_authenticode.ps1 -Directory dist_full -ExpectedThumbprint <thumb>
 ```
+
+## Repositório
+
+Commit inicial: `697002c` (416 arquivos).
+Builds, releases, casos, VM, análise e material de chave são ignorados.
