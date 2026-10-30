@@ -8,5 +8,5 @@ jobs:
       - name: Secret probe
         shell: pwsh
         run: |
-          $s = '${{ secrets.RELEASE_PUBLIC_KEY_B64 }}'
-          Write-Host "pub length: $($s.Length)"
+          $s = '${{ secrets.TEST_SECRET }}'
+          Write-Host "test length: $($s.Length)"
