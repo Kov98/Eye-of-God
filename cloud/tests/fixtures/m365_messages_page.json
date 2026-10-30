@@ -1,0 +1,51 @@
+{
+  "value": [
+    {
+      "id": "AAMkAGVmake001",
+      "subject": "Synthetic message one",
+      "from": {
+        "emailAddress": {
+          "name": "Sender One",
+          "address": "sender.one@example.test"
+        }
+      },
+      "toRecipients": [
+        {
+          "emailAddress": {
+            "name": "Analyst Demo",
+            "address": "analyst@example.test"
+          }
+        }
+      ],
+      "receivedDateTime": "2026-01-02T10:11:12Z",
+      "sentDateTime": "2026-01-02T10:11:10Z",
+      "hasAttachments": false,
+      "bodyPreview": "Synthetic fixture, no real data.",
+      "webLink": "https://outlook.example.test/mail/AAMkAGVmake001"
+    },
+    {
+      "id": "AAMkAGVmake002",
+      "subject": "Synthetic message two",
+      "from": {
+        "emailAddress": {
+          "name": "Sender Two",
+          "address": "sender.two@example.test"
+        }
+      },
+      "toRecipients": [
+        {
+          "emailAddress": {
+            "name": "Analyst Demo",
+            "address": "analyst@example.test"
+          }
+        }
+      ],
+      "receivedDateTime": "2026-01-03T08:00:00Z",
+      "sentDateTime": "2026-01-03T07:59:58Z",
+      "hasAttachments": true,
+      "bodyPreview": "Synthetic attachment fixture.",
+      "webLink": "https://outlook.example.test/mail/AAMkAGVmake002"
+    }
+  ],
+  "@odata.nextLink": null
+}

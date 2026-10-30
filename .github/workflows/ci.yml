@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-qt6-base
+            mingw-w64-ucrt-x86_64-pkgconf
+
+      - name: Build and test
+        shell: pwsh
+        run: |
+          $env:OLHO_GXX = 'C:\msys64\ucrt64\bin\g++.exe'
+          $env:OLHO_PYTHON = (Get-Command python).Source
+          .\ci\build_and_test.ps1
+
+      - name: Upload release candidates
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidates
+          path: |
+            releases/**/*.zip
+            releases/**/*.sha256
+          if-no-files-found: ignore

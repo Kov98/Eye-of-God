@@ -1,0 +1,43 @@
+# Build and release products
+/dist*/
+/releases/
+/cases/
+/analysis/
+/vm/
+/third_party/wdk/
+
+# Binaries and object files
+*.exe
+*.pdb
+*.o
+*.obj
+*.a
+*.dll
+*.lib
+*.zip
+*.7z
+*.part
+*.raw
+*.E01
+*.timeline
+*.jsonl
+
+# Signing and secret material
+*.pfx
+*.p12
+*.pem
+*.key
+*.priv
+*.sig
+/release_key/
+
+# Local state
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+/.vs/
+/.vscode/
+/.idea/
+__pycache__/
+*.pyc

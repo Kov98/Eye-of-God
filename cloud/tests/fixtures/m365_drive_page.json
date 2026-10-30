@@ -1,0 +1,33 @@
+{
+  "value": [
+    {
+      "id": "01DEMOFILE0001",
+      "name": "report.txt",
+      "size": 1451,
+      "file": {
+        "mimeType": "text/plain",
+        "hashes": {
+          "sha1Hash": "0000000000000000000000000000000000000000",
+          "quickXorHash": "AAAAAAAAAAAAAAAAAAAAAAAAAAA="
+        }
+      },
+      "createdDateTime": "2026-01-04T09:00:00Z",
+      "lastModifiedDateTime": "2026-01-04T09:05:00Z",
+      "webUrl": "https://example.sharepoint.test/report.txt",
+      "parentReference": {
+        "id": "01DEMOFOLDER0001",
+        "path": "/drive/root:/cases"
+      }
+    },
+    {
+      "id": "01DEMOFOLDER0001",
+      "name": "cases",
+      "folder": {
+        "childCount": 1
+      },
+      "createdDateTime": "2026-01-01T00:00:00Z",
+      "lastModifiedDateTime": "2026-01-04T09:05:00Z",
+      "webUrl": "https://example.sharepoint.test/cases"
+    }
+  ]
+}
