@@ -127,6 +127,8 @@
 #include <functional>
 #include <atomic>
 #include <cmath>
+#include <cstdio>
+#include <cstring>
 #include <thread>
 
 namespace deep {
@@ -5967,10 +5969,108 @@ void MainWindow::screenshot_setup(const QString& case_dir, const QString& tab_na
     std::printf("screenshot: aba nao encontrada: %s\n", qUtf8Printable(tab_name));
 }
 
+namespace {
+
+// --- evidencia de crash -----------------------------------------------------
+// Kai pediu para nao corrigir os crashes, so documentar. Documentar sem pilha
+// virou 29 APPCRASH sem uma unica linha de codigo apontada. Este filtro nao
+// corrige nada: ele grava, ao lado do exe, o codigo da excecao e a pilha com
+// modulo+offset, para o proximo diagnostico comecar de um fato.
+void append_text(char* buffer, int& used, int capacity, const char* text) {
+    const int length = static_cast<int>(std::strlen(text));
+    if (used + length >= capacity) return;
+    std::memcpy(buffer + used, text, static_cast<std::size_t>(length));
+    used += length;
+    buffer[used] = 0;
+}
+
+void append_hex(char* buffer, int& used, int capacity, std::uintptr_t value) {
+    char digits[2 * sizeof(std::uintptr_t) + 3];
+    int at = 0;
+    digits[at++] = '0';
+    digits[at++] = 'x';
+    bool started = false;
+    for (int shift = static_cast<int>(sizeof(std::uintptr_t) * 8) - 4; shift >= 0; shift -= 4) {
+        const unsigned nibble = static_cast<unsigned>((value >> shift) & 0xF);
+        if (!started && nibble == 0 && shift != 0) continue;
+        started = true;
+        digits[at++] = static_cast<char>(nibble < 10 ? '0' + nibble : 'a' + (nibble - 10));
+    }
+    digits[at] = 0;
+    append_text(buffer, used, capacity, digits);
+}
+
+LONG WINAPI write_crash_report(EXCEPTION_POINTERS* info) {
+    char path[MAX_PATH] = {0};
+    const DWORD length = ::GetModuleFileNameA(nullptr, path, MAX_PATH);
+    if (length == 0 || length >= MAX_PATH) return EXCEPTION_EXECUTE_HANDLER;
+    char* slash = std::strrchr(path, '\\');
+    if (slash == nullptr) return EXCEPTION_EXECUTE_HANDLER;
+    slash[1] = 0;
+    char name[64] = {0};
+    std::snprintf(name, sizeof(name), "crash-%lu.txt",
+                  static_cast<unsigned long>(::GetCurrentProcessId()));
+    std::strncat(path, name, MAX_PATH - std::strlen(path) - 1);
+    HANDLE file = ::CreateFileA(path, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                                FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) return EXCEPTION_EXECUTE_HANDLER;
+
+    char text[16384];
+    int used = 0;
+    text[0] = 0;
+    append_text(text, used, sizeof(text), "Olho de Deus - relatorio de crash\n");
+    append_text(text, used, sizeof(text), "codigo=0x");
+    {
+        char code[16];
+        std::snprintf(code, sizeof(code), "%08lx",
+                      static_cast<unsigned long>(info->ExceptionRecord->ExceptionCode));
+        append_text(text, used, sizeof(text), code);
+        append_text(text, used, sizeof(text), " endereco=");
+        append_hex(text, used, sizeof(text),
+                   reinterpret_cast<std::uintptr_t>(info->ExceptionRecord->ExceptionAddress));
+        append_text(text, used, sizeof(text), "\n");
+    }
+    append_text(text, used, sizeof(text), "pilha (modulo+offset, mais novo primeiro):\n");
+    void* frames[48] = {0};
+    const USHORT count = ::CaptureStackBackTrace(0, 48, frames, nullptr);
+    for (USHORT i = 0; i < count; ++i) {
+        HMODULE module = nullptr;
+        char module_path[MAX_PATH] = {0};
+        const char* base_name = "?";
+        if (::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                 reinterpret_cast<LPCSTR>(frames[i]), &module) &&
+            module != nullptr) {
+            if (::GetModuleFileNameA(module, module_path, MAX_PATH) != 0) {
+                const char* last = std::strrchr(module_path, '\\');
+                base_name = last != nullptr ? last + 1 : module_path;
+            }
+        }
+        append_text(text, used, sizeof(text), "  ");
+        append_text(text, used, sizeof(text), base_name);
+        append_text(text, used, sizeof(text), "+");
+        append_hex(text, used, sizeof(text),
+                   reinterpret_cast<std::uintptr_t>(frames[i]) -
+                       reinterpret_cast<std::uintptr_t>(module));
+        append_text(text, used, sizeof(text), "\n");
+    }
+    DWORD written = 0;
+    ::WriteFile(file, text, static_cast<DWORD>(used), &written, nullptr);
+    ::CloseHandle(file);
+    // Volta a procurar: se o WER estiver configurado nesta maquina, ele tambem
+    // grava o dump. O nosso texto e o que sobrevive sem admin.
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+}  // namespace
+
 int run_gui(HINSTANCE) {
     int argc = 1;
     char app_name[] = "OlhoDeDeus_gui";
     char* argv[] = {app_name, nullptr};
+    // Instalado antes de qualquer widget: o crash que nos interessa acontece no
+    // desmonte, e o filtro precisa continuar valendo ate o fim.
+    ::SetUnhandledExceptionFilter(write_crash_report);
     QApplication app(argc, argv);
 
     // Etapa 1: modo evidencia. Abre a janela, carrega um caso, escolhe a aba,
