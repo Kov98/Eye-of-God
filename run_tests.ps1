@@ -318,6 +318,31 @@ if ($code -ne 0) {
 }
 
 Write-Host ""
+Write-Host "=== 3c. evidencia visual da GUI ===" -ForegroundColor Cyan
+# Modo evidencia do produto: o proprio app carrega um caso, escolhe a aba e salva
+# um PNG. E a unica prova visual que esta maquina consegue produzir (automacao de
+# janela nao e confiavel aqui). O crash de saida (0xC0000005, docs/CRASHES-E-BUGS.md
+# secao 9) aparece no detalhe: o artefato e o que o modo promete.
+$shotExe = ".\OlhoDeDeus_gui.exe"
+if (-not (Test-Path $shotExe)) {
+    Stage "GUI: modo evidencia (screenshot)" $false "OlhoDeDeus_gui.exe ausente: rode build_deep.ps1"
+} else {
+    $shotDir = ".oracle\gui_shots"
+    New-Item -ItemType Directory -Force $shotDir | Out-Null
+    $shotPng = Join-Path $shotDir "suite_timeline.png"
+    Remove-Item $shotPng -Force -ErrorAction SilentlyContinue
+    $shotWa = (Resolve-Path ".oracle\wa_tl" -ErrorAction SilentlyContinue)
+    $shotArgs = @("--screenshot", $shotPng, "--tab", "Timeline")
+    if ($shotWa) { $shotArgs += @("--case", $shotWa.Path) }
+    $shotProc = Start-Process -FilePath $shotExe -ArgumentList $shotArgs -NoNewWindow -Wait -PassThru
+    $shotCode = $shotProc.ExitCode
+    $shotOk = (Test-Path $shotPng) -and ((Get-Item $shotPng).Length -gt 60000)
+    $shotBytes = if (Test-Path $shotPng) { (Get-Item $shotPng).Length } else { 0 }
+    $shotNote = if ($shotCode -eq 0) { "saida limpa" } elseif ($shotCode -eq -1073741819) { "saida com crash conhecido 0xC0000005 (CRASHES-E-BUGS 9)" } else { "saida=" + $shotCode }
+    Stage "GUI: modo evidencia (screenshot)" $shotOk ("png=" + $shotBytes + " bytes  " + $shotNote)
+}
+
+Write-Host ""
 Write-Host "=== 4. suites dos modulos ===" -ForegroundColor Cyan
 foreach ($s in @(@{n="iOS backup+keybag"; p=".oracle_ios\run_all.ps1"}, @{n="Android ADB+.ab"; p=".oracle_android\run_oracle.ps1"}, @{n="Galeria+EXIF"; p=".oracle_gallery\run_all.ps1"}, @{n="Timeline do caso"; p=".oracle_timeline\run_all.ps1"}, @{n="Rust formatguard"; p=".oracle_rust\run.ps1"}, @{n="Export social (DYI)"; p=".oracle_social\run_all.ps1"})) {
     if (-not (Test-Path $s.p)) { Stage $s.n $false "runner ausente"; continue }

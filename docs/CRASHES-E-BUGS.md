@@ -245,3 +245,62 @@ Alternativa mínima, se a intenção for impedir o fechamento de vez: tirar
 `DockWidgetClosable` de `make_dock` — mas isso tira um recurso que o
 usuário pode querer. Preferir a ação de menu.
 
+---
+
+## 9. PRIMEIRA REPRODUCAO DETERMINISTICA (12/11/2026) — crash no desmonte da janela
+
+Ate aqui este documento tinha 29 APPCRASH em 30 dias **sem** saber onde o processo
+morria (secao 4). O modo evidencia `--screenshot` mudou isso: ele carrega um caso,
+salva um PNG e **sai sozinho** — e a saida e o ponto onde o processo sempre passa.
+Repetindo a mesma execucao, o crash aparece.
+
+### Como reproduzir
+
+```powershell
+# qualquer --case, ou nenhum; o crash nao depende do conteudo do caso
+.\OlhoDeDeus_gui.exe --screenshot saida.png --case cases\qualquer
+echo $LASTEXITCODE
+```
+
+### Resultado medido (15 execucoes, 3 casos diferentes)
+
+| Execucoes | Falhas | Codigo | PNG |
+|---|---|---|---|
+| 15 | **6** | -1073741819 = 0xC0000005 (access violation) | **sempre gravado, 118-143 KB, 1440x900** |
+
+Distribuicao das 6 falhas: 4x caso do motor (cases/case_20261027_181702_408Z),
+1x caso de WhatsApp (.oracle/wa_tl), 1x pasta vazia. Ou seja: **nao** e especifico
+de um caso.
+
+### O que isso ja prova
+
+- O crash acontece **no desmonte**, depois de window.grab() e do save()
+  retornarem: a mensagem "screenshot: ... salvo=1" sai no stdout **antes** da
+  morte, e o PNG esta integro no disco.
+- Nao e o carregamento assincrono da Timeline: um caso vazio (sem timeline
+  nenhuma) tambem caiu.
+- Nao e dupla carga: o modo evidencia suprime o load_case() automatico do
+  construtor (g_gui_evidence_mode) e o crash continua.
+
+### Suspeitos (ordem de probabilidade, NAO verificados)
+
+1. **Desmonte de modelo de sistema de arquivos**: project_model_ (QFileSystemModel)
+   cria thread interna de watcher; destruir a janela enquanto ela ainda observa
+   diretorios e causa classica de AV em Qt 6.
+2. **delete auto_hide_ no destrutor** antes dos widgets que ele observa.
+3. Ordem entre MainWindow e QApplication: hoje a janela morre antes do app
+   (correto), mas com widgets de dock flutuantes a ordem fina de deleteLater pode
+   inverter.
+
+### Por que isto e a melhor pista que ja apareceu
+
+O crash tem **taxa de ~40%**, **gatilho automatico** (o app sai sozinho) e
+**artefato verificavel** por execucao. Ligar LocalDumps (WER) e rodar isto em laco
+da o dump com pilha em minutos — sem precisar reproduzir uso humano.
+
+### Correcao proposta (NAO aplicada)
+
+Nada alem de coletar o dump primeiro. Qualquer "correcao" antes do dump e chute, e
+o pedido do Kai foi explicito: documentar, nao mexer.
+
+

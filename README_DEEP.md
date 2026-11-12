@@ -429,6 +429,26 @@ distribuído pelo produto; o operador deve gerar e custodiar o seu.
 .\ci\verify_authenticode.ps1 -Directory dist_full -ExpectedThumbprint <thumb>
 ```
 
+## Modo evidência: `--screenshot` (prova visual da GUI)
+
+Automação de janela nesta máquina não é confiável (foco roubado, VM concorrente),
+então todo recurso de GUI ficou sem prova visual. O próprio app resolve isso:
+
+```powershell
+.\OlhoDeDeus_gui.exe --screenshot saida.png [--case <dir>] [--tab <nome>] [--delay <ms>]
+```
+
+- carrega o caso, escolhe a aba (por nome, `contém`, sem diferenciar maiúsculas),
+  espera a Timeline assíncrona assentar, salva PNG 1440x900 e sai;
+- código de saída 0 = salvo, 2 = falhou; imprime `screenshot: <path> salvo=N WxH`;
+- o cadeado de instância única é **ignorado** neste modo (fotografar a janela que já
+  está aberta é uso legítimo);
+- o carregamento automático do caso mais recente é **suprimido**
+  (`g_gui_evidence_mode`), senão ele rodava depois e desfazia o `--case`.
+
+Prova imediata: a primeira execução já revelou um crash reproduzível na saída
+(documentado em `docs/CRASHES-E-BUGS.md` §9) e duas falhas de layout na Timeline.
+
 ## Repositório
 
 Commit inicial: `697002c` (416 arquivos).
