@@ -215,7 +215,9 @@ protected:
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.fillRect(rect(), QColor(theme::document()));
-        const QRect area = rect().adjusted(54, 34, -26, -44);
+        // Goteira esquerda larga o bastante para o nome da fonte: as linhas da
+        // timeline sao POR FONTE, e sem o nome a faixa nao significa nada.
+        const QRect area = rect().adjusted(150, 34, -26, -44);
         painter.setPen(QPen(QColor(theme::lineGrid()), 1));
         painter.drawLine(area.left(), area.bottom(), area.right(), area.bottom());
         painter.drawLine(area.left(), area.top(), area.left(), area.bottom());
@@ -235,20 +237,83 @@ protected:
             const QDateTime first = times_.first();
             const QDateTime last = times_.last();
             const qint64 span = qMax<qint64>(1, first.msecsTo(last));
+
+            // ---- faixas por FONTE -------------------------------------------
+            // Antes a altura era (i % 5), ou seja: posicao vertical sorteada pelo
+            // indice. Agora cada fonte (o prefixo do rotulo) tem a sua faixa, e os
+            // eventos ficam na mesma linha do tempo que os irmaos deles.
+            QStringList sources;
+            QHash<QString, int> source_index;
+            for (int i = 0; i < times_.size(); ++i) {
+                QString source = labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed();
+                if (source.isEmpty()) source = QStringLiteral("Evento");
+                if (!source_index.contains(source)) {
+                    source_index.insert(source, sources.size());
+                    sources << source;
+                }
+            }
+            constexpr int kMaxLanes = 8;
+            const bool overflow = sources.size() > kMaxLanes;
+            const int lane_count = overflow ? kMaxLanes : qMax(1, sources.size());
+            const auto lane_for_source = [&](int index) {
+                if (!overflow) return index;
+                return index < kMaxLanes - 1 ? index : kMaxLanes - 1;
+            };
+            const double lane_height = area.height() / double(lane_count);
+            const QFont lane_font("Segoe UI", 8);
+            const QFontMetrics lane_metrics(lane_font);
+            painter.setFont(lane_font);
+
+            // Rotulo curto por evento: a hora sempre, o id so quando cabe. O id
+            // completo (jid) fica no painel de detalhes; repetir 36 vezes na mesma
+            // faixa era o que virava borrao.
+            QVector<double> last_label_x(lane_count, -1.0e9);
+            QVector<int> lane_of(times_.size(), 0);
+
+            for (int lane = 0; lane < lane_count; ++lane) {
+                const QString name = overflow && lane == kMaxLanes - 1
+                    ? QStringLiteral("outras fontes (%1)").arg(sources.size() - (kMaxLanes - 1))
+                    : sources.value(lane);
+                const double y = area.top() + lane_height * (lane + 0.5);
+                if (lane > 0) {
+                    painter.setPen(QPen(QColor(theme::lineGrid()), 1, Qt::DotLine));
+                    painter.drawLine(QPointF(area.left(), y), QPointF(area.right(), y));
+                }
+                painter.setPen(QColor(theme::textMuted()));
+                const QRect caption(area.left() - 144, int(y) - 8, 138, 16);
+                painter.drawText(caption, Qt::AlignRight | Qt::AlignVCenter,
+                                 lane_metrics.elidedText(name, Qt::ElideMiddle, 134));
+            }
+
             for (int i = 0; i < times_.size(); ++i) {
                 const double ratio = static_cast<double>(first.msecsTo(times_[i])) / span;
-                const QPointF point(area.left() + area.width() * ratio,
-                                    area.top() + area.height() * (0.25 + 0.5 * (i % 5) / 4.0));
-                painter.setPen(QPen(QColor(theme::selectionBorder()), 1, Qt::DashLine));
-                painter.drawLine(QPointF(point.x(), area.bottom()), point);
+                const int source = source_index.value(
+                    labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed().isEmpty()
+                        ? QStringLiteral("Evento")
+                        : labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed());
+                const int lane = lane_for_source(source);
+                lane_of[i] = lane;
+                const double y = area.top() + lane_height * (lane + 0.5);
+                const QPointF point(area.left() + area.width() * ratio, y);
                 painter.setBrush(QColor(theme::textOnDocument()));
-                painter.setPen(QPen(QColor(theme::textOnDocument()), 1));
-                painter.drawEllipse(point, 3, 3);
-                if (i % qMax(1, times_.size() / 12) == 0) {
-                    painter.setPen(QColor(theme::textDim()));
-                    painter.setFont(QFont("Segoe UI", 8));
-                    painter.drawText(point + QPointF(6, -5), labels_.value(i));
-                }
+                painter.setPen(QPen(QColor(theme::document()), 1));
+                painter.drawEllipse(point, 2.5, 2.5);
+
+                // Rotulo: no maximo um a cada 150 px NA MESMA faixa, sempre dentro
+                // da area. Sem estas duas regras o texto dos eventos vizinhos se
+                // sobrepoe - era o defeito visivel na captura.
+                if (point.x() - last_label_x.at(lane) < 150.0) continue;
+                const QString stamp = times_.at(i).toString(QStringLiteral("HH:mm:ss"));
+                const QString id = labels_.value(i).section(QStringLiteral("#"), -1);
+                QString text = stamp;
+                if (!id.isEmpty()) text += QStringLiteral("  ") + id;
+                const int width = lane_metrics.horizontalAdvance(text);
+                double x = point.x() + 6.0;
+                if (x + width > area.right()) x = point.x() - 6.0 - width;
+                if (x < area.left() + 2.0) continue;   // nao cabe nem recuando
+                last_label_x[lane] = point.x();
+                painter.setPen(QColor(theme::textDim()));
+                painter.drawText(QPointF(x, y - 7.0), text);
             }
         } else {
         struct Event { double x; double y; const char* label; const char* time; };
