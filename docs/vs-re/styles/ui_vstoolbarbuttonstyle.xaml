@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:cvrts="clr-namespace:Microsoft.VisualStudio.Shell.Converters;assembly=Microsoft.VisualStudio.Shell.Styles" xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles;assembly=Microsoft.VisualStudio.Shell.Styles" xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI" xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="ToolBarButtonBaseStyle.xaml" />
+    <ResourceDictionary Source="ToolBarMenuStyle.xaml" />
+  </ResourceDictionary.MergedDictionaries>
+  <vs:CommandConverter x:Key="CommandConverter" />
+  <vs:MonikerSourceToImageConverter x:Key="MonikerSourceToImageConverter" />
+  <vs:MonikerSourceToMonikerConverter x:Key="MonikerSourceToMonikerConverter" />
+  <vsui:AccessKeyRemovingConverter x:Key="AccessKeyRemovingConverter" />
+  <vsui:NegateBooleanConverter x:Key="NegateBooleanConverter" />
+  <Style x:Key="{x:Static vs:VsToolBar.ButtonStyleKey}" BasedOn="{StaticResource ToolBarButtonBaseStyle}" TargetType="{x:Type Button}">
+    <Setter Property="Command" Value="{Binding Converter={StaticResource CommandConverter}}" />
+    <Setter Property="InputMethod.IsInputMethodSuspended" Value="True" />
+    <Setter Property="Margin" Value="{x:Static styles:Spacings.XXXS}" />
+    <Setter Property="Visibility" Value="{Binding IsVisible, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}" />
+    <Setter Property="ContentTemplate">
+      <Setter.Value>
+        <DataTemplate>
+          <imaging:CrispImage DataContext="{Binding DataContext, Mode=OneTime, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Grayscale="{Binding IsEnabled, Converter={StaticResource NegateBooleanConverter}}" Moniker="{Binding ImageMonikerSource, Converter={StaticResource MonikerSourceToMonikerConverter}}" />
+        </DataTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="vs:VsToolBar.IsSplitButton" Value="True">
+        <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+              <Menu FocusManager.IsFocusScope="False" Style="{StaticResource ToolBarMenuStyle}" AutomationProperties.Name="{Binding Text, Converter={StaticResource AccessKeyRemovingConverter}}">
+                <ItemsControl.Items>
+                  <vs:VsSplitButton x:Name="PART_FocusTarget" vs:VsToolBar.IsToolBarHostedMenuItem="True" ItemsSource="{Binding Items}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}">
+                    <MenuItem.Icon>
+                      <MultiBinding Converter="{StaticResource MonikerSourceToImageConverter}">
+                        <Binding Path="ImageMonikerSource" />
+                        <Binding Path="IsEnabled" />
+                      </MultiBinding>
+                    </MenuItem.Icon>
+                  </vs:VsSplitButton>
+                </ItemsControl.Items>
+                <Control.Template>
+                  <ControlTemplate TargetType="{x:Type Menu}">
+                    <ContentPresenter Content="{Binding Items[0], RelativeSource={RelativeSource TemplatedParent}}" />
+                  </ControlTemplate>
+                </Control.Template>
+              </Menu>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+</ResourceDictionary>

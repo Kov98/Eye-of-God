@@ -1,0 +1,3 @@
+/target/
+# artefatos gerados por tools/gen_corpus.py (recriaveis com python tools/gen_corpus.py)
+/tests/corpus/mut/

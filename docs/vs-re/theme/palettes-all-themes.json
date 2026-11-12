@@ -1,0 +1,6534 @@
+{
+ "dark": {
+  "BluePrimary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 255,
+   "type": 1
+  },
+  "BluePrimaryAlt": {
+   "r": 92,
+   "g": 170,
+   "b": 229,
+   "a": 255,
+   "type": 1
+  },
+  "BlueQuaternary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 102,
+   "type": 1
+  },
+  "BlueQuinary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 51,
+   "type": 1
+  },
+  "BlueSecondary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 204,
+   "type": 1
+  },
+  "BlueSenary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 31,
+   "type": 1
+  },
+  "BlueTertiary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 153,
+   "type": 1
+  },
+  "DarkBluePrimary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBluePrimaryAlt": {
+   "r": 146,
+   "g": 181,
+   "b": 209,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBlueQuaternary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 102,
+   "type": 1
+  },
+  "DarkBlueQuinary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 51,
+   "type": 1
+  },
+  "DarkBlueSecondary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 204,
+   "type": 1
+  },
+  "DarkBlueSenary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 31,
+   "type": 1
+  },
+  "DarkBlueTertiary": {
+   "r": 65,
+   "g": 120,
+   "b": 163,
+   "a": 153,
+   "type": 1
+  },
+  "DarkRedPrimary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 255,
+   "type": 1
+  },
+  "DarkRedPrimaryAlt": {
+   "r": 214,
+   "g": 156,
+   "b": 165,
+   "a": 255,
+   "type": 1
+  },
+  "DarkRedQuaternary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 102,
+   "type": 1
+  },
+  "DarkRedQuinary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 51,
+   "type": 1
+  },
+  "DarkRedSecondary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 204,
+   "type": 1
+  },
+  "DarkRedSenary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 31,
+   "type": 1
+  },
+  "DarkRedTertiary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 153,
+   "type": 1
+  },
+  "GrapePrimary": {
+   "r": 181,
+   "g": 95,
+   "b": 193,
+   "a": 255,
+   "type": 1
+  },
+  "GrapePrimaryAlt": {
+   "r": 217,
+   "g": 167,
+   "b": 224,
+   "a": 255,
+   "type": 1
+  },
+  "GrapeQuaternary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 102,
+   "type": 1
+  },
+  "GrapeQuinary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 51,
+   "type": 1
+  },
+  "GrapeSecondary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 204,
+   "type": 1
+  },
+  "GrapeSenary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 31,
+   "type": 1
+  },
+  "GrapeTertiary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 153,
+   "type": 1
+  },
+  "GreenPrimary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 255,
+   "type": 1
+  },
+  "GreenPrimaryAlt": {
+   "r": 84,
+   "g": 176,
+   "b": 84,
+   "a": 255,
+   "type": 1
+  },
+  "GreenQuaternary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 102,
+   "type": 1
+  },
+  "GreenQuinary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 51,
+   "type": 1
+  },
+  "GreenSecondary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 204,
+   "type": 1
+  },
+  "GreenSenary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 31,
+   "type": 1
+  },
+  "GreenTertiary": {
+   "r": 53,
+   "g": 155,
+   "b": 53,
+   "a": 153,
+   "type": 1
+  },
+  "GreyPrimary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 255,
+   "type": 1
+  },
+  "GreyPrimaryAlt": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 255,
+   "type": 1
+  },
+  "GreyQuaternary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 102,
+   "type": 1
+  },
+  "GreyQuinary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 51,
+   "type": 1
+  },
+  "GreySecondary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 204,
+   "type": 1
+  },
+  "GreySenary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 31,
+   "type": 1
+  },
+  "GreyTertiary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 153,
+   "type": 1
+  },
+  "LavenderPrimary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "LavenderPrimaryAlt": {
+   "r": 210,
+   "g": 204,
+   "b": 248,
+   "a": 255,
+   "type": 1
+  },
+  "LavenderQuaternary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 102,
+   "type": 1
+  },
+  "LavenderQuinary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 51,
+   "type": 1
+  },
+  "LavenderSecondary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 204,
+   "type": 1
+  },
+  "LavenderSenary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 31,
+   "type": 1
+  },
+  "LavenderTertiary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 153,
+   "type": 1
+  },
+  "LightBluePrimary": {
+   "r": 101,
+   "g": 173,
+   "b": 229,
+   "a": 255,
+   "type": 1
+  },
+  "LightBluePrimaryAlt": {
+   "r": 131,
+   "g": 189,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "LightBlueQuaternary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 102,
+   "type": 1
+  },
+  "LightBlueQuinary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 51,
+   "type": 1
+  },
+  "LightBlueSecondary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 204,
+   "type": 1
+  },
+  "LightBlueSenary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 31,
+   "type": 1
+  },
+  "LightBlueTertiary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 153,
+   "type": 1
+  },
+  "NeutralPrimary": {
+   "r": 204,
+   "g": 204,
+   "b": 204,
+   "a": 255,
+   "type": 1
+  },
+  "NeutralPrimaryAlt": {
+   "r": 128,
+   "g": 128,
+   "b": 128,
+   "a": 255,
+   "type": 1
+  },
+  "NeutralQuaternary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 102,
+   "type": 1
+  },
+  "NeutralQuinary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 51,
+   "type": 1
+  },
+  "NeutralSecondary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 204,
+   "type": 1
+  },
+  "NeutralSenary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 31,
+   "type": 1
+  },
+  "NeutralSeptenary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 133,
+   "type": 1
+  },
+  "NeutralTertiary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 153,
+   "type": 1
+  },
+  "OrangePrimary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 255,
+   "type": 1
+  },
+  "OrangePrimaryAlt": {
+   "r": 250,
+   "g": 160,
+   "b": 107,
+   "a": 255,
+   "type": 1
+  },
+  "OrangeQuaternary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 102,
+   "type": 1
+  },
+  "OrangeQuinary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 51,
+   "type": 1
+  },
+  "OrangeSecondary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 204,
+   "type": 1
+  },
+  "OrangeSenary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 31,
+   "type": 1
+  },
+  "OrangeTertiary": {
+   "r": 249,
+   "g": 136,
+   "b": 69,
+   "a": 153,
+   "type": 1
+  },
+  "PinkPrimary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "PinkPrimaryAlt": {
+   "r": 234,
+   "g": 102,
+   "b": 186,
+   "a": 255,
+   "type": 1
+  },
+  "PinkQuaternary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 102,
+   "type": 1
+  },
+  "PinkQuinary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 51,
+   "type": 1
+  },
+  "PinkSecondary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 204,
+   "type": 1
+  },
+  "PinkSenary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 31,
+   "type": 1
+  },
+  "PinkTertiary": {
+   "r": 231,
+   "g": 80,
+   "b": 176,
+   "a": 153,
+   "type": 1
+  },
+  "PurplePrimary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 255,
+   "type": 1
+  },
+  "PurplePrimaryAlt": {
+   "r": 198,
+   "g": 177,
+   "b": 222,
+   "a": 255,
+   "type": 1
+  },
+  "PurpleQuaternary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 102,
+   "type": 1
+  },
+  "PurpleQuinary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 51,
+   "type": 1
+  },
+  "PurpleSecondary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 204,
+   "type": 1
+  },
+  "PurpleSenary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 31,
+   "type": 1
+  },
+  "PurpleTertiary": {
+   "r": 148,
+   "g": 112,
+   "b": 189,
+   "a": 153,
+   "type": 1
+  },
+  "RedPrimary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 255,
+   "type": 1
+  },
+  "RedPrimaryAlt": {
+   "r": 220,
+   "g": 98,
+   "b": 109,
+   "a": 255,
+   "type": 1
+  },
+  "RedQuaternary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 102,
+   "type": 1
+  },
+  "RedQuinary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 51,
+   "type": 1
+  },
+  "RedSecondary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 204,
+   "type": 1
+  },
+  "RedSenary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 31,
+   "type": 1
+  },
+  "RedTertiary": {
+   "r": 211,
+   "g": 63,
+   "b": 76,
+   "a": 153,
+   "type": 1
+  },
+  "TealPrimary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "TealPrimaryAlt": {
+   "r": 76,
+   "g": 180,
+   "b": 183,
+   "a": 255,
+   "type": 1
+  },
+  "TealQuaternary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 102,
+   "type": 1
+  },
+  "TealQuinary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 51,
+   "type": 1
+  },
+  "TealSecondary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 204,
+   "type": 1
+  },
+  "TealSenary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 31,
+   "type": 1
+  },
+  "TealTertiary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 153,
+   "type": 1
+  },
+  "YellowPrimary": {
+   "r": 239,
+   "g": 184,
+   "b": 57,
+   "a": 255,
+   "type": 1
+  },
+  "YellowPrimaryAlt": {
+   "r": 242,
+   "g": 198,
+   "b": 97,
+   "a": 255,
+   "type": 1
+  },
+  "YellowQuaternary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 102,
+   "type": 1
+  },
+  "YellowQuinary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 51,
+   "type": 1
+  },
+  "YellowSecondary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 204,
+   "type": 1
+  },
+  "YellowSenary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 31,
+   "type": 1
+  },
+  "YellowTertiary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 153,
+   "type": 1
+  },
+  "PopupBackground": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "PopupBorder": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "PopupHyperlink": {
+   "r": 131,
+   "g": 190,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "PopupSelectedBackground": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "PopupSelectedText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "PopupShadow": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 77,
+   "type": 1
+  },
+  "PopupSubtleText": {
+   "r": 161,
+   "g": 161,
+   "b": 161,
+   "a": 255,
+   "type": 1
+  },
+  "PopupText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillAlt": {
+   "r": 210,
+   "g": 204,
+   "b": 248,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillDefault": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 40,
+   "type": 1
+  },
+  "AccentFillSecondary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 229,
+   "type": 1
+  },
+  "AccentFillSelectedTextBackground": {
+   "r": 0,
+   "g": 95,
+   "b": 183,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillSelectedTextBackgroundSubtle": {
+   "r": 96,
+   "g": 205,
+   "b": 255,
+   "a": 102,
+   "type": 1
+  },
+  "AccentFillSenary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 31,
+   "type": 1
+  },
+  "AccentFillTertiary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 204,
+   "type": 1
+  },
+  "AccentTextFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 93,
+   "type": 1
+  },
+  "AccentTextFillPrimary": {
+   "r": 210,
+   "g": 204,
+   "b": 248,
+   "a": 255,
+   "type": 1
+  },
+  "AccentTextFillSecondary": {
+   "r": 210,
+   "g": 204,
+   "b": 248,
+   "a": 255,
+   "type": 1
+  },
+  "AccentTextFillTertiary": {
+   "r": 167,
+   "g": 156,
+   "b": 241,
+   "a": 255,
+   "type": 1
+  },
+  "CardBackgroundFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 13,
+   "type": 1
+  },
+  "CardBackgroundFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 8,
+   "type": 1
+  },
+  "CardBackgroundFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 18,
+   "type": 1
+  },
+  "CardStrokeDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 26,
+   "type": 1
+  },
+  "CardStrokeDefaultSolid": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "CardStrokeDefaultSolidAlt": {
+   "r": 10,
+   "g": 10,
+   "b": 10,
+   "a": 255,
+   "type": 1
+  },
+  "ControlAltFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlAltFillQuaternary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 18,
+   "type": 1
+  },
+  "ControlAltFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 26,
+   "type": 1
+  },
+  "ControlAltFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 11,
+   "type": 1
+  },
+  "ControlAltFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlFillActiveInput": {
+   "r": 30,
+   "g": 30,
+   "b": 30,
+   "a": 178,
+   "type": 1
+  },
+  "ControlFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 15,
+   "type": 1
+  },
+  "ControlFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 11,
+   "type": 1
+  },
+  "ControlFillQuaternary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 15,
+   "type": 1
+  },
+  "ControlFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 21,
+   "type": 1
+  },
+  "ControlFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 8,
+   "type": 1
+  },
+  "ControlFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlOnImageFillDefault": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 178,
+   "type": 1
+  },
+  "ControlOnImageFillDisabled": {
+   "r": 30,
+   "g": 30,
+   "b": 30,
+   "a": 0,
+   "type": 1
+  },
+  "ControlOnImageFillSecondary": {
+   "r": 26,
+   "g": 26,
+   "b": 26,
+   "a": 255,
+   "type": 1
+  },
+  "ControlOnImageFillTertiary": {
+   "r": 19,
+   "g": 19,
+   "b": 19,
+   "a": 255,
+   "type": 1
+  },
+  "ControlSolidFillDefault": {
+   "r": 69,
+   "g": 69,
+   "b": 69,
+   "a": 255,
+   "type": 1
+  },
+  "ControlStrokeDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 18,
+   "type": 1
+  },
+  "ControlStrokeForStrongFillWhenOnImage": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 107,
+   "type": 1
+  },
+  "ControlStrokeOnAccentDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 20,
+   "type": 1
+  },
+  "ControlStrokeOnAccentDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 51,
+   "type": 1
+  },
+  "ControlStrokeOnAccentSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 36,
+   "type": 1
+  },
+  "ControlStrokeOnAccentTertiary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 55,
+   "type": 1
+  },
+  "ControlStrokeSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 18,
+   "type": 1
+  },
+  "ControlStrokeTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlStrongFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 139,
+   "type": 1
+  },
+  "ControlStrongFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 63,
+   "type": 1
+  },
+  "ControlStrongStrokeDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 154,
+   "type": 1
+  },
+  "ControlStrongStrokeDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 40,
+   "type": 1
+  },
+  "DividerStrokeDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 21,
+   "type": 1
+  },
+  "FocusStrokeInner": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 178,
+   "type": 1
+  },
+  "FocusStrokeOuter": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 93,
+   "type": 1
+  },
+  "HyperlinkFillPrimary": {
+   "r": 153,
+   "g": 235,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkFillSecondary": {
+   "r": 96,
+   "g": 205,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkFillTertiary": {
+   "r": 96,
+   "g": 205,
+   "b": 255,
+   "a": 230,
+   "type": 1
+  },
+  "LayerFillAlt": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 14,
+   "type": 1
+  },
+  "LayerFillDefault": {
+   "r": 58,
+   "g": 58,
+   "b": 58,
+   "a": 77,
+   "type": 1
+  },
+  "ShadowFlyout": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 66,
+   "type": 1
+  },
+  "SmokeFillDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 77,
+   "type": 1
+  },
+  "SmokeFillInverse": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 178,
+   "type": 1
+  },
+  "SolidBackgroundFillBase": {
+   "r": 32,
+   "g": 32,
+   "b": 32,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillBaseAlt": {
+   "r": 10,
+   "g": 10,
+   "b": 10,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillQuaternary": {
+   "r": 44,
+   "g": 44,
+   "b": 44,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillQuinary": {
+   "r": 51,
+   "g": 51,
+   "b": 51,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillSecondary": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillSenary": {
+   "r": 55,
+   "g": 55,
+   "b": 55,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillTertiary": {
+   "r": 40,
+   "g": 40,
+   "b": 40,
+   "a": 255,
+   "type": 1
+  },
+  "SubtleFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "SubtleFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 15,
+   "type": 1
+  },
+  "SubtleFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 11,
+   "type": 1
+  },
+  "SubtleFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "SurfaceBackgroundFillDefault": {
+   "r": 44,
+   "g": 44,
+   "b": 44,
+   "a": 255,
+   "type": 1
+  },
+  "SurfaceStrokeDefault": {
+   "r": 117,
+   "g": 117,
+   "b": 117,
+   "a": 102,
+   "type": 1
+  },
+  "SurfaceStrokeFlyout": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 51,
+   "type": 1
+  },
+  "SystemFillAttention": {
+   "r": 96,
+   "g": 205,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillAttentionBackground": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 8,
+   "type": 1
+  },
+  "SystemFillCaution": {
+   "r": 252,
+   "g": 225,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCautionBackground": {
+   "r": 67,
+   "g": 53,
+   "b": 25,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCritical": {
+   "r": 255,
+   "g": 153,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCriticalBackground": {
+   "r": 68,
+   "g": 39,
+   "b": 38,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillNeutral": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 139,
+   "type": 1
+  },
+  "SystemFillNeutralBackground": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 8,
+   "type": 1
+  },
+  "SystemFillSolidAttentionBackground": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSolidNeutral": {
+   "r": 138,
+   "g": 138,
+   "b": 138,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSolidNeutralBackground": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSuccess": {
+   "r": 108,
+   "g": 203,
+   "b": 95,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSuccessBackground": {
+   "r": 57,
+   "g": 61,
+   "b": 27,
+   "a": 255,
+   "type": 1
+  },
+  "TextFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 93,
+   "type": 1
+  },
+  "TextFillPrimary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "TextFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 200,
+   "type": 1
+  },
+  "TextFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 139,
+   "type": 1
+  },
+  "TextOnAccentFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 128,
+   "type": 1
+  },
+  "TextOnAccentFillPrimary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "TextOnAccentFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 128,
+   "type": 1
+  },
+  "TextOnAccentFillSelectedText": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseFillPrimary": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseFillSecondary": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 230,
+   "type": 1
+  },
+  "CaptionControlCloseTextFillPrimary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseTextFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 179,
+   "type": 1
+  },
+  "EnvironmentBackground": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBadge": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 15,
+   "type": 1
+  },
+  "EnvironmentBody": {
+   "r": 28,
+   "g": 28,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBodyText": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBorder": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBorderInactive": {
+   "r": 69,
+   "g": 69,
+   "b": 69,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentHeader": {
+   "r": 40,
+   "g": 40,
+   "b": 40,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentHeaderInactive": {
+   "r": 40,
+   "g": 40,
+   "b": 40,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentIndicator": {
+   "r": 117,
+   "g": 117,
+   "b": 117,
+   "a": 102,
+   "type": 1
+  },
+  "EnvironmentLayeredBackground": {
+   "r": 58,
+   "g": 58,
+   "b": 58,
+   "a": 77,
+   "type": 1
+  },
+  "EnvironmentLayeredBorder": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 128,
+   "type": 1
+  },
+  "EnvironmentLogo": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentTab": {
+   "r": 40,
+   "g": 40,
+   "b": 40,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentTabInactive": {
+   "r": 40,
+   "g": 40,
+   "b": 40,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillBuilding": {
+   "r": 63,
+   "g": 54,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillDebugging": {
+   "r": 122,
+   "g": 33,
+   "b": 1,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillRest": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 77,
+   "type": 1
+  },
+  "StatusBarBackgroundFillSolutionLoading": {
+   "r": 0,
+   "g": 59,
+   "b": 106,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarControlFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 32,
+   "type": 1
+  },
+  "StatusBarTextFillBuilding": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillDebugging": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 93,
+   "type": 1
+  },
+  "StatusBarTextFillRest": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillSolutionLoading": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  }
+ },
+ "light": {
+  "BluePrimary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 255,
+   "type": 1
+  },
+  "BluePrimaryAlt": {
+   "r": 0,
+   "g": 91,
+   "b": 161,
+   "a": 255,
+   "type": 1
+  },
+  "BlueQuaternary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 102,
+   "type": 1
+  },
+  "BlueQuinary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 51,
+   "type": 1
+  },
+  "BlueSecondary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 204,
+   "type": 1
+  },
+  "BlueSenary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 31,
+   "type": 1
+  },
+  "BlueTertiary": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 153,
+   "type": 1
+  },
+  "DarkBluePrimary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBluePrimaryAlt": {
+   "r": 0,
+   "g": 59,
+   "b": 106,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBlueQuaternary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 102,
+   "type": 1
+  },
+  "DarkBlueQuinary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 51,
+   "type": 1
+  },
+  "DarkBlueSecondary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 204,
+   "type": 1
+  },
+  "DarkBlueSenary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 31,
+   "type": 1
+  },
+  "DarkBlueTertiary": {
+   "r": 0,
+   "g": 78,
+   "b": 140,
+   "a": 153,
+   "type": 1
+  },
+  "DarkRedPrimary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 255,
+   "type": 1
+  },
+  "DarkRedPrimaryAlt": {
+   "r": 150,
+   "g": 47,
+   "b": 63,
+   "a": 255,
+   "type": 1
+  },
+  "DarkRedQuaternary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 102,
+   "type": 1
+  },
+  "DarkRedQuinary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 51,
+   "type": 1
+  },
+  "DarkRedSecondary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 204,
+   "type": 1
+  },
+  "DarkRedSenary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 31,
+   "type": 1
+  },
+  "DarkRedTertiary": {
+   "r": 172,
+   "g": 79,
+   "b": 94,
+   "a": 153,
+   "type": 1
+  },
+  "GrapePrimary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 255,
+   "type": 1
+  },
+  "GrapePrimaryAlt": {
+   "r": 149,
+   "g": 42,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "GrapeQuaternary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 102,
+   "type": 1
+  },
+  "GrapeQuinary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 51,
+   "type": 1
+  },
+  "GrapeSecondary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 204,
+   "type": 1
+  },
+  "GrapeSenary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 31,
+   "type": 1
+  },
+  "GrapeTertiary": {
+   "r": 163,
+   "g": 63,
+   "b": 177,
+   "a": 153,
+   "type": 1
+  },
+  "GreenPrimary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 255,
+   "type": 1
+  },
+  "GreenPrimaryAlt": {
+   "r": 16,
+   "g": 124,
+   "b": 16,
+   "a": 255,
+   "type": 1
+  },
+  "GreenQuaternary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 102,
+   "type": 1
+  },
+  "GreenQuinary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 51,
+   "type": 1
+  },
+  "GreenSecondary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 204,
+   "type": 1
+  },
+  "GreenSenary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 31,
+   "type": 1
+  },
+  "GreenTertiary": {
+   "r": 33,
+   "g": 140,
+   "b": 33,
+   "a": 153,
+   "type": 1
+  },
+  "GreyPrimary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 255,
+   "type": 1
+  },
+  "GreyPrimaryAlt": {
+   "r": 104,
+   "g": 104,
+   "b": 104,
+   "a": 255,
+   "type": 1
+  },
+  "GreyQuaternary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 102,
+   "type": 1
+  },
+  "GreyQuinary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 51,
+   "type": 1
+  },
+  "GreySecondary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 204,
+   "type": 1
+  },
+  "GreySenary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 31,
+   "type": 1
+  },
+  "GreyTertiary": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 153,
+   "type": 1
+  },
+  "LavenderPrimary": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "LavenderPrimaryAlt": {
+   "r": 63,
+   "g": 54,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "LavenderQuaternary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 102,
+   "type": 1
+  },
+  "LavenderQuinary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 51,
+   "type": 1
+  },
+  "LavenderSecondary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 204,
+   "type": 1
+  },
+  "LavenderSenary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 31,
+   "type": 1
+  },
+  "LavenderTertiary": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 153,
+   "type": 1
+  },
+  "LightBluePrimary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 255,
+   "type": 1
+  },
+  "LightBluePrimaryAlt": {
+   "r": 44,
+   "g": 114,
+   "b": 168,
+   "a": 255,
+   "type": 1
+  },
+  "LightBlueQuaternary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 102,
+   "type": 1
+  },
+  "LightBlueQuinary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 51,
+   "type": 1
+  },
+  "LightBlueSecondary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 204,
+   "type": 1
+  },
+  "LightBlueSenary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 31,
+   "type": 1
+  },
+  "LightBlueTertiary": {
+   "r": 52,
+   "g": 135,
+   "b": 199,
+   "a": 153,
+   "type": 1
+  },
+  "NeutralPrimary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "NeutralPrimaryAlt": {
+   "r": 117,
+   "g": 117,
+   "b": 117,
+   "a": 255,
+   "type": 1
+  },
+  "NeutralQuaternary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 102,
+   "type": 1
+  },
+  "NeutralQuinary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 51,
+   "type": 1
+  },
+  "NeutralSecondary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 204,
+   "type": 1
+  },
+  "NeutralSenary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 31,
+   "type": 1
+  },
+  "NeutralSeptenary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 204,
+   "type": 1
+  },
+  "NeutralTertiary": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 153,
+   "type": 1
+  },
+  "OrangePrimary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 255,
+   "type": 1
+  },
+  "OrangePrimaryAlt": {
+   "r": 188,
+   "g": 75,
+   "b": 9,
+   "a": 255,
+   "type": 1
+  },
+  "OrangeQuaternary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 102,
+   "type": 1
+  },
+  "OrangeQuinary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 51,
+   "type": 1
+  },
+  "OrangeSecondary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 204,
+   "type": 1
+  },
+  "OrangeSenary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 31,
+   "type": 1
+  },
+  "OrangeTertiary": {
+   "r": 222,
+   "g": 89,
+   "b": 11,
+   "a": 153,
+   "type": 1
+  },
+  "PinkPrimary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 255,
+   "type": 1
+  },
+  "PinkPrimaryAlt": {
+   "r": 205,
+   "g": 53,
+   "b": 149,
+   "a": 255,
+   "type": 1
+  },
+  "PinkQuaternary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 102,
+   "type": 1
+  },
+  "PinkQuinary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 51,
+   "type": 1
+  },
+  "PinkSecondary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 204,
+   "type": 1
+  },
+  "PinkSenary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 31,
+   "type": 1
+  },
+  "PinkTertiary": {
+   "r": 228,
+   "g": 59,
+   "b": 166,
+   "a": 153,
+   "type": 1
+  },
+  "PurplePrimary": {
+   "r": 107,
+   "g": 63,
+   "b": 158,
+   "a": 255,
+   "type": 1
+  },
+  "PurplePrimaryAlt": {
+   "r": 92,
+   "g": 46,
+   "b": 145,
+   "a": 255,
+   "type": 1
+  },
+  "PurpleQuaternary": {
+   "r": 124,
+   "g": 82,
+   "b": 171,
+   "a": 102,
+   "type": 1
+  },
+  "PurpleQuinary": {
+   "r": 124,
+   "g": 82,
+   "b": 171,
+   "a": 51,
+   "type": 1
+  },
+  "PurpleSecondary": {
+   "r": 124,
+   "g": 82,
+   "b": 171,
+   "a": 204,
+   "type": 1
+  },
+  "PurpleSenary": {
+   "r": 124,
+   "g": 82,
+   "b": 171,
+   "a": 31,
+   "type": 1
+  },
+  "PurpleTertiary": {
+   "r": 124,
+   "g": 82,
+   "b": 171,
+   "a": 153,
+   "type": 1
+  },
+  "RedPrimary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "RedPrimaryAlt": {
+   "r": 177,
+   "g": 14,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "RedQuaternary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 102,
+   "type": 1
+  },
+  "RedQuinary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 51,
+   "type": 1
+  },
+  "RedSecondary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 204,
+   "type": 1
+  },
+  "RedSenary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 31,
+   "type": 1
+  },
+  "RedTertiary": {
+   "r": 197,
+   "g": 15,
+   "b": 31,
+   "a": 153,
+   "type": 1
+  },
+  "TealPrimary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 255,
+   "type": 1
+  },
+  "TealPrimaryAlt": {
+   "r": 3,
+   "g": 131,
+   "b": 135,
+   "a": 255,
+   "type": 1
+  },
+  "TealQuaternary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 102,
+   "type": 1
+  },
+  "TealQuinary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 51,
+   "type": 1
+  },
+  "TealSecondary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 204,
+   "type": 1
+  },
+  "TealSenary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 31,
+   "type": 1
+  },
+  "TealTertiary": {
+   "r": 21,
+   "g": 145,
+   "b": 149,
+   "a": 153,
+   "type": 1
+  },
+  "YellowPrimary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "YellowPrimaryAlt": {
+   "r": 131,
+   "g": 91,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "YellowQuaternary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 102,
+   "type": 1
+  },
+  "YellowQuinary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 51,
+   "type": 1
+  },
+  "YellowSecondary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 204,
+   "type": 1
+  },
+  "YellowSenary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 31,
+   "type": 1
+  },
+  "YellowTertiary": {
+   "r": 178,
+   "g": 124,
+   "b": 0,
+   "a": 153,
+   "type": 1
+  },
+  "PopupBackground": {
+   "r": 246,
+   "g": 246,
+   "b": 246,
+   "a": 255,
+   "type": 1
+  },
+  "PopupBorder": {
+   "r": 204,
+   "g": 206,
+   "b": 219,
+   "a": 255,
+   "type": 1
+  },
+  "PopupHyperlink": {
+   "r": 0,
+   "g": 108,
+   "b": 190,
+   "a": 255,
+   "type": 1
+  },
+  "PopupSelectedBackground": {
+   "r": 204,
+   "g": 206,
+   "b": 219,
+   "a": 255,
+   "type": 1
+  },
+  "PopupSelectedText": {
+   "r": 30,
+   "g": 30,
+   "b": 30,
+   "a": 255,
+   "type": 1
+  },
+  "PopupShadow": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 114,
+   "type": 1
+  },
+  "PopupSubtleText": {
+   "r": 128,
+   "g": 128,
+   "b": 128,
+   "a": 255,
+   "type": 1
+  },
+  "PopupText": {
+   "r": 30,
+   "g": 30,
+   "b": 30,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillAlt": {
+   "r": 63,
+   "g": 54,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillDefault": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 55,
+   "type": 1
+  },
+  "AccentFillSecondary": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 229,
+   "type": 1
+  },
+  "AccentFillSelectedTextBackground": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 255,
+   "type": 1
+  },
+  "AccentFillSelectedTextBackgroundSubtle": {
+   "r": 0,
+   "g": 120,
+   "b": 212,
+   "a": 77,
+   "type": 1
+  },
+  "AccentFillSenary": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 31,
+   "type": 1
+  },
+  "AccentFillTertiary": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 204,
+   "type": 1
+  },
+  "AccentTextFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 92,
+   "type": 1
+  },
+  "AccentTextFillPrimary": {
+   "r": 63,
+   "g": 54,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "AccentTextFillSecondary": {
+   "r": 34,
+   "g": 29,
+   "b": 70,
+   "a": 255,
+   "type": 1
+  },
+  "AccentTextFillTertiary": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "CardBackgroundFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 178,
+   "type": 1
+  },
+  "CardBackgroundFillSecondary": {
+   "r": 246,
+   "g": 246,
+   "b": 246,
+   "a": 128,
+   "type": 1
+  },
+  "CardBackgroundFillTertiary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "CardStrokeDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "CardStrokeDefaultSolid": {
+   "r": 235,
+   "g": 235,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "CardStrokeDefaultSolidAlt": {
+   "r": 218,
+   "g": 218,
+   "b": 218,
+   "a": 255,
+   "type": 1
+  },
+  "ControlAltFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlAltFillQuaternary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 24,
+   "type": 1
+  },
+  "ControlAltFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 6,
+   "type": 1
+  },
+  "ControlAltFillTertiary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "ControlAltFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlFillActiveInput": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "ControlFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 178,
+   "type": 1
+  },
+  "ControlFillDisabled": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 77,
+   "type": 1
+  },
+  "ControlFillQuaternary": {
+   "r": 243,
+   "g": 243,
+   "b": 243,
+   "a": 194,
+   "type": 1
+  },
+  "ControlFillSecondary": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 128,
+   "type": 1
+  },
+  "ControlFillTertiary": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 77,
+   "type": 1
+  },
+  "ControlFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlOnImageFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 201,
+   "type": 1
+  },
+  "ControlOnImageFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlOnImageFillSecondary": {
+   "r": 243,
+   "g": 243,
+   "b": 243,
+   "a": 255,
+   "type": 1
+  },
+  "ControlOnImageFillTertiary": {
+   "r": 235,
+   "g": 235,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "ControlSolidFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "ControlStrokeDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "ControlStrokeForStrongFillWhenOnImage": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 89,
+   "type": 1
+  },
+  "ControlStrokeOnAccentDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 20,
+   "type": 1
+  },
+  "ControlStrokeOnAccentDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "ControlStrokeOnAccentSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 102,
+   "type": 1
+  },
+  "ControlStrokeOnAccentTertiary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 55,
+   "type": 1
+  },
+  "ControlStrokeSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "ControlStrokeTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "ControlStrongFillDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 114,
+   "type": 1
+  },
+  "ControlStrongFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 81,
+   "type": 1
+  },
+  "ControlStrongStrokeDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 156,
+   "type": 1
+  },
+  "ControlStrongStrokeDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 55,
+   "type": 1
+  },
+  "DividerStrokeDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 20,
+   "type": 1
+  },
+  "FocusStrokeInner": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "FocusStrokeOuter": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 228,
+   "type": 1
+  },
+  "HyperlinkFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 92,
+   "type": 1
+  },
+  "HyperlinkFillPrimary": {
+   "r": 0,
+   "g": 62,
+   "b": 146,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkFillSecondary": {
+   "r": 0,
+   "g": 26,
+   "b": 104,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkFillTertiary": {
+   "r": 0,
+   "g": 95,
+   "b": 184,
+   "a": 255,
+   "type": 1
+  },
+  "LayerFillAlt": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "LayerFillDefault": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 128,
+   "type": 1
+  },
+  "ShadowFlyout": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 36,
+   "type": 1
+  },
+  "SmokeFillDefault": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 77,
+   "type": 1
+  },
+  "SmokeFillInverse": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 201,
+   "type": 1
+  },
+  "SolidBackgroundFillBase": {
+   "r": 243,
+   "g": 243,
+   "b": 243,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillBaseAlt": {
+   "r": 218,
+   "g": 218,
+   "b": 218,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillQuaternary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillQuinary": {
+   "r": 253,
+   "g": 253,
+   "b": 253,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillSecondary": {
+   "r": 238,
+   "g": 238,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillSenary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "SolidBackgroundFillTertiary": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "SubtleFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "SubtleFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "SubtleFillTertiary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 10,
+   "type": 1
+  },
+  "SubtleFillTransparent": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "SurfaceBackgroundFillDefault": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "SurfaceStrokeDefault": {
+   "r": 117,
+   "g": 117,
+   "b": 117,
+   "a": 102,
+   "type": 1
+  },
+  "SurfaceStrokeFlyout": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "SystemFillAttention": {
+   "r": 0,
+   "g": 95,
+   "b": 183,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillAttentionBackground": {
+   "r": 246,
+   "g": 246,
+   "b": 246,
+   "a": 128,
+   "type": 1
+  },
+  "SystemFillCaution": {
+   "r": 157,
+   "g": 93,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCautionBackground": {
+   "r": 255,
+   "g": 244,
+   "b": 206,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCritical": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillCriticalBackground": {
+   "r": 253,
+   "g": 231,
+   "b": 233,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillNeutral": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 114,
+   "type": 1
+  },
+  "SystemFillNeutralBackground": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 6,
+   "type": 1
+  },
+  "SystemFillSolidAttentionBackground": {
+   "r": 247,
+   "g": 247,
+   "b": 247,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSolidNeutral": {
+   "r": 138,
+   "g": 138,
+   "b": 138,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSolidNeutralBackground": {
+   "r": 243,
+   "g": 243,
+   "b": 243,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSuccess": {
+   "r": 15,
+   "g": 123,
+   "b": 15,
+   "a": 255,
+   "type": 1
+  },
+  "SystemFillSuccessBackground": {
+   "r": 223,
+   "g": 246,
+   "b": 221,
+   "a": 255,
+   "type": 1
+  },
+  "TextFillDisabled": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 92,
+   "type": 1
+  },
+  "TextFillPrimary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 228,
+   "type": 1
+  },
+  "TextFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 158,
+   "type": 1
+  },
+  "TextFillTertiary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 114,
+   "type": 1
+  },
+  "TextOnAccentFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 178,
+   "type": 1
+  },
+  "TextOnAccentFillPrimary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "TextOnAccentFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 178,
+   "type": 1
+  },
+  "TextOnAccentFillSelectedText": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseFillPrimary": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseFillSecondary": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 230,
+   "type": 1
+  },
+  "CaptionControlCloseTextFillPrimary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "CaptionControlCloseTextFillSecondary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 179,
+   "type": 1
+  },
+  "EnvironmentBackground": {
+   "r": 238,
+   "g": 238,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBadge": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 178,
+   "type": 1
+  },
+  "EnvironmentBody": {
+   "r": 238,
+   "g": 238,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBodyText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 228,
+   "type": 1
+  },
+  "EnvironmentBorder": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentBorderInactive": {
+   "r": 173,
+   "g": 173,
+   "b": 173,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentHeader": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentHeaderInactive": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentIndicator": {
+   "r": 117,
+   "g": 117,
+   "b": 117,
+   "a": 102,
+   "type": 1
+  },
+  "EnvironmentLayeredBackground": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 128,
+   "type": 1
+  },
+  "EnvironmentLayeredBorder": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 15,
+   "type": 1
+  },
+  "EnvironmentLogo": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentTab": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "EnvironmentTabInactive": {
+   "r": 249,
+   "g": 249,
+   "b": 249,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillBuilding": {
+   "r": 86,
+   "g": 73,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillDebugging": {
+   "r": 188,
+   "g": 75,
+   "b": 9,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarBackgroundFillRest": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 139,
+   "type": 1
+  },
+  "StatusBarBackgroundFillSolutionLoading": {
+   "r": 0,
+   "g": 91,
+   "b": 161,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarControlFillSecondary": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 51,
+   "type": 1
+  },
+  "StatusBarTextFillBuilding": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillDebugging": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 144,
+   "type": 1
+  },
+  "StatusBarTextFillRest": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "StatusBarTextFillSolutionLoading": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  }
+ },
+ "hc": {
+  "BluePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BluePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BlueQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BlueQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BlueSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BlueSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "BlueTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBluePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBluePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBlueQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBlueQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBlueSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBlueSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkBlueTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DarkRedTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapeQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapeQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapeSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapeSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GrapeTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreenTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreyPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreyPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreyQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreyQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreySecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreySenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "GreyTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LavenderTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBluePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBluePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBlueQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBlueQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBlueSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBlueSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LightBlueTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralSeptenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "NeutralTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangeQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangeQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangeSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangeSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "OrangeTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PinkTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurplePrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurplePrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurpleQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurpleQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurpleSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurpleSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PurpleTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "RedTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TealTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowPrimaryAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowQuaternary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowQuinary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowSenary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "YellowTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupBackground": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupBorder": {
+   "r": 6,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupHyperlink": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupSelectedBackground": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupSelectedText": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupShadow": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupSubtleText": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "PopupText": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillAlt": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillDefault": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillDisabled": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillSelectedTextBackground": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillSelectedTextBackgroundSubtle": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillSenary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentFillTertiary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentTextFillDisabled": {
+   "r": 17,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentTextFillPrimary": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentTextFillSecondary": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "AccentTextFillTertiary": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardBackgroundFillDefault": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardBackgroundFillSecondary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardBackgroundFillTertiary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardStrokeDefault": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardStrokeDefaultSolid": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CardStrokeDefaultSolidAlt": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlAltFillDisabled": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlAltFillQuaternary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlAltFillSecondary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlAltFillTertiary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlAltFillTransparent": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillActiveInput": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillDefault": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillDisabled": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillQuaternary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillSecondary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillTertiary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlFillTransparent": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlOnImageFillDefault": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlOnImageFillDisabled": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlOnImageFillSecondary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlOnImageFillTertiary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlSolidFillDefault": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeDefault": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeForStrongFillWhenOnImage": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeOnAccentDefault": {
+   "r": 11,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeOnAccentDisabled": {
+   "r": 11,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeOnAccentSecondary": {
+   "r": 11,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeOnAccentTertiary": {
+   "r": 11,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeSecondary": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrokeTransparent": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrongFillDefault": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrongFillDisabled": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrongStrokeDefault": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ControlStrongStrokeDisabled": {
+   "r": 11,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "DividerStrokeDefault": {
+   "r": 17,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "FocusStrokeInner": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "FocusStrokeOuter": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "HyperlinkFillDisabled": {
+   "r": 19,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "HyperlinkFillPrimary": {
+   "r": 26,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "HyperlinkFillSecondary": {
+   "r": 26,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "HyperlinkFillTertiary": {
+   "r": 26,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LayerFillAlt": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "LayerFillDefault": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "ShadowFlyout": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SmokeFillDefault": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SmokeFillInverse": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillBase": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillBaseAlt": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillQuaternary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillQuinary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillSecondary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillSenary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SolidBackgroundFillTertiary": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SubtleFillDisabled": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SubtleFillSecondary": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SubtleFillTertiary": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SubtleFillTransparent": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SurfaceBackgroundFillDefault": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SurfaceStrokeDefault": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SurfaceStrokeFlyout": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillAttention": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillAttentionBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillCaution": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillCautionBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillCritical": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillCriticalBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillNeutral": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillNeutralBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillSolidAttentionBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillSolidNeutral": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillSolidNeutralBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillSuccess": {
+   "r": 2,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "SystemFillSuccessBackground": {
+   "r": 24,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextFillDisabled": {
+   "r": 17,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextFillPrimary": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextFillSecondary": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextFillTertiary": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextOnAccentFillDisabled": {
+   "r": 3,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextOnAccentFillPrimary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextOnAccentFillSecondary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "TextOnAccentFillSelectedText": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CaptionControlCloseFillPrimary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CaptionControlCloseFillSecondary": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CaptionControlCloseTextFillPrimary": {
+   "r": 9,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "CaptionControlCloseTextFillSecondary": {
+   "r": 9,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBackground": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBadge": {
+   "r": 15,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBody": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBodyText": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBorder": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentBorderInactive": {
+   "r": 3,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentHeader": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentHeaderInactive": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentIndicator": {
+   "r": 10,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentLayeredBackground": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentLayeredBorder": {
+   "r": 16,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentLogo": {
+   "r": 13,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentTab": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "EnvironmentTabInactive": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarBackgroundFillBuilding": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarBackgroundFillDebugging": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarBackgroundFillRest": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarBackgroundFillSolutionLoading": {
+   "r": 5,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarControlFillSecondary": {
+   "r": 14,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarTextFillBuilding": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarTextFillDebugging": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarTextFillDisabled": {
+   "r": 17,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarTextFillRest": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  },
+  "StatusBarTextFillSolutionLoading": {
+   "r": 8,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 3
+  }
+ },
+ "theme_dark": {
+  "Body": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "AnimationRecordingIndication": {
+   "r": 255,
+   "g": 153,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "AnimationRecordingOff": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "RenameError": {
+   "r": 1,
+   "g": 255,
+   "b": 153,
+   "a": 164,
+   "type": 0
+  },
+  "RenameResolvableConflict": {
+   "r": 1,
+   "g": 154,
+   "b": 211,
+   "a": 154,
+   "type": 0
+  },
+  "Button": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "Caption": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "RedPrimary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 255,
+   "type": 1
+  },
+  "RedPrimaryAlt": {
+   "r": 220,
+   "g": 98,
+   "b": 109,
+   "a": 255,
+   "type": 1
+  },
+  "RedSecondary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 204,
+   "type": 1
+  },
+  "RedTertiary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 153,
+   "type": 1
+  },
+  "RedQuaternary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 102,
+   "type": 1
+  },
+  "RedQuinary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 51,
+   "type": 1
+  },
+  "RedSenary": {
+   "r": 215,
+   "g": 73,
+   "b": 78,
+   "a": 31,
+   "type": 1
+  },
+  "OrangePrimary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 255,
+   "type": 1
+  },
+  "OrangePrimaryAlt": {
+   "r": 250,
+   "g": 160,
+   "b": 107,
+   "a": 255,
+   "type": 1
+  },
+  "OrangeSecondary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 204,
+   "type": 1
+  },
+  "OrangeTertiary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 153,
+   "type": 1
+  },
+  "OrangeQuaternary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 102,
+   "type": 1
+  },
+  "OrangeQuinary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 51,
+   "type": 1
+  },
+  "OrangeSenary": {
+   "r": 249,
+   "g": 135,
+   "b": 69,
+   "a": 31,
+   "type": 1
+  },
+  "YellowPrimary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 255,
+   "type": 1
+  },
+  "YellowPrimaryAlt": {
+   "r": 242,
+   "g": 198,
+   "b": 97,
+   "a": 255,
+   "type": 1
+  },
+  "YellowSecondary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 204,
+   "type": 1
+  },
+  "YellowTertiary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 153,
+   "type": 1
+  },
+  "YellowQuaternary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 102,
+   "type": 1
+  },
+  "YellowQuinary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 51,
+   "type": 1
+  },
+  "YellowSenary": {
+   "r": 239,
+   "g": 185,
+   "b": 57,
+   "a": 31,
+   "type": 1
+  },
+  "GreenPrimary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 255,
+   "type": 1
+  },
+  "GreenPrimaryAlt": {
+   "r": 144,
+   "g": 190,
+   "b": 76,
+   "a": 255,
+   "type": 1
+  },
+  "GreenSecondary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 204,
+   "type": 1
+  },
+  "GreenTertiary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 153,
+   "type": 1
+  },
+  "GreenQuaternary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 102,
+   "type": 1
+  },
+  "GreenQuinary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 51,
+   "type": 1
+  },
+  "GreenSenary": {
+   "r": 129,
+   "g": 181,
+   "b": 55,
+   "a": 31,
+   "type": 1
+  },
+  "TealPrimary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "TealPrimaryAlt": {
+   "r": 76,
+   "g": 180,
+   "b": 183,
+   "a": 255,
+   "type": 1
+  },
+  "TealSecondary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 204,
+   "type": 1
+  },
+  "TealTertiary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 153,
+   "type": 1
+  },
+  "TealQuaternary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 102,
+   "type": 1
+  },
+  "TealQuinary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 51,
+   "type": 1
+  },
+  "TealSenary": {
+   "r": 42,
+   "g": 160,
+   "b": 164,
+   "a": 31,
+   "type": 1
+  },
+  "LightBluePrimary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 255,
+   "type": 1
+  },
+  "LightBluePrimaryAlt": {
+   "r": 131,
+   "g": 189,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "LightBlueSecondary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 204,
+   "type": 1
+  },
+  "LightBlueTertiary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 153,
+   "type": 1
+  },
+  "LightBlueQuaternary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 102,
+   "type": 1
+  },
+  "LightBlueQuinary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 51,
+   "type": 1
+  },
+  "LightBlueSenary": {
+   "r": 101,
+   "g": 174,
+   "b": 230,
+   "a": 31,
+   "type": 1
+  },
+  "BluePrimary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 255,
+   "type": 1
+  },
+  "BluePrimaryAlt": {
+   "r": 92,
+   "g": 170,
+   "b": 229,
+   "a": 255,
+   "type": 1
+  },
+  "BlueSecondary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 204,
+   "type": 1
+  },
+  "BlueTertiary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 153,
+   "type": 1
+  },
+  "BlueQuaternary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 102,
+   "type": 1
+  },
+  "BlueQuinary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 51,
+   "type": 1
+  },
+  "BlueSenary": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 31,
+   "type": 1
+  },
+  "DarkBluePrimary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBluePrimaryAlt": {
+   "r": 53,
+   "g": 149,
+   "b": 222,
+   "a": 255,
+   "type": 1
+  },
+  "DarkBlueSecondary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 204,
+   "type": 1
+  },
+  "DarkBlueTertiary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 153,
+   "type": 1
+  },
+  "DarkBlueQuaternary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 102,
+   "type": 1
+  },
+  "DarkBlueQuinary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 51,
+   "type": 1
+  },
+  "DarkBlueSenary": {
+   "r": 26,
+   "g": 134,
+   "b": 217,
+   "a": 31,
+   "type": 1
+  },
+  "LightPurplePrimary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "LightPurplePrimaryAlt": {
+   "r": 167,
+   "g": 156,
+   "b": 241,
+   "a": 255,
+   "type": 1
+  },
+  "LightPurpleSecondary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 204,
+   "type": 1
+  },
+  "LightPurpleTertiary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 153,
+   "type": 1
+  },
+  "LightPurpleQuaternary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 102,
+   "type": 1
+  },
+  "LightPurpleQuinary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 51,
+   "type": 1
+  },
+  "LightPurpleSenary": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 31,
+   "type": 1
+  },
+  "PurplePrimary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "PurplePrimaryAlt": {
+   "r": 145,
+   "g": 132,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "PurpleSecondary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 204,
+   "type": 1
+  },
+  "PurpleTertiary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 153,
+   "type": 1
+  },
+  "PurpleQuaternary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 102,
+   "type": 1
+  },
+  "PurpleQuinary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 51,
+   "type": 1
+  },
+  "PurpleSenary": {
+   "r": 129,
+   "g": 113,
+   "b": 235,
+   "a": 31,
+   "type": 1
+  },
+  "GrapePrimary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 255,
+   "type": 1
+  },
+  "GrapePrimaryAlt": {
+   "r": 217,
+   "g": 167,
+   "b": 224,
+   "a": 255,
+   "type": 1
+  },
+  "GrapeSecondary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 204,
+   "type": 1
+  },
+  "GrapeTertiary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 153,
+   "type": 1
+  },
+  "GrapeQuaternary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 102,
+   "type": 1
+  },
+  "GrapeQuinary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 51,
+   "type": 1
+  },
+  "GrapeSenary": {
+   "r": 182,
+   "g": 95,
+   "b": 194,
+   "a": 31,
+   "type": 1
+  },
+  "GreyPrimary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 255,
+   "type": 1
+  },
+  "GreyPrimaryAlt": {
+   "r": 136,
+   "g": 136,
+   "b": 136,
+   "a": 255,
+   "type": 1
+  },
+  "GreySecondary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 204,
+   "type": 1
+  },
+  "GreyTertiary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 153,
+   "type": 1
+  },
+  "GreyQuaternary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 102,
+   "type": 1
+  },
+  "GreyQuinary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 51,
+   "type": 1
+  },
+  "GreySenary": {
+   "r": 81,
+   "g": 81,
+   "b": 81,
+   "a": 31,
+   "type": 1
+  },
+  "NeutralPrimary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 255,
+   "type": 1
+  },
+  "NeutralSecondary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 204,
+   "type": 1
+  },
+  "NeutralTertiary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 153,
+   "type": 1
+  },
+  "NeutralQuaternary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 102,
+   "type": 1
+  },
+  "NeutralQuinary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 51,
+   "type": 1
+  },
+  "NeutralSenary": {
+   "r": 195,
+   "g": 195,
+   "b": 195,
+   "a": 31,
+   "type": 1
+  },
+  "NeutralSeptenary": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 133,
+   "type": 1
+  },
+  "AdvancedListItem": {
+   "r": 26,
+   "g": 26,
+   "b": 26,
+   "a": 255,
+   "type": 1
+  },
+  "AccentBorder": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "AccentDark": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "AccentLight": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "AccentMedium": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "AccentPale": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "AccessKeyToolTip": {
+   "r": 153,
+   "g": 153,
+   "b": 153,
+   "a": 255,
+   "type": 1
+  },
+  "AlertBorder": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "DropDownMenuMouseDown": {
+   "r": 26,
+   "g": 26,
+   "b": 26,
+   "a": 255,
+   "type": 1
+  },
+  "KeyLabelText": {
+   "r": 1,
+   "g": 255,
+   "b": 153,
+   "a": 164,
+   "type": 0
+  },
+  "Default": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "Background": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 255,
+   "type": 1
+  },
+  "BackgroundDisabled": {
+   "r": 255,
+   "g": 255,
+   "b": 255,
+   "a": 0,
+   "type": 1
+  },
+  "BackgroundFocused": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "BackgroundHover": {
+   "r": 64,
+   "g": 53,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "BackgroundPressed": {
+   "r": 145,
+   "g": 131,
+   "b": 238,
+   "a": 255,
+   "type": 1
+  },
+  "Text": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "TextDisabled": {
+   "r": 92,
+   "g": 92,
+   "b": 92,
+   "a": 255,
+   "type": 1
+  },
+  "TextFocused": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "TextHover": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "TextPressed": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "DebugHistoryControlPanel": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "Border": {
+   "r": 112,
+   "g": 112,
+   "b": 112,
+   "a": 255,
+   "type": 1
+  },
+  "GridLines": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "SelectedCellBorder": {
+   "r": 112,
+   "g": 112,
+   "b": 112,
+   "a": 255,
+   "type": 1
+  },
+  "ResultList": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "BackgroundLowerRegion": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleBackground": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleBorder": {
+   "r": 112,
+   "g": 112,
+   "b": 112,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleCloseButtonGlyph": {
+   "r": 1,
+   "g": 214,
+   "b": 214,
+   "a": 214,
+   "type": 0
+  },
+  "NotificationBubbleCloseButtonHoverGlyph": {
+   "r": 1,
+   "g": 214,
+   "b": 214,
+   "a": 214,
+   "type": 0
+  },
+  "NotificationBubbleCloseButtonPressedGlyph": {
+   "r": 1,
+   "g": 214,
+   "b": 214,
+   "a": 214,
+   "type": 0
+  },
+  "NotificationBubbleForeground": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "NotificationBubbleHyperlink": {
+   "r": 131,
+   "g": 190,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButton": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonBorder": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonDown": {
+   "r": 26,
+   "g": 26,
+   "b": 26,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonDownBorder": {
+   "r": 112,
+   "g": 112,
+   "b": 112,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonDownGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonHover": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonHoverBorder": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowButtonHoverGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "NotificationBubbleWindowPanel": {
+   "r": 36,
+   "g": 36,
+   "b": 36,
+   "a": 255,
+   "type": 1
+  },
+  "IndicatorFill": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "IndicatorFillCritical": {
+   "r": 255,
+   "g": 153,
+   "b": 164,
+   "a": 255,
+   "type": 1
+  },
+  "IndicatorFillWarning": {
+   "r": 224,
+   "g": 207,
+   "b": 162,
+   "a": 255,
+   "type": 1
+  },
+  "CategoryTab": {
+   "r": 31,
+   "g": 31,
+   "b": 31,
+   "a": 255,
+   "type": 1
+  },
+  "LightboxBackgroundOverlay": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 204,
+   "type": 1
+  },
+  "LightboxDialogBackgroundPanel": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "LightboxDialogButton": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonDisabledGlyph": {
+   "r": 128,
+   "g": 128,
+   "b": 128,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonMouseDown": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "ActionButtonMouseDownBorder": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "ActionButtonMouseDownGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonMouseOver": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "ActionButtonMouseOverBorder": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 0,
+   "type": 1
+  },
+  "ActionButtonMouseOverGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "ClearGlyph": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "Disabled": {
+   "r": 51,
+   "g": 51,
+   "b": 51,
+   "a": 255,
+   "type": 1
+  },
+  "DesignerDefaultTab": {
+   "r": 51,
+   "g": 51,
+   "b": 51,
+   "a": 255,
+   "type": 1
+  },
+  "AzureInvitationBannerTitle": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "DefaultBannerLink": {
+   "r": 1,
+   "g": 131,
+   "b": 190,
+   "a": 235,
+   "type": 0
+  },
+  "DefaultBannerLinkHover": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "DefaultBannerLinkPressed": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "DisabledProjectCommand": {
+   "r": 1,
+   "g": 92,
+   "b": 92,
+   "a": 92,
+   "type": 0
+  },
+  "DiscoverTitleText": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "ItemHeadingText": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "MRUSecondaryForeground": {
+   "r": 134,
+   "g": 134,
+   "b": 134,
+   "a": 255,
+   "type": 1
+  },
+  "StartPageBackgroundGradientBegin": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "StartPageBackgroundGradientEnd": {
+   "r": 51,
+   "g": 51,
+   "b": 51,
+   "a": 255,
+   "type": 1
+  },
+  "StartPageBackgroundOpacity": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 51,
+   "type": 1
+  },
+  "StartPageButton": {
+   "r": 56,
+   "g": 56,
+   "b": 56,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonBackground": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonBorder": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonHover": {
+   "r": 77,
+   "g": 77,
+   "b": 77,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonMouseDown": {
+   "r": 51,
+   "g": 51,
+   "b": 51,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "AltButtonTextHover": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "Hyperlink": {
+   "r": 131,
+   "g": 190,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkHover": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkMouseDown": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  },
+  "PanelBackground": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "SignInButton": {
+   "r": 86,
+   "g": 72,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "SignInButtonHover": {
+   "r": 64,
+   "g": 53,
+   "b": 130,
+   "a": 255,
+   "type": 1
+  },
+  "SignInButtonMouseDown": {
+   "r": 86,
+   "g": 72,
+   "b": 176,
+   "a": 255,
+   "type": 1
+  },
+  "SignInButtonText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonBackground": {
+   "r": 56,
+   "g": 56,
+   "b": 56,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonBackgroundActive": {
+   "r": 34,
+   "g": 29,
+   "b": 70,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonStroke": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonStrokeActive": {
+   "r": 153,
+   "g": 153,
+   "b": 153,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonStrokeHover": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "ActionButtonTextActive": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "CloseWindowButtonHover": {
+   "r": 196,
+   "g": 43,
+   "b": 28,
+   "a": 255,
+   "type": 1
+  },
+  "ActiveCaption": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "HyperlinkPressed": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "ErrorBackground": {
+   "r": 224,
+   "g": 207,
+   "b": 162,
+   "a": 255,
+   "type": 1
+  },
+  "ErrorHyperlink": {
+   "r": 131,
+   "g": 190,
+   "b": 235,
+   "a": 255,
+   "type": 1
+  },
+  "ErrorText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardBackground": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardBorder": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardInactiveText": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardMinimalModeInactiveText": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardMinimalModeInactiveWindowInactiveText": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardMinimalModeInactiveWindowText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardMinimalModeText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "IDCardSeparator": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "BadgeButtonCountActive": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "BodyText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "HeaderText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "HeaderTextBrand": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "PivotBar": {
+   "r": 113,
+   "g": 96,
+   "b": 232,
+   "a": 255,
+   "type": 1
+  },
+  "PivotText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "SectionDivider": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "SectionHeaderText": {
+   "r": 0,
+   "g": 0,
+   "b": 0,
+   "a": 255,
+   "type": 1
+  },
+  "SupportText": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "ListItemBackgroundHover": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "ListItemBorderHover": {
+   "r": 153,
+   "g": 153,
+   "b": 153,
+   "a": 255,
+   "type": 1
+  },
+  "ListItemSupportTextHover": {
+   "r": 250,
+   "g": 250,
+   "b": 250,
+   "a": 255,
+   "type": 1
+  },
+  "TabSelectionActive": {
+   "r": 0,
+   "g": 108,
+   "b": 190,
+   "a": 255,
+   "type": 1
+  },
+  "WindowPanel": {
+   "r": 46,
+   "g": 46,
+   "b": 46,
+   "a": 255,
+   "type": 1
+  },
+  "WindowPanelBorder": {
+   "r": 66,
+   "g": 66,
+   "b": 66,
+   "a": 255,
+   "type": 1
+  },
+  "WindowPanelSupportText": {
+   "r": 214,
+   "g": 214,
+   "b": 214,
+   "a": 255,
+   "type": 1
+  },
+  "WindowPanelTabDivider": {
+   "r": 61,
+   "g": 61,
+   "b": 61,
+   "a": 255,
+   "type": 1
+  },
+  "WindowPanelText": {
+   "r": 1,
+   "g": 250,
+   "b": 250,
+   "a": 250,
+   "type": 0
+  }
+ }
+}

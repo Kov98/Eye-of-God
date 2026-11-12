@@ -36,6 +36,9 @@ struct M365CollectConfig {
     // marked partial/cancelled, the checkpoint is kept and nothing is reported
     // as complete.
     std::function<bool()> cancel_check;
+    // Progresso para a GUI: paginas, objetos e anexos baixados ate agora. Roda
+    // na thread de trabalho; o receptor so guarda numeros, nunca toca em widget.
+    std::function<void(int pages, int objects, int files)> progress;
 };
 
 struct M365CollectReport {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cstdint>
 #include <optional>
@@ -19,8 +19,14 @@ struct QueueMetrics {
 
 struct QueuedJob {
     std::string job_id;
+    // Connector that must run this job: "m365" (default) or "dropbox". A job
+    // queued for one provider must never be executed by another.
+    std::string provider = "m365";
     std::string account;
     std::string tenant_id;
+    // Dropbox only: folder to walk and whether payload bytes come down.
+    std::string root_path = "/";
+    bool download_files = false;
     std::string legal_basis;
     std::string vault_key;
     std::string vault_ref;

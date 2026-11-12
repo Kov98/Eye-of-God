@@ -1,4 +1,4 @@
-﻿// Deep acquisition / recovery / sanitization engine.
+// Deep acquisition / recovery / sanitization engine.
 // language: C++, file: deep.cpp, target: Windows 10/11, g++ UCRT64 / MSVC
 //
 // Read paths never write to the source. Destructive paths require the exact
@@ -17,6 +17,7 @@
 #include <tlhelp32.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
@@ -35,6 +36,8 @@
 #include <vector>
 
 #include "deep.hpp"
+#include "hardware_inventory.hpp"
+#include "recovery_index.hpp"
 #include "artifacts.hpp"
 #include "case_db.hpp"
 #include "imaging.hpp"
@@ -49,7 +52,11 @@
 #include "exposure.hpp"
 #include "artifact_vss.hpp"
 #include "cloud/cli/auth_flow.hpp"
+#include "cloud/cli/dropbox_auth.hpp"
 #include "cloud/cli/collect_flow.hpp"
+#include "case_timeline_export.hpp"
+#include "case_db_seal.hpp"
+#include "social/dyi_import.hpp"
 #include "cloud/core/manifest_verify.hpp"
 #include "cloud/enterprise/secret_store.hpp"
 #include "third_party/nlohmann/json.hpp"
@@ -3113,9 +3120,24 @@ std::string deep_help() {
         "  --exposure-audit --out DIR\n"
         "  --clean-local-residue --out DIR --confirm CLEAN-RESIDUE [--include-sync-cache]\n"
         "  --cloud-m365-auth --tenant ID --client-id ID [--no-browser] [--mock-http]\n"
+        "  --hardware-inventory [--case DIR | --out ARQUIVO]\n"
+        "  --recovery-index DIR [--out ARQUIVO] [--case DIR]\n"
         "  --cloud-m365-collect --case DIR --account UPN --tenant ID --vault-key KEY\n"
         "              --legal-basis REF --job ID [--since YYYY-MM-DD] [--until YYYY-MM-DD]\n"
         "              [--download-attachments] [--vault-key-stdin]\n"
+        "  --cloud-dropbox-auth --app-key KEY [--vault-key KEY] [--no-browser]\n"
+        "  --case-seal --case DIR [--key ARQUIVO] [--media DIR]\n"
+        "              sela db/journal/wal (+ midia, quando existe)\n"
+        "  --case-check --case DIR [--key ARQUIVO] [--media DIR]\n"
+        "              verifica os selos\n"
+        "  --media-seal --media DIR [--case DIR | --key ARQUIVO]   sela so a midia\n"
+        "  --media-check --media DIR [--case DIR | --key ARQUIVO]  verifica a midia\n"
+        "  --timeline-export --case DIR --out ARQUIVO [--format csv|json]\n"
+        "  --social-import --export <zip|pasta> --case DIR --account ROTULO\n"
+        "              --legal-basis REF --job ID [--provider facebook|instagram]\n"
+        "  --cloud-dropbox-collect --case DIR --account EMAIL --vault-key KEY\n"
+        "              --legal-basis REF --job ID [--root /PASTA] [--download-files]\n"
+        "              [--app-key KEY] [--max-file-bytes N] [--vault-key-stdin]\n"
         "  --secret-gc (--case DIR | --cases-root DIR) [--older-days N] [--force]\n"
         "  --cloud-report --case DIR --out ARQUIVO [--format html|json]\n"
         "  --cloud-db-import --case DIR [--db ARQUIVO]\n"
@@ -3221,7 +3243,12 @@ int run_cli(int argc, char** argv) {
         command == L"--nvme-sanitize" || command == L"--ata-erase" ||
         command == L"--exposure-audit" || command == L"--clean-local-residue" ||
         command == L"--gui" ||
+        command == L"--hardware-inventory" || command == L"--recovery-index" ||
         command == L"--cloud-m365-auth" || command == L"--cloud-m365-collect" ||
+        command == L"--cloud-dropbox-collect" || command == L"--cloud-dropbox-auth" ||
+        command == L"--social-import" || command == L"--timeline-export" ||
+        command == L"--case-seal" || command == L"--case-check" ||
+        command == L"--media-seal" || command == L"--media-check" ||
         command == L"--cloud-verify" || command == L"--cloud-db-import" ||
         command == L"--cloud-report" || command == L"--secret-gc" ||
         command == L"--kernel-version" || command == L"--kernel-read" ||
@@ -3397,9 +3424,268 @@ int run_cli(int argc, char** argv) {
             std::cerr << "error: " << error << "\n";
         return report.ok ? 0 : 7;
     }
-    if (command == L"--cloud-m365-collect") {
-        cloud::CollectFlowOptions options;
+    if (command == L"--case-seal" || command == L"--case-check" ||
+        command == L"--media-seal" || command == L"--media-check") {
+        const bool media_only = command == L"--media-seal" || command == L"--media-check";
+        const bool sealing = command == L"--case-seal" || command == L"--media-seal";
+        std::wstring case_dir;
+        std::wstring key_path;
+        std::wstring media_dir;
+        option_value(args, L"--case", case_dir);
+        option_value(args, L"--key", key_path);
+        option_value(args, L"--media", media_dir);
+        if (to_utf8(case_dir).empty() && !media_only) {
+            std::cerr << "case-seal: --case e obrigatorio\n";
+            return 2;
+        }
+        if (key_path.empty() && !to_utf8(case_dir).empty()) key_path = case_dir + L"/case.key";
+        if (key_path.empty()) {
+            std::cerr << "media-seal: informe --key ou --case (a chave fica em <caso>/case.key)\n";
+            return 2;
+        }
+        deep::case_cipher cipher;
+        std::string crypto_error;
+        const bool opened = sealing ? cipher.open_or_create(key_path, crypto_error)
+                                    : cipher.load(key_path, crypto_error);
+        if (!opened) {
+            std::cerr << "case-seal: chave do caso: " << crypto_error << "\n";
+            return 3;
+        }
+
+        // Progresso da selagem, com duas dimensoes e limite de taxa.
+        //
+        // Duas dimensoes porque uma so mente: contar arquivos deixa um video de
+        // 8 GB parado em "1/1". O limite de taxa existe pelo motivo oposto: o
+        // digest avisa a cada 1 MiB, e sem ele um arquivo grande sozinho
+        // despejaria milhares de linhas no console.
+        //
+        // O flush nao e enfeite: como filho da GUI, sem ele o pipe so entrega o
+        // texto no fim e o progresso chega depois do trabalho terminar.
+        auto last_print = std::chrono::steady_clock::now() - std::chrono::seconds(1);
+        const auto human_bytes = [](std::uint64_t bytes) {
+            static const char* units[] = {"B", "KB", "MB", "GB", "TB"};
+            double value = static_cast<double>(bytes);
+            int unit = 0;
+            while (value >= 1024.0 && unit < 4) {
+                value /= 1024.0;
+                ++unit;
+            }
+            char buffer[64];
+            std::snprintf(buffer, sizeof(buffer), "%.1f %s", value, units[unit]);
+            return std::string(buffer);
+        };
+        // A unidade muda com o alvo: pasta e index contam arquivos, o banco conta
+        // blocos de 4 KiB. Chamar tudo de "arquivos" seria mentira no console.
+        const auto make_progress = [&last_print, &human_bytes](const char* unit) {
+            return [&last_print, &human_bytes, unit](std::uint64_t done, std::uint64_t total,
+                                                     std::uint64_t bytes_done,
+                                                     std::uint64_t bytes_total) {
+                const auto now = std::chrono::steady_clock::now();
+                const bool finished = total != 0 && done >= total;
+                if (!finished && now - last_print < std::chrono::milliseconds(250)) return;
+                last_print = now;
+                std::cout << "  ... " << done << "/" << total << " " << unit << "  -  "
+                          << human_bytes(bytes_done) << " / " << human_bytes(bytes_total) << "\n";
+                std::cout.flush();
+            };
+        };
+        const auto progress_files = make_progress("arquivos");
+        const auto progress_blocks = make_progress("blocos");
+
+        int exit_code = 0;
+        const std::wstring db_file = case_dir + L"/case.db";
+        const bool has_case_db = GetFileAttributesW(db_file.c_str()) != INVALID_FILE_ATTRIBUTES;
+        if (!media_only && !has_case_db) {
+            // Caso so de recuperacao (whatsapp/ + recovered/, sem o SQLite do
+            // caso) nao tem o que selar no banco, e isso nao e falha. Um --case
+            // errado ainda falha adiante: o indice recusa conjunto vazio.
+            std::cout << "case-seal: sem case.db nesta pasta (nada a selar no banco)\n";
+        } else if (!media_only) {
+            const deep::seal_set_report report = sealing
+                ? deep::seal_case_files(case_dir, cipher, progress_blocks)
+                : deep::verify_case_files(case_dir, cipher, progress_blocks);
+            std::cout << "case-" << (sealing ? "seal" : "check") << ": "
+                      << (report.ok ? "ok" : "falhou") << "\n"
+                      << "arquivos: " << report.files << "\n"
+                      << "falhas: " << report.failures << "\n";
+            for (const auto& line : report.sealed_files) std::cout << "  " << line << "\n";
+            for (const auto& line : report.errors) std::cerr << "  " << line << "\n";
+            if (!report.error.empty()) std::cerr << "case-seal: " << report.error << "\n";
+            if (!report.ok) exit_code = 5;
+        }
+
+        // TUDO o que a ferramenta extraiu para dentro do caso, pasta por pasta:
+        //   recovered/  export do wa_recover (report.json, conversations, midia)
+        //   media/      midia de outra origem
+        //   cloud/      manifestos e downloads dos conectores (<provedor>/<conta>/)
+        //   social/     export do Facebook/Instagram/Takeout/Telegram
+        // O nome do arquivo de selo continua media.seal por compatibilidade com os
+        // casos ja selados; ele sela o conteudo da pasta, seja midia ou nao.
+        std::vector<std::wstring> candidates;
+        if (!media_dir.empty()) {
+            candidates.push_back(media_dir);
+        } else if (!to_utf8(case_dir).empty()) {
+            for (const wchar_t* suffix : {L"/recovered", L"/media", L"/cloud", L"/social"}) {
+                candidates.push_back(case_dir + suffix);
+            }
+        }
+
+        std::vector<std::wstring> targets;
+        for (const std::wstring& candidate : candidates) {
+            if (GetFileAttributesW(candidate.c_str()) != INVALID_FILE_ATTRIBUTES) {
+                targets.push_back(candidate);
+                continue;
+            }
+            // Selo presente e pasta sumida e adulteracao, nao "nada a fazer".
+            const std::wstring orphan = candidate + L"/media.seal";
+            if (GetFileAttributesW(orphan.c_str()) != INVALID_FILE_ATTRIBUTES) {
+                std::cerr << "midia-check: selo presente mas a pasta sumiu: "
+                          << to_utf8(candidate) << "\n";
+                exit_code = 5;
+            }
+        }
+        if (targets.empty() && media_only) {
+            std::cerr << "media-seal: --media aponta para uma pasta inexistente\n";
+            return 2;
+        }
+
+        for (const std::wstring& chosen : targets) {
+            const std::wstring seal_file = chosen + L"/media.seal";
+            const bool has_seal = GetFileAttributesW(seal_file.c_str()) != INVALID_FILE_ATTRIBUTES;
+            if (!sealing && !has_seal) {
+                // Pasta que ninguem selou nao e adulteracao - dizer isso evita
+                // falso positivo, e o numero de pastas sem selo fica visivel.
+                std::cout << "midia-check: sem selo (pasta nao foi selada)\n"
+                          << "midia: " << to_utf8(chosen) << "\n";
+                continue;
+            }
+            const deep::media_seal_report media = sealing
+                ? deep::seal_media_dir(chosen, cipher, progress_files)
+                : deep::verify_media_dir(chosen, cipher, progress_files);
+            std::cout << "midia-" << (sealing ? "seal" : "check") << ": "
+                      << (media.ok ? "ok" : "falhou") << "\n"
+                      << "midia: " << to_utf8(chosen) << "\n"
+                      << "arquivos: " << media.files << "\n"
+                      << "bytes: " << media.bytes << "\n"
+                      << "selo: " << media.seal_path << "\n";
+            for (const auto& line : media.problems) std::cerr << "  alterado: " << line << "\n";
+            for (const auto& line : media.missing) std::cerr << "  ausente: " << line << "\n";
+            for (const auto& line : media.added) std::cerr << "  fora do selo: " << line << "\n";
+            if (!media.error.empty()) std::cerr << "midia-seal: " << media.error << "\n";
+            if (!media.ok) exit_code = 5;
+        }
+
+        // Indice do caso: fica na raiz e guarda o digest de CADA selo. Sem ele,
+        // apagar a pasta leva o selo junto e o caso parece nunca ter sido selado.
+        // --media-seal mexe so numa pasta e nao tem autoridade para reescrever o
+        // indice do caso, entao ele so e tocado pelos comandos de nivel de caso.
+        if (!media_only) {
+            const std::wstring index_file = case_dir + L"/case.seal";
+            const bool has_index = GetFileAttributesW(index_file.c_str()) != INVALID_FILE_ATTRIBUTES;
+            if (sealing) {
+                const deep::case_index_report index =
+                    deep::seal_case_index(case_dir, cipher, progress_files);
+                std::cout << "indice-seal: " << (index.ok ? "ok" : "falhou") << "\n"
+                          << "indice: " << index.index_path << "\n"
+                          << "selos: " << index.entries << "\n";
+                if (!index.error.empty()) std::cerr << "indice-seal: " << index.error << "\n";
+                if (!index.ok) exit_code = 5;
+            } else if (has_index) {
+                const deep::case_index_report index =
+                    deep::verify_case_index(case_dir, cipher, progress_files);
+                std::cout << "indice-check: " << (index.ok ? "ok" : "falhou") << "\n"
+                          << "indice: " << index.index_path << "\n"
+                          << "selos: " << index.entries << "\n";
+                for (const auto& line : index.problems) std::cerr << "  selo alterado: " << line << "\n";
+                for (const auto& line : index.missing) std::cerr << "  selo sumiu: " << line << "\n";
+                for (const auto& line : index.added) std::cerr << "  selo fora do indice: " << line << "\n";
+                if (!index.error.empty()) std::cerr << "indice-check: " << index.error << "\n";
+                if (!index.ok) exit_code = 5;
+            } else {
+                // Caso selado antes do indice existir: nao e adulteracao.
+                std::cout << "indice-check: sem indice (caso selado antes do indice)\n";
+            }
+        }
+        return exit_code;
+    }
+    if (command == L"--timeline-export") {
+        std::wstring case_dir;
+        std::wstring out_path;
+        std::wstring format;
+        std::wstring db_path;
+        option_value(args, L"--case", case_dir);
+        option_value(args, L"--out", out_path);
+        option_value(args, L"--format", format);
+        option_value(args, L"--db", db_path);
+        if (to_utf8(case_dir).empty() || to_utf8(out_path).empty()) {
+            std::cerr << "timeline-export: --case e --out sao obrigatorios\n";
+            return 2;
+        }
+        const std::string database = to_utf8(db_path).empty()
+            ? (to_utf8(case_dir) + "/case.db")
+            : to_utf8(db_path);
+        const std::string chosen = to_utf8(format).empty() ? "csv" : to_utf8(format);
+        const deep::forensic::TimelineExportReport report =
+            deep::forensic::export_case_timeline(database, to_utf8(out_path), chosen);
+        std::cout << "timeline-export: " << (report.ok ? "ok" : "falhou") << "\n"
+                  << "linhas: " << report.rows << "\n"
+                  << "arquivo: " << report.path << "\n";
+        if (!report.error.empty()) std::cerr << "timeline-export: " << report.error << "\n";
+        return report.ok ? 0 : 5;
+    }
+    if (command == L"--social-import") {
+        olho::social::dyi_config config;
         std::wstring value;
+        if (option_value(args, L"--export", value)) config.source = value;
+        if (option_value(args, L"--case", value)) config.case_dir = to_utf8(value);
+        if (option_value(args, L"--account", value)) config.account = to_utf8(value);
+        if (option_value(args, L"--legal-basis", value)) config.legal_basis = to_utf8(value);
+        if (option_value(args, L"--job", value)) config.job_id = to_utf8(value);
+        if (option_value(args, L"--provider", value)) config.provider = to_utf8(value);
+        if (config.source.empty() || config.case_dir.empty() || config.account.empty() ||
+            config.legal_basis.empty() || config.job_id.empty()) {
+            std::cerr << "social-import: --export, --case, --account, --legal-basis e --job "
+                         "sao obrigatorios\n";
+            return 2;
+        }
+        const olho::social::dyi_report report = olho::social::import_export(config);
+        std::cout << "social: " << (report.ok ? "ok" : (report.partial ? "parcial" : "falhou"))
+                  << "\nprovider: " << report.provider
+                  << "\nconversas: " << report.threads
+                  << "\nmensagens: " << report.messages
+                  << "\nmidia: " << report.media
+                  << "\napagadas: " << report.unsent
+                  << "\nmanifesto: " << report.manifest_path << "\n";
+        if (!report.error.empty()) std::cerr << "social-import: " << report.error << "\n";
+        return report.ok ? 0 : (report.partial ? 6 : 5);
+    }
+    if (command == L"--cloud-dropbox-auth") {
+        cloud::DropboxAuthOptions options;
+        std::wstring value;
+        if (option_value(args, L"--app-key", value)) options.app_key = to_utf8(value);
+        if (option_value(args, L"--vault-key", value)) options.vault_key = to_utf8(value);
+        if (option_value(args, L"--timeout", value)) {
+            bool seconds_ok = false;
+            const auto parsed = parse_number(value, seconds_ok);
+            if (seconds_ok && parsed > 0) options.timeout_seconds = static_cast<int>(parsed);
+        }
+        options.no_browser = has_flag(args, L"--no-browser");
+        options.mock_http = has_flag(args, L"--mock-http");
+        return cloud::run_dropbox_auth(options);
+    }
+    if (command == L"--cloud-m365-collect" || command == L"--cloud-dropbox-collect") {
+        cloud::CollectFlowOptions options;
+        options.provider = command == L"--cloud-dropbox-collect" ? "dropbox" : "m365";
+        std::wstring value;
+        if (option_value(args, L"--provider", value)) options.provider = to_utf8(value);
+        if (option_value(args, L"--root", value)) options.root_path = to_utf8(value);
+        if (option_value(args, L"--app-key", value)) options.app_key = to_utf8(value);
+        if (option_value(args, L"--max-file-bytes", value)) {
+            bool bytes_ok = false;
+            const auto parsed = parse_number(value, bytes_ok);
+            if (bytes_ok) options.max_file_bytes = parsed;
+        }
+        options.download_files = has_flag(args, L"--download-files");
         if (option_value(args, L"--case", value)) options.case_dir = to_utf8(value);
         if (option_value(args, L"--account", value)) options.account = to_utf8(value);
         if (option_value(args, L"--tenant", value)) options.tenant = to_utf8(value);
@@ -3422,6 +3708,68 @@ int run_cli(int argc, char** argv) {
             if (!vault_key.empty()) options.vault_key = vault_key;
         }
         return cloud::run_collect_flow(options);
+    }
+    if (command == L"--hardware-inventory") {
+        std::wstring case_dir;
+        std::wstring out_path;
+        if (option_value(args, L"--case", case_dir)) {}
+        if (option_value(args, L"--out", out_path)) {}
+        std::string path;
+        if (!out_path.empty()) {
+            path = to_utf8(out_path);
+        } else if (!case_dir.empty()) {
+            path = (std::filesystem::path(case_dir) / "hardware" /
+                    "inventory.json").string();
+        } else {
+            path = "hardware_inventory.json";
+        }
+        const forensic::HardwareInventory inventory =
+            forensic::collect_hardware_inventory();
+        std::string error;
+        if (!forensic::write_hardware_inventory_json(inventory, path, error)) {
+            std::cerr << "hardware-inventory: " << error << "\n";
+            return 1;
+        }
+        std::string digest;
+        if (sha256_file(std::filesystem::path(path).wstring(), digest)) {
+            std::cout << "sha256: " << digest << "\n";
+        }
+        std::cout << "hardware-inventory: " << path << "\n";
+        return 0;
+    }
+    if (command == L"--recovery-index") {
+        if (args.size() < 2 || args[1].rfind(L"--", 0) == 0) {
+            std::cerr << "recovery-index: source directory missing\n";
+            return 2;
+        }
+        std::wstring out_path;
+        std::wstring case_dir;
+        if (option_value(args, L"--out", out_path)) {}
+        if (option_value(args, L"--case", case_dir)) {}
+        std::string target;
+        if (!out_path.empty()) {
+            target = to_utf8(out_path);
+        } else if (!case_dir.empty()) {
+            target = (std::filesystem::path(case_dir) / "recovery" /
+                      "index.json").string();
+        } else {
+            target = (std::filesystem::path(args[1]) / "index.json").string();
+        }
+        std::string error;
+        const forensic::RecoveryIndex index =
+            forensic::scan_recovery_directory(to_utf8(args[1]), error);
+        if (!error.empty()) {
+            std::cerr << "recovery-index: " << error << "\n";
+            return 1;
+        }
+        if (!forensic::write_recovery_index_json(index, target, error)) {
+            std::cerr << "recovery-index: " << error << "\n";
+            return 1;
+        }
+        std::cout << "recovery-index: " << target << "\n"
+                  << "files: " << index.files.size() << "\n"
+                  << "duplicates: " << index.duplicate_groups.size() << "\n";
+        return 0;
     }
     if (command == L"--deep-help") {
         std::cout << deep_help();

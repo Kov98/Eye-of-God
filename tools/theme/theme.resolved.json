@@ -1,0 +1,165 @@
+{
+ "roles": {
+  "chrome": {
+   "hex": "#1F1F1F",
+   "source": "token EnvironmentBackground"
+  },
+  "chromeFixed": {
+   "hex": "#1C1C1C",
+   "source": "literal #1C1C1C (medido na janela do VS)"
+  },
+  "commandBar": {
+   "hex": "#262626",
+   "source": "token ControlAltFillTertiary alpha=11 sobre base #1C1C1C"
+  },
+  "surface": {
+   "hex": "#282828",
+   "source": "token CardBackgroundFillDefault alpha=13 sobre base #1C1C1C"
+  },
+  "gridAlt": {
+   "hex": "#232323",
+   "source": "token ControlFillTertiary alpha=8 sobre base #1C1C1C"
+  },
+  "outputPane": {
+   "hex": "#1F1F1F",
+   "source": "token Background"
+  },
+  "pressed": {
+   "hex": "#2F2F2F",
+   "source": "token ControlFillSecondary alpha=21 sobre base #1C1C1C"
+  },
+  "hoverBar": {
+   "hex": "#333333",
+   "source": "token CommandBarHover"
+  },
+  "selectionBorder": {
+   "hex": "#454545",
+   "source": "token ControlSolidFillDefault"
+  },
+  "document": {
+   "hex": "#1E1E1E",
+   "source": "literal #1E1E1E (medido (editor); nao composavel dos 867)"
+  },
+  "tabStrip": {
+   "hex": "#262626",
+   "source": "literal #262626 (medido no editor de referencia (print): tira de abas #262626; no VS 2026 dava #2B2B2B)"
+  },
+  "tabActive": {
+   "hex": "#282828",
+   "source": "literal #282828 (medido no print: a aba ATIVA e mais clara que a tira (#282828), nao funde com o editor (#1E1E1E))"
+  },
+  "tabInactive": {
+   "hex": "#272727",
+   "source": "literal #272727 (medido)"
+  },
+  "hoverRow": {
+   "hex": "#353535",
+   "source": "literal #353535 (medido)"
+  },
+  "hoverSoft": {
+   "hex": "#303030",
+   "source": "literal #303030 (medido)"
+  },
+  "hoverStrong": {
+   "hex": "#3A3A3A",
+   "source": "literal #3A3A3A (medido)"
+  },
+  "divider": {
+   "hex": "#0E0E0E",
+   "source": "literal #0E0E0E (medido)"
+  },
+  "shadowBand": {
+   "hex": "#141414",
+   "source": "literal #141414 (medido)"
+  },
+  "accent": {
+   "hex": "#9184EE",
+   "source": "token AccentFillDefault"
+  },
+  "accentHover": {
+   "hex": "#8579D9",
+   "source": "token AccentFillSecondary alpha=229 sobre base #1C1C1C"
+  },
+  "accentPressed": {
+   "hex": "#7A6FC4",
+   "source": "token AccentFillTertiary alpha=204 sobre base #1C1C1C"
+  },
+  "accentDisabled": {
+   "hex": "#404040",
+   "source": "token AccentFillDisabled alpha=40 sobre base #1C1C1C"
+  },
+  "onAccent": {
+   "hex": "#000000",
+   "source": "token TextOnAccentFillPrimary"
+  },
+  "textPrimary": {
+   "hex": "#FFFFFF",
+   "source": "token TextFillPrimary"
+  },
+  "textSecondary": {
+   "hex": "#929292",
+   "source": "literal #929292 (TextFillSecondary do VS = #8C8C8C, mas 4.38:1 sobre #282828, 4.44:1 sobre #272727 e 4.21:1 sobre #2B2B2B (abaixo de AA 4.5). #929292 e o cinza mais proximo que passa 4.5:1 em TODAS as superficies estaticas (4.55 no pior caso); desvio de 6/255 do valor medido)"
+  },
+  "textDisabled": {
+   "hex": "#777777",
+   "source": "literal #777777 (TextFillDisabled do VS era #6F6F6F (2.93:1 sobre #282828, abaixo do 3:1 minimo de componente inativo). #777777 fecha 3.10:1 sem parecer texto ativo)"
+  },
+  "strokeDefault": {
+   "hex": "#2C2C2C",
+   "source": "token ControlStrokeDefault alpha=18 sobre base #1C1C1C"
+  },
+  "strokeSecondary": {
+   "hex": "#2C2C2C",
+   "source": "token ControlStrokeSecondary alpha=18 sobre base #1C1C1C"
+  },
+  "strokeFlyout": {
+   "hex": "#161616",
+   "source": "token SurfaceStrokeFlyout alpha=51 sobre base #1C1C1C"
+  },
+  "strokeCard": {
+   "hex": "#191919",
+   "source": "token CardStrokeDefault alpha=26 sobre base #1C1C1C"
+  },
+  "focusOuter": {
+   "hex": "#FFFFFF",
+   "source": "token FocusStrokeOuter"
+  },
+  "focusInner": {
+   "hex": "#080808",
+   "source": "token FocusStrokeInner alpha=178 sobre base #1C1C1C"
+  },
+  "smoke": {
+   "hex": "#141414",
+   "source": "token SmokeFillDefault alpha=77 sobre base #1C1C1C"
+  },
+  "gutter": {
+   "hex": "#8C8C8C",
+   "source": "literal #8C8C8C (medido (numera\u00e7\u00e3o do HexView))"
+  },
+  "lineGrid": {
+   "hex": "#333333",
+   "source": "literal #333333 (medido (grade do timeline))"
+  },
+  "lineSoft": {
+   "hex": "#5A5A5A",
+   "source": "literal #5A5A5A (medido (linha tracejada))"
+  },
+  "textOnDocument": {
+   "hex": "#E6E6E6",
+   "source": "literal #E6E6E6 (medido (texto sobre documento))"
+  },
+  "textDim": {
+   "hex": "#D6D6D6",
+   "source": "literal #D6D6D6 (medido (texto secundario sobre documento))"
+  },
+  "textMuted": {
+   "hex": "#A0A0A0",
+   "source": "literal #A0A0A0 (medido (r\u00f3tulos/axis))"
+  },
+  "syntaxBlue": {
+   "hex": "#9CDCFE",
+   "source": "literal #9CDCFE (cor de sintaxe do VS (coluna ASCII))"
+  }
+ },
+ "golden_ok": true
+}

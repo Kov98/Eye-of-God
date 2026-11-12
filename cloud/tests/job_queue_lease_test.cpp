@@ -1,4 +1,4 @@
-﻿// Standalone lease/fencing regression test for cloud/service/job_queue.cpp.
+// Standalone lease/fencing regression test for cloud/service/job_queue.cpp.
 #include "cloud/service/job_queue.hpp"
 #include "cloud/enterprise/secret_store.hpp"
 #include <nlohmann/json.hpp>
@@ -36,11 +36,19 @@ int main() {
     job.legal_basis = "warrant";
     job.vault_key = "vault/test";
     job.max_pages = 1;
+    // A Dropbox job has no tenant and walks a folder; both must survive the
+    // queue, otherwise the worker would run it as a Graph job.
+    job.provider = "dropbox";
+    job.root_path = "/caso/anexos";
+    job.download_files = true;
     std::string error;
     check(queue.enqueue(job, error), "enqueue protects vault key");
     auto stored = queue.get(job.job_id);
     check(stored.has_value(), "job readable");
     check(stored && stored->vault_key == "vault/test", "vault key round-trips via DPAPI");
+    check(stored && stored->provider == "dropbox", "provider survives the queue");
+    check(stored && stored->root_path == "/caso/anexos", "root path survives the queue");
+    check(stored && stored->download_files, "download flag survives the queue");
     check(queue.claim(job.job_id, "worker-a", 60, error), "first claim");
     stored = queue.get(job.job_id);
     check(stored && stored->lease_generation == 1, "claim increments generation");

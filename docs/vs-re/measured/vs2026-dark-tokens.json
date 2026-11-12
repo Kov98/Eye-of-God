@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "target": "Microsoft Visual Studio Community 2026",
+    "version": "18.10.12224.181",
+    "install": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community",
+    "extracted_at": "sessão atual",
+    "method": [
+      "ilspycmd 11.2.0.10050 (project export, BAML -> XAML)",
+      "ICSharpCode.BamlDecompiler 11.2.0.10050 (extrator próprio, 372/372 baml)",
+      "amostragem de pixel da janela real (PrintWindow, 1936x1048, escala 100%)"
+    ],
+    "color_source_of_truth": "runtime (VS theme service) — os assemblies não contêm hex"
+  },
+  "tokens_csharp": {
+    "Sizes": {
+      "ContentMinHeight": 16,
+      "ContentMinWidth": 16,
+      "ControlMinHeight": 24,
+      "ControlMinWidth": 24,
+      "IconXXS": 8,
+      "IconXS": 12,
+      "IconS": 16,
+      "IconM": 24,
+      "IconL": 32,
+      "NonClientControlHeight": 30,
+      "NonClientControlWidth": 44,
+      "ResizeGripSize": 6,
+      "ToggleSwitchSize": 20
+    },
+    "Spacings_px": {
+      "none": 0,
+      "xxs": 2,
+      "xs": 4,
+      "s": 8,
+      "m": 12,
+      "l": 16,
+      "xl": 20,
+      "xxl": 24,
+      "xxxl": 32,
+      "nudge_1": 1,
+      "nudge_3": 3,
+      "nudge_6": 6,
+      "nudge_10": 10
+    },
+    "CornerRadii_px": {
+      "none": 0,
+      "s": 2,
+      "m": 4,
+      "l": 6,
+      "xl": 8,
+      "focusRect": 6
+    },
+    "StrokeWidths_px": {
+      "none": 0,
+      "thin": 1,
+      "thick": 2,
+      "thicker": 3,
+      "thickest": 4
+    },
+    "Typography_px": {
+      "shell": {
+        "family": "Segoe UI",
+        "size": 12
+      },
+      "code": {
+        "family": "Cascadia Mono",
+        "size": 14
+      },
+      "caption": 12,
+      "body": 14,
+      "bodyLarge": 18,
+      "subtitle": 20,
+      "title": 28,
+      "titleLarge": 40,
+      "display": 68,
+      "lineHeights": {
+        "caption": 16,
+        "body": 20,
+        "bodyLarge": 24,
+        "subtitle": 20,
+        "title": 28,
+        "titleLarge": 36,
+        "display": 92
+      }
+    }
+  },
+  "color_categories": {
+    "73708ded-2d56-4aad-b8eb-73b20d3f4bff": {
+      "name": "Fluent-Shell",
+      "examples": [
+        "ControlFillDefault",
+        "ControlFillSecondary",
+        "ControlFillTertiary",
+        "ControlFillTransparent",
+        "SubtleFillSecondary",
+        "SubtleFillTertiary",
+        "LayerFillDefault",
+        "ControlStrongFillDefault",
+        "ControlStrokeDefault",
+        "ControlStrokeSecondary",
+        "ControlStrokeTransparent",
+        "DividerStrokeDefault",
+        "TextFillPrimary",
+        "TextFillSecondary",
+        "TextFillDisabled",
+        "AccentFillDefault",
+        "AccentFillSecondary",
+        "AccentFillTertiary",
+        "TextOnAccentFillPrimary"
+      ]
+    },
+    "624ed9c3-bdfd-41fa-96c3-7c824ea32e3d": {
+      "name": "Environment",
+      "examples": [
+        "ToolWindowBackground",
+        "ToolWindowTabSelectedActiveBackground",
+        "EnvironmentBackground",
+        "CommandBarGradientBegin"
+      ]
+    }
+  },
+  "measured_dark_2026": {
+    "note": "hex amostrado da janela real; captura 1936x1048 com offset de +8px da moldura",
+    "backgroundLevels": {
+      "chrome": "#1C1C1C",
+      "commandBar": "#262626",
+      "panel": "#282828",
+      "editor": "#1E1E1E",
+      "outputPane": "#1F1F1F"
+    },
+    "tabStrip": {
+      "stripUpper": "#2B2B2B",
+      "stripLower": "#272727",
+      "activeTab": "#1E1E1E",
+      "indicator": "#9184EE",
+      "indicatorWidth_code": 3,
+      "indicatorWidth_measured_px": 4
+    },
+    "edges": {
+      "divider": "#0E0E0E",
+      "bottomEdge": "#141414",
+      "selectedBorder": "#454545"
+    },
+    "states": {
+      "hoverNeutral": "#353535",
+      "pressedNeutral": "#2A2A2A",
+      "selectionNeutral": "#353535",
+      "selectionFileBlue": "#28287C",
+      "accent": "#9184EE"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#E6E6E6",
+      "muted": "#D7D7D7"
+    },
+    "geometry_px": {
+      "titleMenuBar": 30,
+      "commandBarRow1": 29,
+      "gap": 6,
+      "commandBarRow2": 25,
+      "tabStripUpper": 22,
+      "tabStripLower": 16,
+      "statusStrip": 24,
+      "bottomEdgeBand": 24,
+      "scrollbar": 8,
+      "splitter": 1
+    }
+  },
+  "mapping_to_qt_qss": {
+    "#1C1C1C": "QWidget/QMainWindow base (chrome), QMenuBar, title bar, aba ativa do editor",
+    "#262626": "QToolBar, QStatusBar",
+    "#282828": "QDockWidget + QTreeView/QTableView (painéis)",
+    "#1E1E1E": "área do documento (QTabWidget::pane) e tab ativa",
+    "#1F1F1F": "painel de saída/console dockado",
+    "#2B2B2B/#272727": "QTabBar (strip) vs. aba inativa",
+    "#9184EE": "indicador de 4px da aba ativa + foco (accent)",
+    "#353535": "hover/seleção neutra de item",
+    "#28287C": "seleção de item 'arquivo' em lista",
+    "#0E0E0E": "linha de 1px entre chrome e command bar",
+    "radius 4 / stroke 1": "todo controle (não usar 3, 6, 7, 12)",
+    "font 12px Segoe UI": "base (não 9.5pt); code 14px Cascadia Mono"
+  }
+}

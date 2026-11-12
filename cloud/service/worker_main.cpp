@@ -1,4 +1,4 @@
-﻿#include "cloud/cli/collect_flow.hpp"
+#include "cloud/cli/collect_flow.hpp"
 #include "job_queue.hpp"
 #include "cloud/enterprise/secret_store.hpp"
 #include "third_party/nlohmann/json.hpp"
@@ -166,9 +166,12 @@ int main(int argc, char** argv) {
             return;
         }
         deep::cloud::CollectFlowOptions options;
+        options.provider = job.provider;
         options.case_dir = case_dir;
         options.account = job.account;
         options.tenant = job.tenant_id;
+        options.root_path = job.root_path;
+        options.download_files = job.download_files;
         options.vault_key = vault_key;
         options.legal_basis = job.legal_basis;
         options.job = job.job_id;

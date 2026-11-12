@@ -1,8 +1,12 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 # Build OlhoDeDeus_deep.exe from the collector + deep engine + artifact modules.
 # The original OlhoDeDeus.exe is never touched.
 
 $ErrorActionPreference = 'Stop'
+# g++ escreve warnings no stderr; com 'Stop' o PowerShell transforma isso em
+# erro terminante e o script abortava DEPOIS de compilar tudo, deixando o exe
+# velho no lugar (build "verde" com binario antigo). O gate real e o exit code.
+$PSNativeCommandUseErrorActionPreference = $false
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 $gpp = $null
@@ -45,7 +49,19 @@ $out = Join-Path $root 'OlhoDeDeus_deep.exe'
 $sources = @(
     'main.cpp',
     'deep.cpp',
+    'hardware_inventory.cpp',
+    'recovery_index.cpp',
     'case_db.cpp',
+    'case_db_seal.cpp',
+    'case_timeline_export.cpp',
+    'case_crypto.cpp',
+    'sqlite_enc_vfs.cpp',
+    'android_backup.cpp',
+    'social/zip_reader.cpp',
+    'social/mbox_reader.cpp',
+    'social/takeout_import.cpp',
+    'social/telegram_import.cpp',
+    'social/dyi_import.cpp',
     'artifact_registry.cpp',
     'artifact_browser.cpp',
     'artifact_browser_secrets.cpp',
@@ -87,14 +103,19 @@ $sources = @(
     'cloud/enterprise/audit.cpp',
     'cloud/connectors/m365/graph_client.cpp',
     'cloud/connectors/m365/m365_collector.cpp',
+    'cloud/connectors/dropbox/dropbox_client.cpp',
+    'cloud/connectors/dropbox/dropbox_http.cpp',
+    'cloud/connectors/dropbox/dropbox_collector.cpp',
+    'cloud/cli/dropbox_flow.cpp',
     'cloud/cli/auth_flow.cpp',
+    'cloud/cli/dropbox_auth.cpp',
     'cloud/cli/collect_flow.cpp',
     'gui.cpp'
 ) | ForEach-Object { Join-Path $root $_ }
 $libs = @(
     '-lws2_32', '-liphlpapi', '-ladvapi32', '-lwevtapi', '-lbcrypt',
     '-lshell32', '-lole32', '-loleaut32', '-lshlwapi', '-lxmllite',
-    '-luuid', '-lesent', '-lcrypt32', '-lcomdlg32', '-lgdi32', '-lwinhttp', '-static'
+    '-luuid', '-lesent', '-lcrypt32', '-lcomdlg32', '-lgdi32', '-lwinhttp', '-ltbs', '-static'
 )
 
 Write-Host "g++: $gpp"
@@ -110,7 +131,21 @@ $guiOut = Join-Path $root 'OlhoDeDeus_gui.exe'
 $guiSources = @(
     (Join-Path $root 'gui_main.cpp'),
     (Join-Path $root 'mainwindow.cpp'),
+    (Join-Path $root 'chatview.cpp'),
+    (Join-Path $root 'acquireview.cpp'),
+    (Join-Path $root 'galleryview.cpp'),
+    (Join-Path $root 'timeline_index.cpp'),
+    (Join-Path $root 'ios_keybag.cpp'),
+    (Join-Path $root 'ios_backup.cpp'),
+    (Join-Path $root 'android_adb.cpp'),
+    (Join-Path $root 'android_backup.cpp'),
+    (Join-Path $root 'social/zip_reader.cpp'),
+    (Join-Path $root 'social/mbox_reader.cpp'),
+    (Join-Path $root 'social/takeout_import.cpp'),
+    (Join-Path $root 'social/telegram_import.cpp'),
+    (Join-Path $root 'social/dyi_import.cpp'),
     (Join-Path $root 'manifest_sign.cpp'),
+    (Join-Path $root 'hardware_inventory.cpp'),
     (Join-Path $root 'cloud/core/cloud_core.cpp'),
     (Join-Path $root 'cloud/core/oauth_pkce.cpp'),
     (Join-Path $root 'cloud/core/oauth_callback.cpp'),
@@ -122,6 +157,14 @@ $guiSources = @(
     (Join-Path $root 'cloud/enterprise/session_vault.cpp'),
     (Join-Path $root 'cloud/enterprise/secret_store.cpp'),
     (Join-Path $root 'cloud/cli/auth_flow.cpp'),
+    (Join-Path $root 'cloud/cli/dropbox_auth.cpp'),
+    (Join-Path $root 'cloud/cli/collect_flow.cpp'),
+    (Join-Path $root 'cloud/cli/dropbox_flow.cpp'),
+    (Join-Path $root 'cloud/connectors/dropbox/dropbox_client.cpp'),
+    (Join-Path $root 'cloud/connectors/dropbox/dropbox_http.cpp'),
+    (Join-Path $root 'cloud/connectors/dropbox/dropbox_collector.cpp'),
+    (Join-Path $root 'cloud/connectors/m365/graph_client.cpp'),
+    (Join-Path $root 'cloud/connectors/m365/m365_collector.cpp'),
     (Join-Path $root 'cloud/core/dpapi_token_vault.cpp'),
     (Join-Path $root 'cloud/service/job_queue.cpp'),
     (Join-Path $root 'cloud/enterprise/audit.cpp')
@@ -135,13 +178,67 @@ if (-not (Test-Path $qtPkg)) {
 if (-not (Test-Path $qtPkg)) { throw 'pkg-config not found' }
 $qtFlags = ((& $qtPkg --cflags --libs Qt6Widgets Qt6Network) -join ' ') -split '\s+'
 & $gpp -std=c++17 -O2 -fms-extensions '-Wl,--no-insert-timestamp' -mwindows -I $root `
-    -o $guiOut @guiSources @qtFlags -lcomdlg32 -lshell32 -lole32 -lgdi32 -lpsapi -lbcrypt -lwinhttp -lws2_32 -lcrypt32
-if ($LASTEXITCODE -ne 0) { throw "GUI build failed with exit code $LASTEXITCODE" }# Keep VirtualBox UI icons next to the GUI for QIcon.
-$iconSource = Join-Path $root 'resources\vbox_icons'
-$iconTarget = Join-Path $root 'icons'
-if (Test-Path $iconSource) {
-    New-Item -ItemType Directory -Force -Path $iconTarget | Out-Null
-    Copy-Item (Join-Path $iconSource '*.png') $iconTarget -Force
-}
+    -I (Join-Path $root 'third_party\sqlite') `
+    -o $guiOut @guiSources $sqliteObject @qtFlags -lcomdlg32 -lshell32 -lole32 -lgdi32 -lpsapi -lbcrypt -lwinhttp -lws2_32 -lcrypt32 -ltbs
+if ($LASTEXITCODE -ne 0) { throw "GUI build failed with exit code $LASTEXITCODE" }
 $guiItem = Get-Item $guiOut
 Write-Host ("built {0} ({1:n0} bytes)" -f $guiItem.Name, $guiItem.Length)
+
+# Recuperacao de WhatsApp. Binario proprio porque a GUI o invoca como processo e
+# porque ele e a unica peca do produto que abre msgstore.db com a chave do
+# aparelho; sem alvo aqui ele ficava fora de qualquer build reproduzivel.
+$waOut = Join-Path $root 'wa_recover.exe'
+$waSources = @(
+    (Join-Path $root 'wa_recover.cpp'),
+    (Join-Path $root 'wa_sqlcipher.cpp'),
+    (Join-Path $root 'wa_media.cpp'),
+    (Join-Path $root 'wa_carve.cpp')
+)
+& $gpp -std=c++17 -O2 '-Wl,--no-insert-timestamp' -I $root `
+    -I (Join-Path $root 'third_party\sqlite') `
+    -o $waOut @waSources $sqliteObject -lbcrypt
+if ($LASTEXITCODE -ne 0) { throw "wa_recover build failed with exit code $LASTEXITCODE" }
+$waItem = Get-Item $waOut
+Write-Host ("built {0} ({1:n0} bytes)" -f $waItem.Name, $waItem.Length)
+
+# Laudo em PDF. Binary proprio porque o painel o invoca como processo: um gerador
+# de relatorio que travaria a UI nao serve, e o formato PDF nao precisa de Qt.
+$reportOut = Join-Path $root 'olho_report.exe'
+$reportSources = @(
+    (Join-Path $root 'report_main.cpp'),
+    (Join-Path $root 'forensic_report.cpp'),
+    (Join-Path $root 'evidence_verify.cpp'),
+    (Join-Path $root 'pkcs7_builder.cpp'),
+    (Join-Path $root 'tsa_client.cpp'),
+    (Join-Path $root 'custody_chain.cpp'),
+    # Selo do caso: o laudo confere db e midia ANTES de gerar o PDF.
+    (Join-Path $root 'case_db_seal.cpp'),
+    (Join-Path $root 'case_crypto.cpp'),
+    (Join-Path $root 'ios_backup.cpp'),
+    (Join-Path $root 'ios_keybag.cpp')
+)
+# Sem -mwindows: e uma ferramenta de linha de comando e precisa do console.
+& $gpp -std=c++17 -O2 -fms-extensions '-Wl,--no-insert-timestamp' -I $root `
+    -I (Join-Path $root 'third_party') -I (Join-Path $root 'third_party\sqlite') `
+    -o $reportOut @reportSources $sqliteObject -lbcrypt -lws2_32 -lcrypt32 -lncrypt -lwinhttp
+if ($LASTEXITCODE -ne 0) { throw "report build failed with exit code $LASTEXITCODE" }
+$reportItem = Get-Item $reportOut
+Write-Host ("built {0} ({1:n0} bytes)" -f $reportItem.Name, $reportItem.Length)
+
+# Verificador de assinatura: quem recebe um laudo precisa poder conferir sem
+# confiar em quem emitiu.
+$verifyOut = Join-Path $root 'olho_verify.exe'
+& $gpp -std=c++17 -O2 '-Wl,--no-insert-timestamp' -I $root -o $verifyOut `
+    (Join-Path $root 'verify_pdf_signature.cpp') (Join-Path $root 'tsa_client.cpp') `
+    (Join-Path $root 'pkcs7_builder.cpp') -lcrypt32 -lncrypt -lbcrypt -lwinhttp
+if ($LASTEXITCODE -ne 0) { throw "verify build failed with exit code $LASTEXITCODE" }
+$verifyItem = Get-Item $verifyOut
+Write-Host ("built {0} ({1:n0} bytes)" -f $verifyItem.Name, $verifyItem.Length)
+
+# Verificador de tipo: a evidencia entra declarando o que e; este confere.
+$evidenceOut = Join-Path $root 'olho_evidence.exe'
+& $gpp -std=c++17 -O2 '-Wl,--no-insert-timestamp' -I $root -o $evidenceOut `
+    (Join-Path $root 'evidence_main.cpp') (Join-Path $root 'evidence_verify.cpp')
+if ($LASTEXITCODE -ne 0) { throw "evidence build failed with exit code $LASTEXITCODE" }
+$evidenceItem = Get-Item $evidenceOut
+Write-Host ("built {0} ({1:n0} bytes)" -f $evidenceItem.Name, $evidenceItem.Length)

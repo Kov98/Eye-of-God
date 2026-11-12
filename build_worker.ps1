@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $gpp = $env:OLHO_GXX
 if (-not $gpp) { $gpp = 'C:\msys64\ucrt64\bin\g++.exe' }
@@ -13,6 +13,10 @@ $sources = @(
     'cloud/cli/collect_flow.cpp',
     'cloud/connectors/m365/graph_client.cpp',
     'cloud/connectors/m365/m365_collector.cpp',
+    'cloud/connectors/dropbox/dropbox_client.cpp',
+    'cloud/connectors/dropbox/dropbox_http.cpp',
+    'cloud/connectors/dropbox/dropbox_collector.cpp',
+    'cloud/cli/dropbox_flow.cpp',
     'cloud/core/cloud_core.cpp',
     'cloud/core/winhttp_transport.cpp',
     'cloud/core/dpapi_token_vault.cpp'

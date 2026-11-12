@@ -1,0 +1,11 @@
+{
+  "name": "olho-de-deus-icons",
+  "private": true,
+  "scripts": {
+    "icons": "node generate_icons.js"
+  },
+  "devDependencies": {
+    "lucide-static": "^1.65.0",
+    "sharp": "^0.35.5"
+  }
+}

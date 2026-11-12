@@ -1,4 +1,4 @@
-﻿# Build and run the Phase 0 cloud-core unit tests.
+# Build and run the Phase 0 cloud-core unit tests.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $gpp = $env:OLHO_GXX
@@ -62,6 +62,10 @@ $collectSources = @(
     (Join-Path $root 'cloud\core\dpapi_token_vault.cpp'),
     (Join-Path $root 'cloud\connectors\m365\graph_client.cpp'),
     (Join-Path $root 'cloud\connectors\m365\m365_collector.cpp'),
+    (Join-Path $root 'cloud\connectors\dropbox\dropbox_client.cpp'),
+    (Join-Path $root 'cloud\connectors\dropbox\dropbox_http.cpp'),
+    (Join-Path $root 'cloud\connectors\dropbox\dropbox_collector.cpp'),
+    (Join-Path $root 'cloud\cli\dropbox_flow.cpp'),
     (Join-Path $root 'cloud\cli\collect_flow.cpp'),
     (Join-Path $root 'cloud\cli\cloud_collect.cpp')
 )
@@ -79,7 +83,7 @@ $dbTest = Join-Path $root 'cloud_db_import_test.exe'
 & $gpp -std=c++17 -O2 -fms-extensions -I $root -I (Join-Path $root 'third_party') -I $sqliteDir `
     -o $dbTest (Join-Path $root 'cloud\tests\cloud_db_import_test.cpp') `
     (Join-Path $root 'cloud\db\cloud_db_import.cpp') (Join-Path $root 'case_db.cpp') `
-    (Join-Path $root 'cloud\core\cloud_core.cpp') $sqliteObj -lbcrypt
+    (Join-Path $root 'case_crypto.cpp') (Join-Path $root 'sqlite_enc_vfs.cpp') (Join-Path $root 'cloud\core\cloud_core.cpp') $sqliteObj -lbcrypt -lcrypt32
 if ($LASTEXITCODE -ne 0) { throw "db import test build failed: $LASTEXITCODE" }
 Write-Host "built $dbTest"
 $leaseTest = Join-Path $root 'job_queue_lease_test.exe'

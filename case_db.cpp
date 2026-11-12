@@ -1,7 +1,10 @@
-﻿// language: C++, file: case_db.cpp, target: Windows 10/11
+// language: C++, file: case_db.cpp, target: Windows 10/11
 // SQLite-backed case store. One row per artifact plus a normalized timeline.
 
 #include "case_db.hpp"
+
+#include "case_crypto.hpp"
+#include "sqlite_enc_vfs.hpp"
 
 #include <sqlite3.h>
 
@@ -147,6 +150,13 @@ void CaseDatabase::close() {
         sqlite3_close(db_);
         db_ = nullptr;
     }
+    // The VFS holds a pointer to this cipher, so it has to be detached before the
+    // cipher is freed — otherwise the next open through the VFS reads freed memory.
+    if (cipher_ != nullptr) {
+        install_encryption(nullptr);
+        delete static_cast<case_cipher*>(cipher_);
+        cipher_ = nullptr;
+    }
 }
 
 bool CaseDatabase::exec(const std::string& sql, std::wstring& error) {
@@ -172,6 +182,10 @@ bool CaseDatabase::open(const std::wstring& path, std::wstring& error) {
         close();
         return false;
     }
+    return init_schema(error);
+}
+
+bool CaseDatabase::init_schema(std::wstring& error) {
     sqlite3_busy_timeout(db_, 5000);
     for (const char** sql = kSchema; *sql != nullptr; ++sql) {
         if (!exec(*sql, error)) {
@@ -186,6 +200,38 @@ bool CaseDatabase::open(const std::wstring& path, std::wstring& error) {
         return false;
     }
     return true;
+}
+
+bool CaseDatabase::open_encrypted(const std::wstring& path, const std::wstring& key_path,
+                                  std::wstring& error) {
+    close();
+
+    auto* cipher = new case_cipher();
+    std::string cipher_error;
+    if (!cipher->open_or_create(key_path, cipher_error)) {
+        delete cipher;
+        error = L"chave do caso: " + art::from_utf8(cipher_error);
+        return false;
+    }
+    install_encryption(cipher);
+    const char* vfs = encryption_vfs_name();
+    if (vfs == nullptr || *vfs == '\0') {
+        delete cipher;
+        error = L"nao consegui registrar o VFS cifrado";
+        return false;
+    }
+    cipher_ = cipher;
+
+    const std::string utf8 = art::to_utf8(path);
+    const int rc = sqlite3_open_v2(utf8.c_str(), &db_,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, vfs);
+    if (rc != SQLITE_OK) {
+        error = L"sqlite open (cifrado) failed: " +
+            art::from_utf8(db_ ? sqlite3_errmsg(db_) : "unknown");
+        close();
+        return false;
+    }
+    return init_schema(error);
 }
 
 bool CaseDatabase::begin(std::wstring& error) {

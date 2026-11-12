@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ctrls="clr-namespace:Microsoft.VisualStudio.Shell.Controls" xmlns:cvrts="clr-namespace:Microsoft.VisualStudio.Shell.Converters" xmlns:imgbg="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging" xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+  <Style x:Key="{x:Type ctrls:Window}" TargetType="{x:Type ctrls:Window}">
+    <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.SolidBackgroundFillQuaternaryBrushKey}}" />
+    <Setter Property="ctrls:Window.CloseOnEsc" Value="True" />
+    <Setter Property="FrameworkElement.FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="FontFamily" Value="{Binding ShellFontFamily, Source={x:Static styles:Typography.Instance}}" />
+    <Setter Property="FontSize" Value="{Binding ShellFontSize, Source={x:Static styles:Typography.Instance}}" />
+    <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:ShellColors.TextFillPrimaryBrushKey}}" />
+    <Setter Property="imgbg:ImageThemingUtilities.ImageBackgroundColor" Value="{DynamicResource {x:Static styles:ShellColors.SolidBackgroundFillQuaternaryColorKey}}" />
+    <Setter Property="MinHeight" Value="{x:Static ctrls:Window.ControlMinHeight}" />
+    <Setter Property="MinWidth" Value="{x:Static ctrls:Window.ControlMinWidth}" />
+    <Setter Property="Padding" Value="{x:Static styles:Spacings.L}" />
+    <Setter Property="UIElement.SnapsToDevicePixels" Value="True" />
+    <Setter Property="FrameworkElement.UseLayoutRounding" Value="True" />
+    <Setter Property="RenderOptions.BitmapScalingMode">
+      <Setter.Value>
+        <MultiBinding Converter="{x:Static cvrts:Converters.BitmapScalingModeConverter}">
+          <Binding RelativeSource="{RelativeSource Self}" />
+          <Binding Path="Dpi" RelativeSource="{RelativeSource Self}" />
+        </MultiBinding>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ctrls:Window}">
+          <AdornerDecorator Name="PART_ContentRoot">
+            <Border Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="*" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ContentPresenter Name="Content" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Content="{TemplateBinding ContentControl.Content}" ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}" Margin="{TemplateBinding Control.Padding}">
+                  <FrameworkElement.Resources>
+                    <ResourceDictionary>
+                      <DataTemplate x:Key="{DataTemplateKey {x:Type sys:String}}" DataType="{x:Type sys:String}">
+                        <ctrls:ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                          <ctrls:TextBlock TextWrapping="Wrap" Text="{Binding}" />
+                        </ctrls:ScrollViewer>
+                      </DataTemplate>
+                    </ResourceDictionary>
+                  </FrameworkElement.Resources>
+                </ContentPresenter>
+                <Border Name="PART_TitleBorder" Grid.Column="0" Grid.Row="0" Background="#00FFFFFF" Margin="{x:Static styles:Spacings.TopXXXS}" MinHeight="{x:Static styles:Sizes.NonClientControlHeight}">
+                  <ctrls:TextBlock x:Name="Title" IsHitTestVisible="False" Margin="{x:Static styles:Spacings.HorizontalM}" Text="{TemplateBinding Window.Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                </Border>
+                <Border Name="FooterBorder" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Background="{DynamicResource {x:Static styles:ShellColors.SolidBackgroundFillTertiaryBrushKey}}" BorderBrush="{DynamicResource {x:Static styles:ShellColors.CardStrokeDefaultBrushKey}}" BorderThickness="{x:Static styles:StrokeWidths.TopThin}" MinHeight="{x:Static styles:Sizes.NonClientControlHeight}" Padding="{TemplateBinding Control.Padding}">
+                  <ContentPresenter Content="{TemplateBinding ctrls:Window.FooterContent}" />
+                </Border>
+                <Border Name="PART_ResizeBorder" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Background="#00FFFFFF" Height="{x:Static styles:Sizes.ResizeGripSize}" VerticalAlignment="Top" Visibility="Collapsed" />
+                <Grid Column="1" Row="0" RowSpan="2" VerticalAlignment="Top" Margin="{Binding Margin, ElementName=PART_TitleBorder}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <ContentPresenter Grid.Column="0" Content="{TemplateBinding ctrls:Window.NonClientContent}" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ctrls:NonClientButton x:Name="PART_CopyButton" Command="{x:Static ApplicationCommands.Copy}" Data="{x:Static styles:Geometries.Copy}" ToolTip="{x:Static styles:Resources.Copy}" Visibility="{TemplateBinding CanCopy, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}" />
+                    <ctrls:NonClientButton x:Name="MinimizeButton" Command="{x:Static ctrls:Window.MinimizeCommand}" Data="{x:Static styles:Geometries.ChromeMinimize}" ToolTip="{x:Static styles:Resources.Minimize}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" />
+                    <ctrls:NonClientButton x:Name="MaximizeButton" Command="{x:Static ctrls:Window.MaximizeCommand}" Data="{x:Static styles:Geometries.ChromeMaximize}" ToolTip="{x:Static styles:Resources.Maximize}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" />
+                    <ctrls:NonClientButton x:Name="CloseButton" Command="{x:Static ctrls:Window.CloseCommand}" Data="{x:Static styles:Geometries.Dismiss}" ToolTip="{x:Static styles:Resources.Close}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" />
+                  </StackPanel>
+                </Grid>
+                <Border Name="PART_GripBorder" Grid.Column="1" Grid.Row="1" Grid.RowSpan="2" Background="#00FFFFFF" HorizontalAlignment="Right" IsHitTestVisible="False" VerticalAlignment="Bottom" Visibility="Collapsed">
+                  <Path Data="F1 M14,8.5 C14,11.5376 11.5376,14 8.5,14 L4.41421,14 C3.52331,14 3.07714,12.9229 3.70711,12.2929 L12.2929,3.70711 C12.9229,3.07714 14,3.52331 14,4.41421 L14,8.5" Fill="{DynamicResource {x:Static styles:ShellColors.SolidBackgroundFillBaseAltBrushKey}}" Height="{x:Static styles:Sizes.IconS}" IsHitTestVisible="False" Width="{x:Static styles:Sizes.IconS}" />
+                </Border>
+              </Grid>
+            </Border>
+          </AdornerDecorator>
+          <ControlTemplate.Triggers>
+            <Trigger Property="Window.ResizeMode" Value="NoResize">
+              <Setter TargetName="PART_ResizeBorder" Property="UIElement.IsHitTestVisible" Value="False" />
+              <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed" />
+              <Setter TargetName="MinimizeButton" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="Window.ResizeMode" Value="CanMinimize">
+              <Setter TargetName="PART_ResizeBorder" Property="UIElement.IsHitTestVisible" Value="False" />
+              <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="Window.ResizeMode" Value="CanResizeWithGrip">
+              <Setter TargetName="PART_GripBorder" Property="UIElement.IsHitTestVisible" Value="True" />
+              <Setter TargetName="PART_GripBorder" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="ctrls:Window.ShowFooter" Value="False">
+              <Setter TargetName="FooterBorder" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="ctrls:Window.ShowTitle" Value="False">
+              <Setter TargetName="Content" Property="Grid.Row" Value="0" />
+              <Setter TargetName="Content" Property="Grid.RowSpan" Value="2" />
+              <Setter TargetName="Title" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="ctrls:Window.UseDwmBorder" Value="False">
+              <Setter TargetName="PART_TitleBorder" Value="{x:Static styles:Spacings.None}" Property="Margin" />
+            </Trigger>
+            <Trigger Property="ctrls:Window.UseDwmBorder" Value="True">
+              <Setter TargetName="PART_ResizeBorder" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="Window.WindowState" Value="Maximized">
+              <Setter TargetName="PART_GripBorder" Property="UIElement.IsHitTestVisible" Value="False" />
+              <Setter TargetName="PART_GripBorder" Property="Visibility" Value="Collapsed" />
+              <Setter TargetName="PART_ResizeBorder" Property="UIElement.IsHitTestVisible" Value="False" />
+              <Setter TargetName="PART_TitleBorder" Value="{x:Static styles:Spacings.None}" Property="Margin" />
+              <Setter TargetName="MaximizeButton" Value="{x:Static styles:Geometries.ChromeRestore}" Property="ctrls:PathButton.Data" />
+              <Setter TargetName="MaximizeButton" Value="{x:Static styles:Resources.RestoreDown}" Property="FrameworkElement.ToolTip" />
+            </Trigger>
+            <MultiTrigger>
+              <MultiTrigger.Conditions>
+                <Condition Property="ctrls:Window.CloseEndsProcess" Value="True" />
+                <Condition SourceName="CloseButton" Property="UIElement.IsMouseOver" Value="True" />
+              </MultiTrigger.Conditions>
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseFillPrimaryBrushKey}}" Property="Background" />
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseFillPrimaryBrushKey}}" Property="BorderBrush" />
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseTextFillPrimaryBrushKey}}" Property="Foreground" />
+            </MultiTrigger>
+            <MultiTrigger>
+              <MultiTrigger.Conditions>
+                <Condition Property="ctrls:Window.CloseEndsProcess" Value="True" />
+                <Condition SourceName="CloseButton" Property="ButtonBase.IsPressed" Value="True" />
+              </MultiTrigger.Conditions>
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseFillSecondaryBrushKey}}" Property="Background" />
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseFillSecondaryBrushKey}}" Property="BorderBrush" />
+              <Setter TargetName="CloseButton" Value="{DynamicResource {x:Static styles:ShellInternalColors.CaptionControlCloseTextFillSecondaryBrushKey}}" Property="Foreground" />
+            </MultiTrigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="Window.IsActive" Value="False">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentBorderInactiveBrushKey}}" />
+        <Setter Property="ctrls:Window.BorderColor" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentBorderInactiveColorKey}}" />
+      </Trigger>
+      <Trigger Property="Window.IsActive" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentBorderBrushKey}}" />
+        <Setter Property="ctrls:Window.BorderColor" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentBorderColorKey}}" />
+      </Trigger>
+      <Trigger Property="ctrls:Window.UseDwmBorder" Value="False">
+        <Setter Property="BorderThickness" Value="{x:Static styles:StrokeWidths.Thin}" />
+      </Trigger>
+      <Trigger Property="Window.WindowState" Value="Maximized">
+        <Setter Property="BorderThickness" Value="{x:Static styles:StrokeWidths.None}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+</ResourceDictionary>

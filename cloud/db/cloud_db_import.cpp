@@ -1,4 +1,4 @@
-﻿#include "cloud_db_import.hpp"
+#include "cloud_db_import.hpp"
 
 #include "case_db.hpp"
 #include "cloud/core/cloud_core.hpp"
@@ -285,8 +285,8 @@ bool insert_artifact(sqlite3* db, const std::string& object_id,
 }
 
 bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_path,
-                          const std::string& case_id, CloudDbImportReport& report,
-                          std::string& error) {
+                          const std::string& case_id, const std::string& root_name,
+                          CloudDbImportReport& report, std::string& error) {
     std::string text;
     if (!read_file(manifest_path, text) || text.empty()) {
         error = "cannot read " + manifest_path.string();
@@ -298,11 +298,17 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
         return false;
     }
     const std::string account = json_string(manifest, "account");
-    const std::string tenant = json_string(manifest, "tenant_id");
+    std::string tenant = json_string(manifest, "tenant_id");
     const std::string legal = json_string(manifest, "legal_basis");
     const std::string job_id = json_string(manifest, "job_id");
-    if (account.empty() || tenant.empty() || legal.empty() || job_id.empty()) {
-        error = "manifest missing account/tenant/legal/job";
+    // The provider comes from the manifest so a connector that has no tenant
+    // concept (Dropbox) imports without a fake one. Older manifests predate the
+    // field and are all M365.
+    std::string provider = json_string(manifest, "provider");
+    if (provider.empty()) provider = "m365";
+    if (tenant.empty()) tenant = provider;
+    if (account.empty() || legal.empty() || job_id.empty()) {
+        error = "manifest missing account/legal/job";
         return false;
     }
     if (manifest.contains("files") && !manifest["files"].is_array()) {
@@ -314,7 +320,7 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
 
     const std::filesystem::path manifest_dir = manifest_path.parent_path();
     const std::string now = utc_now();
-    const std::string tenant_pk = stable_id("t_", "m365|" + tenant);
+    const std::string tenant_pk = stable_id("t_", provider + "|" + tenant);
     const std::string account_pk = stable_id("a_", tenant_pk + "|" + account);
     const std::string auth_pk = stable_id("auth_", case_id + "|" + legal);
     const std::string job_pk = stable_id("j_", case_id + "|" + job_id + "|" + account);
@@ -333,7 +339,7 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
     if (!run_statement(db,
         "INSERT OR IGNORE INTO cloud_tenant"
         "(id, provider, tenant_id, consent_status, created_at_utc) VALUES(?,?,?,?,?)",
-        {tenant_pk, "m365", tenant, "unknown", now}, error)) return false;
+        {tenant_pk, provider, tenant, "unknown", now}, error)) return false;
     if (!run_statement(db,
         "INSERT OR IGNORE INTO cloud_account"
         "(id, tenant_pk, account_id, user_principal_name, collected_at_utc)"
@@ -351,7 +357,7 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
         " ON CONFLICT(id) DO UPDATE SET"
         " status = excluded.status,"
         " finished_at_utc = excluded.finished_at_utc",
-        {job_pk, case_id, "m365", tenant_pk, account_pk, auth_pk, "collect",
+        {job_pk, case_id, provider, tenant_pk, account_pk, auth_pk, "collect",
          nlohmann::json{{"account", account}}.dump(), status, checkpoint, now},
         error, &job_changes)) return false;
     if (job_changes > 0) ++report.jobs;
@@ -398,7 +404,10 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
         }
 
         const std::string source = json_string(file, "source");
-        const std::string storage_path = "cloud/m365/" + account_dir + "/" + name;
+        // O caminho guardado segue a raiz real da evidencia: cloud/ para os
+        // conectores de API, social/ para a exportacao do titular.
+        const std::string storage_path =
+            root_name + "/" + provider + "/" + account_dir + "/" + name;
         if (source == "attachment") {
             const std::string attachment_id = json_string_or(file, "attachment_id", name);
             const std::string original_name = json_string_or(file, "original_name", name);
@@ -429,6 +438,48 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
             else ++report.objects_existing;
             if (!insert_artifact(db, object_id, storage_path, sha256, size,
                                  content_type, now, report, error)) return false;
+            continue;
+        }
+
+        // A downloaded payload is evidence of its own: it keeps the remote path
+        // as identity so a re-import enriches the same row instead of creating a
+        // second copy under a new local filename.
+        if (source == "download") {
+            const std::string original_name = json_string_or(file, "original_name", name);
+            const std::string remote_path = json_string(file, "path_lower");
+            // Identity is the provider id when present, so the timeline event for
+            // the same file lands on this object instead of creating a twin.
+            std::string identity = json_string(file, "id");
+            if (identity.empty()) identity = remote_path.empty() ? name : remote_path;
+            const std::string object_id = stable_id("o_", job_pk + "|file|" + identity);
+            bool existed = false;
+            if (!row_exists(db, kObjectById, object_id, existed, error)) return false;
+            if (!run_statement(db,
+                "INSERT INTO cloud_object"
+                "(id, job_pk, account_pk, object_type, external_id, name, path,"
+                " size_bytes, content_type, collected_at_utc, metadata_json)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?)"
+                " ON CONFLICT(id) DO UPDATE SET"
+                " name = excluded.name,"
+                " path = excluded.path,"
+                " size_bytes = excluded.size_bytes,"
+                " content_type = excluded.content_type,"
+                " collected_at_utc = excluded.collected_at_utc,"
+                " metadata_json = excluded.metadata_json",
+                {object_id, job_pk, account_pk, "file", identity, original_name, storage_path,
+                 std::to_string(size), "application/octet-stream", now,
+                 nlohmann::json{{"sha256", sha256},
+                                {"path", name},
+                                {"remote_path", remote_path},
+                                {"content_hash", json_string(file, "content_hash")}}
+                     .dump()},
+                error)) {
+                return false;
+            }
+            if (!existed) ++report.objects;
+            else ++report.objects_existing;
+            if (!insert_artifact(db, object_id, storage_path, sha256, size,
+                                 "application/octet-stream", now, report, error)) return false;
             continue;
         }
 
@@ -515,6 +566,18 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
             type = "message";
         } else if (channel == "M365/Drive") {
             type = "file";
+        } else if (channel == "Dropbox/Files") {
+            type = "file";
+        } else if (channel == "Google/Photos") {
+            // Foto do Takeout e arquivo de evidencia, com carimbo do sidecar.
+            type = "file";
+        } else if (channel == "Google/Contacts") {
+            type = "contact";
+        } else if (channel == "Facebook/Messages" || channel == "Instagram/Messages" ||
+                   channel == "Google/Mail" || channel == "Telegram/Messages") {
+            // Export do titular (Meta) e Takeout (Gmail) entregam mensagem por
+            // mensagem; o tipo casa com o do M365, que ja existe no esquema.
+            type = "message";
         } else if (channel == "M365/Attachment") {
             // Share the manifest attachment object type/id so the event enriches
             // the same object instead of creating a parallel "event" row.
@@ -552,10 +615,10 @@ bool import_manifest_rows(sqlite3* db, const std::filesystem::path& manifest_pat
 // it (or while writing rows) becomes an import error so the caller can roll the
 // whole transaction back and close the database.
 bool import_manifest(sqlite3* db, const std::filesystem::path& manifest_path,
-                     const std::string& case_id, CloudDbImportReport& report,
-                     std::string& error) {
+                     const std::string& case_id, const std::string& root_name,
+                     CloudDbImportReport& report, std::string& error) {
     try {
-        return import_manifest_rows(db, manifest_path, case_id, report, error);
+        return import_manifest_rows(db, manifest_path, case_id, root_name, report, error);
     } catch (const std::exception& exception) {
         error = "manifest import failed for " + manifest_path.string() + ": " +
             exception.what();
@@ -610,28 +673,51 @@ void import_cloud_case_rows(const std::string& case_dir,
         return;
     }
 
-    const std::filesystem::path manifests = case_root / "cloud" / "m365";
+    // Every provider writes <case>/cloud/<provider>/<account>/manifest.json, so
+    // the scan walks both levels instead of naming one provider. Results are
+    // sorted so the same tree always imports in the same order. Directories such
+    // as cloud/jobs hold no manifest and are skipped by the file check.
+    // cloud/ = conectores de API; social/ = exportacao entregue pelo titular.
+    // As duas arvores tem a mesma forma <raiz>/<provedor>/<conta>/manifest.json.
+    // O par guarda de qual raiz o manifesto veio: o caminho da evidencia
+    // registrada no banco tem de refletir a pasta real (cloud/ ou social/).
+    std::vector<std::pair<std::filesystem::path, std::string>> manifests;
     std::error_code directory_error;
-    if (std::filesystem::is_directory(manifests, directory_error)) {
+    for (const char* root_name : {"cloud", "social"}) {
+        const std::filesystem::path cloud_root = case_root / root_name;
+        if (!std::filesystem::is_directory(cloud_root, directory_error)) continue;
         directory_error.clear();
-        std::filesystem::directory_iterator entry(manifests, directory_error);
+        std::filesystem::directory_iterator provider(cloud_root, directory_error);
         const std::filesystem::directory_iterator end;
-        for (; !directory_error && entry != end; entry.increment(directory_error)) {
+        for (; !directory_error && provider != end; provider.increment(directory_error)) {
             std::error_code entry_error;
-            if (!entry->is_directory(entry_error) || entry_error) continue;
-            const std::filesystem::path manifest = entry->path() / "manifest.json";
-            std::error_code manifest_error;
-            if (!std::filesystem::is_regular_file(manifest, manifest_error) ||
-                manifest_error) {
-                continue;
+            if (!provider->is_directory(entry_error) || entry_error) continue;
+            std::filesystem::directory_iterator account(provider->path(), entry_error);
+            for (; !entry_error && account != end; account.increment(entry_error)) {
+                std::error_code manifest_error;
+                if (!account->is_directory(manifest_error) || manifest_error) continue;
+                const std::filesystem::path candidate = account->path() / "manifest.json";
+                if (std::filesystem::is_regular_file(candidate, manifest_error) &&
+                    !manifest_error) {
+                    manifests.emplace_back(candidate, root_name);
+                }
             }
-            if (!import_manifest(db.get(), manifest, case_id, report, error)) {
-                rollback(error);
+            if (entry_error) {
+                rollback("cannot enumerate cloud manifests: " + entry_error.message());
                 return;
             }
         }
         if (directory_error) {
             rollback("cannot enumerate cloud manifests: " + directory_error.message());
+            return;
+        }
+    }
+    std::sort(manifests.begin(), manifests.end(),
+              [](const auto& a, const auto& b) { return a.first < b.first; });
+    for (const auto& manifest : manifests) {
+        if (!import_manifest(db.get(), manifest.first, case_id, manifest.second, report,
+                             error)) {
+            rollback(error);
             return;
         }
     }

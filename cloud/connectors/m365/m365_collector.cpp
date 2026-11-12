@@ -185,6 +185,14 @@ M365CollectReport collect_m365(GraphClient& graph, const M365CollectConfig& conf
         report.error = "could not create cloud output directory";
         return report;
     }
+    // The checkpoint journal lives outside the per-provider tree. A fresh case
+    // has no cloud/jobs yet, and a journal that cannot be written means the job
+    // can never resume, so the directory is created and checked here.
+    std::filesystem::create_directories(jobs_dir, directory_error);
+    if (directory_error) {
+        report.error = "could not create cloud job directory";
+        return report;
+    }
     report.output_dir = output.string();
     report.job_path = (jobs_dir / (sanitize_component(config.job_id) + ".json")).string();
     const std::filesystem::path manifest_path = output / "manifest.json";
@@ -258,6 +266,7 @@ M365CollectReport collect_m365(GraphClient& graph, const M365CollectConfig& conf
     const std::string started_at = previous_job.is_object() ?
         previous_job.value("started_at_utc", now_utc()) : now_utc();
 
+    bool journal_failed = false;
     const auto write_job = [&](const std::string& status) {
         nlohmann::json job = {
             {"job_id", config.job_id},
@@ -280,7 +289,12 @@ M365CollectReport collect_m365(GraphClient& graph, const M365CollectConfig& conf
             {"errors", manifest["errors"]}
         };
         std::string job_error;
-        write_text_file(report.job_path, job.dump(2), job_error);
+        if (!write_text_file(report.job_path, job.dump(2), job_error) && !journal_failed) {
+            journal_failed = true;
+            report.partial = true;
+            if (report.error.empty()) report.error = "checkpoint journal: " + job_error;
+            manifest["errors"].push_back({{"source", "journal"}, {"error", job_error}});
+        }
     };
     write_job("running");
 
@@ -407,6 +421,9 @@ M365CollectReport collect_m365(GraphClient& graph, const M365CollectConfig& conf
                     return false;
                 }
                 if (!write_page(source, body, page_error)) return false;
+                if (config.progress) {
+                    config.progress(report.pages, report.objects, 0);
+                }
                 try {
                     const nlohmann::json document = nlohmann::json::parse(body);
                     std::string next_link;

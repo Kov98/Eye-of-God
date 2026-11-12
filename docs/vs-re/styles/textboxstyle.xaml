@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ctrls="clr-namespace:Microsoft.VisualStudio.Shell.Controls" xmlns:cvrts="clr-namespace:Microsoft.VisualStudio.Shell.Converters" xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles">
+  <Style x:Key="{x:Type ctrls:TextBox}" BasedOn="{StaticResource {x:Type TextBoxBase}}" TargetType="{x:Type ctrls:TextBox}">
+    <Setter Property="UIElement.AllowDrop" Value="True" />
+    <Setter Property="AutomationProperties.HelpText" Value="{Binding HintText, TargetNullValue='', RelativeSource={RelativeSource Self}}" />
+    <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillDefaultBrushKey}}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.ControlStrokeDefaultBrushKey}}" />
+    <Setter Property="BorderThickness" Value="{x:Static styles:StrokeWidths.Thin}" />
+    <Setter Property="TextBoxBase.CaretBrush" Value="{Binding Foreground, RelativeSource={RelativeSource Self}}" />
+    <Setter Property="ctrls:TextBox.CornerRadius" Value="{x:Static styles:CornerRadii.M}" />
+    <Setter Property="FrameworkElement.FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:ShellColors.TextFillPrimaryBrushKey}}" />
+    <Setter Property="TextBoxBase.HorizontalScrollBarVisibility" Value="Hidden" />
+    <Setter Property="MinHeight" Value="{x:Static styles:Sizes.ControlMinHeight}" />
+    <Setter Property="MinWidth" Value="{x:Static styles:Sizes.ControlMinWidth}" />
+    <Setter Property="Padding" Value="{x:Static styles:Spacings.XSNudge}" />
+    <Setter Property="TextBoxBase.SelectionBrush" Value="{DynamicResource {x:Static styles:ShellColors.AccentFillSelectedTextBackgroundBrushKey}}" />
+    <Setter Property="UIElement.SnapsToDevicePixels" Value="True" />
+    <Setter Property="ToolTipService.VerticalOffset" Value="{x:Static ctrls:TextBox.ToolTipOffset}" />
+    <Setter Property="FrameworkElement.UseLayoutRounding" Value="True" />
+    <Setter Property="TextBoxBase.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ctrls:TextBox}">
+          <Grid>
+            <UIElement.Clip>
+              <MultiBinding Converter="{x:Static cvrts:Converters.ClipConverter}">
+                <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
+                <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}" />
+                <Binding Path="CornerRadius" RelativeSource="{RelativeSource TemplatedParent}" />
+              </MultiBinding>
+            </UIElement.Clip>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Grid.ColumnSpan="2" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="{TemplateBinding ctrls:TextBox.CornerRadius}" />
+            <ctrls:ScrollViewer x:Name="PART_ContentHost" Grid.Column="0" BorderThickness="{TemplateBinding Control.BorderThickness}" HorizontalScrollBarVisibility="{TemplateBinding TextBoxBase.HorizontalScrollBarVisibility}" Margin="{x:Static styles:Spacings.HorizontalXXXS}" MinHeight="{x:Static styles:Sizes.ControlMinHeight}" Padding="{TemplateBinding Control.Padding}" VerticalScrollBarVisibility="{TemplateBinding TextBoxBase.VerticalScrollBarVisibility}" />
+            <Border Grid.Column="0" BorderThickness="{TemplateBinding Control.BorderThickness}" Padding="{x:Static styles:Spacings.HorizontalXSNudge}">
+              <TextBlock Name="HintText" Foreground="{DynamicResource {x:Static styles:ShellColors.TextFillSecondaryBrushKey}}" HorizontalAlignment="Left" IsHitTestVisible="False" Margin="{TemplateBinding Control.Padding}" Text="{TemplateBinding ctrls:TextBox.HintText}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" VerticalAlignment="Top" Visibility="Collapsed" />
+            </Border>
+            <Rectangle Name="TypingIndicator" Grid.Column="0" Grid.ColumnSpan="2" Height="{x:Static ctrls:TextBox.TypingIndicatorHeightRest}" IsHitTestVisible="False" Fill="{TemplateBinding Control.BorderBrush}" Stretch="Fill" VerticalAlignment="Bottom" />
+          </Grid>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="HintText" Value="{DynamicResource {x:Static styles:ShellColors.TextFillDisabledBrushKey}}" Property="TextBlock.Foreground" />
+            </Trigger>
+            <Trigger Property="UIElement.IsKeyboardFocusWithin" Value="True">
+              <Setter TargetName="TypingIndicator" Value="{DynamicResource {x:Static styles:ShellColors.AccentFillDefaultBrushKey}}" Property="Shape.Fill" />
+              <Setter TargetName="TypingIndicator" Value="{x:Static ctrls:TextBox.TypingIndicatorHeightTyping}" Property="Height" />
+            </Trigger>
+            <Trigger Property="Text" Value="{x:Null}">
+              <Setter TargetName="HintText" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="Text" Value="">
+              <Setter TargetName="HintText" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="Validation.HasError" Value="True">
+              <Setter TargetName="TypingIndicator" Property="Visibility" Value="Hidden" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Validation.ErrorTemplate">
+      <Setter.Value>
+        <ControlTemplate />
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="IsEnabled" Value="False">
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:ShellColors.TextFillDisabledBrushKey}}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillSecondaryBrushKey}}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsKeyboardFocusWithin" Value="True">
+        <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillActiveInputBrushKey}}" />
+      </Trigger>
+      <Trigger Property="UIElement.IsKeyboardFocusWithin" Value="False">
+        <Setter Property="TextBoxBase.CaretBrush" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillTransparentBrushKey}}" />
+      </Trigger>
+      <Trigger Property="Validation.HasError" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.SystemFillCriticalBrushKey}}" />
+      </Trigger>
+      <DataTrigger Value="True" Binding="{Binding MinLines, Converter={x:Static cvrts:Converters.IsGreaterThanConverter}, ConverterParameter=1, RelativeSource={RelativeSource Self}}">
+        <Setter Property="TextBoxBase.AcceptsReturn" Value="True" />
+        <Setter Property="TextBox.MaxLines" Value="{Binding MinLines, RelativeSource={RelativeSource Self}}" />
+        <Setter Property="TextBox.TextWrapping" Value="Wrap" />
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+</ResourceDictionary>

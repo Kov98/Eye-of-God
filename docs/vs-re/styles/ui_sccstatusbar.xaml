@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StatusBar x:Class="Microsoft.VisualStudio.PlatformUI.SccStatusBar" x:ClassModifier="internal" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog" xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging" xmlns:immutable="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.Framework" xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI" xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0" x:Uid="SccStatusBar">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" x:Uid="BooleanToVisibilityConverter_1" />
+      <ui:BooleanToCustomVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" x:Uid="BooleanToCustomVisibilityConverter_1" VisibilityIfTrue="Collapsed" VisibilityIfFalse="Visible" />
+      <Style x:Key="{x:Type StatusBarItem}" x:Uid="Style_2" TargetType="{x:Type StatusBarItem}">
+        <EventSetter Event="PreviewGotKeyboardFocus" Handler="OnStatusBarItemPreviewGotKeyboardFocus" />
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+  <FrameworkElement.Style>
+    <Style x:Uid="Style_1" BasedOn="{StaticResource {x:Type StatusBar}}" TargetType="{x:Type vs:SccStatusBar}">
+      <Setter x:Uid="Setter_1" Property="TextElement.FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
+      <Setter x:Uid="Setter_2" Property="TextElement.FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
+      <Setter x:Uid="Setter_3" Property="TextElement.Foreground" Value="{DynamicResource {x:Static ui:EnvironmentColors.StatusBarDefaultTextBrushKey}}" />
+      <Setter x:Uid="Setter_4" Property="Background" Value="#00FFFFFF" />
+      <Setter x:Uid="Setter_5" Property="MinWidth" Value="40" />
+      <Setter x:Uid="Setter_6" Property="Focusable" Value="False" />
+      <Setter x:Uid="Setter_7" Property="HorizontalAlignment" Value="Right" />
+      <Setter x:Uid="Setter_8" Property="Visibility" Value="{Binding ShowSccContainer, Converter={StaticResource BooleanToVisibilityConverter}}" />
+      <Setter x:Uid="Setter_9" Property="immutable:CommandNavigationHelper.CommandFocusMode" Value="Container" />
+      <Setter x:Uid="Setter_10" Property="immutable:CommandNavigationHelper.IsCommandNavigable" Value="True" />
+      <Setter x:Uid="Setter_11" Property="KeyboardNavigation.ControlTabNavigation" Value="Once" />
+      <Setter x:Uid="Setter_12" Property="KeyboardNavigation.DirectionalNavigation" Value="Cycle" />
+      <Setter x:Uid="Setter_13" Property="KeyboardNavigation.TabNavigation" Value="Cycle" />
+    </Style>
+  </FrameworkElement.Style>
+  <StatusBarItem x:Uid="UnpublishedCommitsSccItem">
+    <vs:SccCompartment x:Name="UnpublishedSccCompartment" x:Uid="UnpublishedCommitsSccCompartment" DataContext="{Binding UnpublishedCommits}" />
+  </StatusBarItem>
+  <StatusBarItem x:Uid="PendingChangesSccItem">
+    <vs:SccCompartment x:Name="PendingChangesSccCompartment" x:Uid="PendingChangesSccCompartment" DataContext="{Binding PendingChanges}" />
+  </StatusBarItem>
+  <StatusBarItem x:Uid="CurrentBranchSccItem">
+    <vs:SccCompartment x:Name="CurrentBranchSccCompartment" x:Uid="CurrentBranchSccCompartment" DataContext="{Binding CurrentBranch}" />
+  </StatusBarItem>
+  <StatusBarItem x:Uid="PublishSccItem">
+    <vs:SccCompartment x:Name="PublishCompartment" x:Uid="PublishCompartment" DataContext="{Binding Publish}" />
+  </StatusBarItem>
+  <StatusBarItem x:Uid="CurrentRepositorySccItem">
+    <vs:SccCompartment x:Name="CurrentRepositorySccCompartment" x:Uid="CurrentRepositorysSccCompartment" DataContext="{Binding CurrentRepository}" />
+  </StatusBarItem>
+  <StatusBarItem x:Uid="PlaceholderSccItem" Visibility="{Binding Visible, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+    <vs:SccCompartment x:Name="PlaceholderSccCompartment" x:Uid="PlaceholderSccCompartment" IsEnabled="False" Visibility="Visible" DataContext="{Binding Placeholder}" />
+  </StatusBarItem>
+</StatusBar>

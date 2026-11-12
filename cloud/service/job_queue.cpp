@@ -1,4 +1,4 @@
-﻿#include "job_queue.hpp"
+#include "job_queue.hpp"
 
 #include "third_party/nlohmann/json.hpp"
 
@@ -170,8 +170,11 @@ std::string unprotect_secret(const std::string& encoded) {
 nlohmann::json serialize(const QueuedJob& job) {
     return {
         {"job_id", job.job_id},
+        {"provider", job.provider},
         {"account", job.account},
         {"tenant_id", job.tenant_id},
+        {"root_path", job.root_path},
+        {"download_files", job.download_files},
         {"legal_basis", job.legal_basis},
         {"vault_ref", job.vault_ref},
         {"vault_key_protected", job.vault_key_protected},
@@ -198,7 +201,11 @@ nlohmann::json serialize(const QueuedJob& job) {
 QueuedJob deserialize(const nlohmann::json& document) {
     QueuedJob job;
     job.job_id = document.value("job_id", "");
+    // Entries written before the field existed are all Microsoft 365 jobs.
+    job.provider = document.value("provider", "m365");
     job.account = document.value("account", "");
+    job.root_path = document.value("root_path", "/");
+    job.download_files = document.value("download_files", false);
     job.tenant_id = document.value("tenant_id", "");
     job.legal_basis = document.value("legal_basis", "");
     job.vault_key = document.value("vault_key", "");
@@ -280,10 +287,15 @@ bool JobQueue::cancel_requested(const std::string& job_id) const {
 bool JobQueue::enqueue(const QueuedJob& job, std::string& error) {
     QueueLock lock(root_, error);
     if (!lock.ok()) return false;
-    if (!valid_job_id(job.job_id) || job.account.empty() || job.tenant_id.empty() ||
-        job.legal_basis.empty() ||
+    // A tenant is a Microsoft 365 identifier. Dropbox jobs have none, and
+    // demanding one would either block them or force a fake value into the case.
+    const bool tenant_required = job.provider != "dropbox";
+    if (!valid_job_id(job.job_id) || job.account.empty() ||
+        (tenant_required && job.tenant_id.empty()) || job.legal_basis.empty() ||
         (job.vault_key.empty() && job.vault_ref.empty())) {
-        error = "job_id, account, tenant_id, legal_basis and vault_key are required";
+        error = tenant_required
+            ? "job_id, account, tenant_id, legal_basis and vault_key are required"
+            : "job_id, account, legal_basis and vault_key are required";
         return false;
     }
     if (job.max_pages < 1 || job.max_pages > 500) {

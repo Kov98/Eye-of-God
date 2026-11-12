@@ -17,6 +17,13 @@ public:
     CaseDatabase& operator=(const CaseDatabase&) = delete;
 
     bool open(const std::wstring& path, std::wstring& error);
+
+    // Same as open(), but every file SQLite touches — database, journal, WAL —
+    // goes through an encrypting VFS. The key file is created on first use and
+    // sealed with DPAPI to the current Windows account.
+    bool open_encrypted(const std::wstring& path, const std::wstring& key_path,
+                        std::wstring& error);
+
     void close();
     bool is_open() const { return db_ != nullptr; }
 
@@ -33,7 +40,9 @@ public:
 
 private:
     bool exec(const std::string& sql, std::wstring& error);
+    bool init_schema(std::wstring& error);
     sqlite3* db_ = nullptr;
+    void* cipher_ = nullptr;   // deep::case_cipher, owned by this instance
 };
 
 } // namespace deep

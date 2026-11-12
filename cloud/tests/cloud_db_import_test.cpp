@@ -361,6 +361,113 @@ void test_malformed_types(const std::filesystem::path& root) {
     }
 }
 
+void test_provider_without_tenant(const std::filesystem::path& root) {
+    std::cout << "== dropbox: provedor sem tenant ==\n";
+    const std::filesystem::path case_dir = root / "CASE-DBX";
+    const std::filesystem::path account_dir = case_dir / "cloud" / "dropbox" / "acct";
+    std::error_code create_error;
+    std::filesystem::create_directories(account_dir, create_error);
+    const std::string db_path = (case_dir / "case.db").string();
+
+    const std::string page =
+        R"({"entries":[{".tag":"file","name":"contrato.pdf","path_lower":"/caso/contrato.pdf"})"
+        R"(,"cursor":"C2","has_more":false})";
+    const std::string payload = "%PDF-1.4\n";
+
+    nlohmann::json manifest = {
+        {"provider", "dropbox"},
+        {"account", "kai@exemplo.com"},
+        {"legal_basis", "OFICIO-9/2026"},
+        {"job_id", "job-dbx"},
+        {"root_path", "/caso"},
+        {"status", "complete"},
+        {"files", nlohmann::json::array()},
+        {"downloads", nlohmann::json::array()}};
+    manifest["files"].push_back(
+        file_entry(account_dir, "raw/list-1.json", page, "list_folder"));
+    nlohmann::json download =
+        file_entry(account_dir, "files/1-contrato.pdf", payload, "download");
+    download["id"] = "id:1";
+    download["original_name"] = "contrato.pdf";
+    download["path_lower"] = "/caso/contrato.pdf";
+    download["content_hash"] = "ch1";
+    manifest["files"].push_back(download);
+    write_manifest(account_dir, manifest);
+    write_bytes(account_dir / "timeline.jsonl",
+                R"({"channel":"Dropbox/Files","event_id":"id:1","timestamp_utc":"2026-10-01T12:00:00Z",)"
+                R"("event_data":{"name":"contrato.pdf","size":9}})" "\n");
+
+    const deep::cloud::CloudDbImportReport report =
+        deep::cloud::import_cloud_case(case_dir.string(), db_path);
+    check(report.ok, "dropbox import succeeds");
+    if (!report.ok) std::cerr << "  import error: " << report.error << "\n";
+    check(report.jobs == 1, "dropbox job recorded");
+
+    Sqlite db;
+    check(db.open(db_path), "case db opens");
+    check(db.text("SELECT provider FROM cloud_tenant") == "dropbox",
+          "tenant row carries the provider");
+    check(db.text("SELECT object_type FROM cloud_object WHERE external_id = 'id:1'") == "file",
+          "downloaded file stored as a file object");
+    check(db.text("SELECT name FROM cloud_object WHERE external_id = 'id:1'") == "contrato.pdf",
+          "original name kept");
+    check(cloud_object_count(db_path) == 2,
+          "timeline event merged onto the downloaded object, not duplicated");
+    check(db.text("SELECT storage_path FROM cloud_artifact WHERE storage_path LIKE "
+                  "'cloud/dropbox/acct/files/%'") == "cloud/dropbox/acct/files/1-contrato.pdf",
+          "artifact stored under the provider tree");
+    check(cloud_artifact_count(db_path) == 2, "both artifacts recorded");
+    check(db.scalar("SELECT COUNT(*) FROM cloud_object WHERE object_type = 'event'") == 0,
+          "dropbox channel maps to file, not a generic event");
+
+    const deep::cloud::CloudDbImportReport again =
+        deep::cloud::import_cloud_case(case_dir.string(), db_path);
+    check(again.ok, "dropbox re-import succeeds");
+    check(cloud_artifact_count(db_path) == 2, "re-import does not duplicate artifacts");
+}
+
+void test_social_export(const std::filesystem::path& root) {
+    std::cout << "== exportacao do titular (social/) ==\n";
+    const std::filesystem::path case_dir = root / "CASE-SOC";
+    const std::filesystem::path account_dir = case_dir / "social" / "facebook" / "acct";
+    std::error_code create_error;
+    std::filesystem::create_directories(account_dir, create_error);
+    const std::string db_path = (case_dir / "case.db").string();
+
+    const std::string thread =
+        R"({"participants":[{"name":"Ana"}],"messages":[{"sender_name":"Ana",)"
+        R"("timestamp_ms":1696000000000,"content":"oi"}]})";
+    nlohmann::json manifest = {
+        {"provider", "facebook"},
+        {"account", "kai@exemplo.com"},
+        {"legal_basis", "OFICIO-31/2026"},
+        {"job_id", "job-social"},
+        {"status", "complete"},
+        {"threads", 1},
+        {"messages", 1},
+        {"files", nlohmann::json::array()}};
+    manifest["files"].push_back(file_entry(account_dir, "raw/1-message_1.json", thread, "messages"));
+    write_manifest(account_dir, manifest);
+    write_bytes(account_dir / "timeline.jsonl",
+                R"({"channel":"Facebook/Messages","event_id":"messages/inbox/a/message_1.json#1",)"
+                R"("timestamp_utc":"2023-09-29T15:06:40Z","event_data":{"sender":"Ana","text":"oi"}})" "\n");
+
+    const deep::cloud::CloudDbImportReport report =
+        deep::cloud::import_cloud_case(case_dir.string(), db_path);
+    check(report.ok, "social import succeeds");
+    if (!report.ok) std::cerr << "  import error: " << report.error << "\n";
+
+    Sqlite db;
+    check(db.open(db_path), "case db opens");
+    check(db.text("SELECT provider FROM cloud_tenant") == "facebook",
+          "social provider recorded");
+    check(db.text("SELECT storage_path FROM cloud_artifact") ==
+              "social/facebook/acct/raw/1-message_1.json",
+          "artifact path follows the social root");
+    check(db.scalar("SELECT COUNT(*) FROM cloud_object WHERE object_type = 'message'") == 1,
+          "timeline event stored as a message");
+}
+
 } // namespace
 
 int main() {
@@ -378,6 +485,8 @@ int main() {
         test_unsafe_paths(root);
         test_absolute_path(root);
         test_malformed_types(root);
+        test_provider_without_tenant(root);
+        test_social_export(root);
     } catch (const std::exception& exception) {
         std::cerr << "unexpected exception: " << exception.what() << "\n";
         ++failures;

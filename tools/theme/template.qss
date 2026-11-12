@@ -1,0 +1,434 @@
+/* ============================================================================
+   GERADO por tools/theme/gen_theme.py — NAO EDITAR A MAO.
+   Fonte das cores: tools/theme/roles.json + tokens.json (VS 2026 dark medido)
+   Geometria: tools/theme/scale.json (Spacings/CornerRadii/StrokeWidths/Sizes do VS)
+   ============================================================================ */
+
+QWidget {
+    background: {{chromeFixed}};
+    color: {{textPrimary}};
+    font-family: "Segoe UI";
+    font-size: {{font.base}}px;
+    border: none;
+}
+QMainWindow, QDialog { background: {{chromeFixed}}; }
+QLabel, QCheckBox, QRadioButton { background: transparent; }
+
+/* --- chrome: barra de titulo + menu (30px) --- */
+#titleBar, #titleMenuBar, QMenuBar {
+    background: {{chromeFixed}};
+    border: none;
+    min-height: {{size.nonClientH}}px;
+    padding: 0px;
+    font-size: {{font.base}}px;
+}
+QMenuBar::item { background: transparent; padding: 6px 9px; color: {{textPrimary}}; }
+QMenuBar::item:selected { background: {{hoverRow}}; color: {{textPrimary}}; }
+QMenuBar::item:pressed { background: {{hoverStrong}}; }
+QToolButton#titleMin, QToolButton#titleMax, QToolButton#titleClose {
+    background: transparent; border: none; color: {{textPrimary}};
+    min-width: {{size.nonClientW}}px; max-width: {{size.nonClientW}}px;
+    min-height: {{size.nonClientH}}px; max-height: {{size.nonClientH}}px;
+    padding: 0px; margin: 0px; border-radius: 0px;
+}
+QToolButton#titleMin:hover, QToolButton#titleMax:hover { background: {{hoverRow}}; }
+QToolButton#titleClose:hover { background: #C42B1C; color: #FFFFFF; }
+
+/* --- command bar --- */
+QToolBar, QToolBar#mainToolbar {
+    background: {{commandBar}};
+    border: none;
+    border-bottom: 1px solid {{divider}};
+    padding: 3px 8px;
+    spacing: 4px;
+}
+QToolBar::separator { background: {{strokeDefault}}; width: 1px; margin: 4px 6px; }
+QToolButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: {{radius.m}}px;
+    padding: 4px;
+    color: {{textPrimary}};
+}
+QToolButton:hover { background: {{hoverBar}}; border-color: {{selectionBorder}}; }
+QToolButton:pressed { background: {{pressed}}; }
+QToolButton:checked { background: {{hoverStrong}}; border-color: {{selectionBorder}}; }
+QFrame#commandGroup, QWidget#commandGroup {
+    background: transparent;
+    border: 1px solid {{strokeCard}};
+    border-radius: {{radius.m}}px;
+}
+
+/* --- documentos e abas --- */
+/* VS medido: o poco do documento tem contorno de 1px accent (x=318 e x=1584) */
+QTabWidget#centerTabs::pane {
+    background: {{document}};
+    border-left: 1px solid {{accent}};
+    border-right: 1px solid {{accent}};
+    border-bottom: 1px solid {{accent}};
+    top: 0px;
+}
+QTabBar { background: {{tabStrip}}; qproperty-drawBase: 0; }
+/* Medido no editor de referencia (zoom 8x): aba ativa com cantos superiores
+   de ~6px, fundindo com o editor, e fio accent de 1px no topo. Inativas ficam
+   transparentes sobre a tira. */
+QTabBar::tab {
+    background: transparent;
+    color: {{textSecondary}};
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-top-left-radius: {{radius.tab}}px;
+    border-top-right-radius: {{radius.tab}}px;
+    padding: 2px 12px 3px 12px;
+    margin: 2px 2px 0 0;
+    min-width: {{size.tabMinW}}px;
+    min-height: 17px;
+    font-size: {{font.base}}px;
+}
+QTabBar::tab:hover { background: {{hoverRow}}; color: {{textPrimary}}; }
+QTabBar::tab:selected {
+    background: {{tabActive}};
+    color: {{textPrimary}};
+    /* a aba ativa do editor de referencia e um "capsule" accent: topo e as duas
+       laterais no mesmo tom, fundindo com o fio do poco */
+    border-top: 1px solid {{accent}};
+    border-left: 1px solid {{accent}};
+    border-right: 1px solid {{accent}};
+}
+QToolButton#tabClose {
+    background: transparent; border: none; color: {{textSecondary}};
+    min-width: {{size.tabClose}}px; min-height: {{size.tabClose}}px;
+    padding: 0px; margin: 0px 2px 0px 0px;
+}
+QToolButton#tabClose:hover { background: {{hoverStrong}}; color: {{textPrimary}}; border-radius: {{radius.s}}px; }
+QFrame#documentFrame, QFrame#documentBody { background: {{document}}; border: none; border-radius: {{radius.m}}px; }
+
+/* --- paineis, docks, arvore, listas --- */
+/* O respiro (backdrop) do dock fica no fundo do chrome (#1C1C1C); o painel em
+   cima e um "card" com contorno de 1px e cantos de 8px - o mesmo efeito dos
+   paineis do editor de referencia. */
+QDockWidget { background: {{chromeFixed}}; border: none; }
+QDockWidget::title { background: {{chromeFixed}}; }
+QWidget#treePanelOuter, QWidget#detailsOuter, QWidget#consoleOuter, QWidget#bottomDock {
+    background: {{chromeFixed}};
+    border: none;
+}
+/* O card do dock agora inclui a barra de titulo; o conteudo fica transparente */
+/* card do dock: contorno medido (#454545) e raio 8. O topo fica perfeito porque
+   a barra de titulo e embutida/transparente; o canto inferior pode ser coberto
+   pela view (o Qt nao recorta filho com raio). */
+QFrame#dockCard {
+    background: {{surface}};
+    border: 1px solid {{selectionBorder}};
+    border-radius: {{radius.l}}px;
+}
+QWidget#treePanel, QFrame#treePanel,
+QWidget#detailsPanel, QFrame#detailsPanel, QWidget#consolePanel,
+QWidget#bottomTabs, QWidget#treePanelOuter, QWidget#detailsOuter {
+    background: transparent;
+    border: none;
+}
+/* a barra de titulo embutida e transparente: o fundo vem do card (a regra
+   global QWidget{background} pintava #1C1C1C por cima do card) */
+QFrame#dockCard > QWidget#dockTitleBar { background: transparent; }
+QWidget#dockDragStrip { background: transparent; }
+QDockWidget::title { padding: 5px 9px; color: {{textPrimary}}; font-size: {{font.base}}px; font-weight: 600; }
+QTreeView, QTreeView#workTree, QListView {
+    background: {{surface}};
+    alternate-background-color: {{gridAlt}};
+    border: none; outline: 0;
+    color: {{textPrimary}};
+    font-size: {{font.base}}px;
+    selection-background-color: {{hoverRow}};
+    selection-color: {{textPrimary}};
+}
+QTreeView::item, QListView::item, QTreeView#workTree::item {
+    min-height: {{size.rowH}}px; padding: 0px 2px; border: none;
+    border-radius: {{radius.s}}px;
+}
+QTreeView::item:hover, QListView::item:hover {
+    background: {{hoverSoft}}; border-radius: {{radius.s}}px;
+}
+QTreeView::item:selected, QListView::item:selected {
+    background: {{hoverRow}}; color: {{textPrimary}};
+    border: 1px solid {{selectionBorder}}; border-radius: {{radius.s}}px;
+}
+QTreeView::branch, QTreeView#workTree::branch { background: {{surface}}; }
+
+/* --- tabelas --- */
+QTableView, QTableWidget, QTableView#dataGrid, QTableWidget#dataGrid {
+    background: {{outputPane}};
+    alternate-background-color: {{gridAlt}};
+    border: none; outline: 0;
+    color: {{textPrimary}};
+    font-size: {{font.base}}px;
+    gridline-color: {{divider}};
+    selection-background-color: {{hoverRow}};
+    selection-color: {{textPrimary}};
+}
+QTableView::item, QTableWidget::item, QTableView#dataGrid::item, QTableWidget#dataGrid::item {
+    border: none; border-bottom: 1px solid {{gridAlt}}; padding: 3px 6px;
+}
+QTableView::item:selected, QTableWidget::item:selected,
+QTableView#dataGrid::item:selected, QTableWidget#dataGrid::item:selected {
+    background: {{hoverRow}}; color: {{textPrimary}}; border-radius: {{radius.s}}px;
+}
+QTableView::item:hover, QTableWidget::item:hover,
+QTableView#dataGrid::item:hover, QTableWidget#dataGrid::item:hover { background: {{hoverSoft}}; }
+QHeaderView::section {
+    background: {{surface}};
+    color: {{textSecondary}};
+    border: none;
+    border-right: 1px solid {{gridAlt}};
+    border-bottom: 1px solid {{gridAlt}};
+    padding: 3px 6px;
+    font-size: {{font.base}}px;
+    font-weight: 400;
+}
+QHeaderView::section:hover { background: {{hoverSoft}}; color: {{textPrimary}}; }
+QTableCornerButton::section { background: {{surface}}; border: none; }
+
+/* --- console e saida --- */
+QPlainTextEdit, QTextEdit {
+    background: {{outputPane}};
+    border: none;
+    color: {{textSecondary}};
+    font-family: "Cascadia Mono", "Consolas";
+    font-size: {{font.code}}px;
+    selection-background-color: #094771;
+    selection-color: {{textPrimary}};
+}
+QFrame#divider { background: {{divider}}; border: none; max-height: 1px; }
+
+/* --- controles: unico lugar com stroke --- */
+QLineEdit, QComboBox, QSpinBox {
+    background: {{surface}};
+    border: 1px solid {{strokeDefault}};
+    border-radius: {{radius.m}}px;
+    padding: 4px 6px;
+    color: {{textPrimary}};
+    min-height: 18px;
+    font-size: {{font.base}}px;
+    selection-background-color: #094771;
+    selection-color: {{textPrimary}};
+}
+QLineEdit:hover, QComboBox:hover { border-color: {{selectionBorder}}; }
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus { border: 1px solid {{accent}}; }
+QLineEdit:disabled, QComboBox:disabled { color: {{textDisabled}}; background: {{commandBar}}; border-color: {{strokeCard}}; }
+QComboBox::drop-down { border: none; width: 22px; }
+/* VS medido (x=345 em y=31..58): combos da command bar sao planos, interior
+   #262626 igual ao da barra; a caixa so aparece no hover/foco. */
+/* VS medido (caixa de entrada da toolbar): fundo #333333, contorno 1px
+   #353535, raio 4 e 24px de altura (bordas em y=33 e y=56 do recorte) */
+QComboBox#commandCombo {
+    background: #333333;
+    border: 1px solid #353535;
+    border-radius: {{radius.m}}px;
+    padding: 0px 18px 0px 6px;
+    min-height: 22px;
+    color: #F0F0F0;
+}
+QComboBox#commandCombo:hover { background: #333333; border-color: #454545; }
+QComboBox#commandCombo:focus { background: #2B2B2B; border-color: #9184EE; }
+/* seta do combo: chevron monoline cinza (VS medido: ~#A0A0A0 dentro da caixa) */
+QComboBox#commandCombo::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 18px;
+    border: none;
+}
+QComboBox#commandCombo::down-arrow {
+    image: url("@APP@/icons/chevron_down_dim.png");
+    width: 10px;
+    height: 10px;
+}
+QComboBox QAbstractItemView {
+    background: {{surface}}; border: 1px solid {{selectionBorder}}; color: {{textPrimary}};
+    selection-background-color: {{hoverRow}}; selection-color: {{textPrimary}};
+}
+QPushButton {
+    background: {{commandBar}};
+    color: {{textPrimary}};
+    border: 1px solid {{strokeDefault}};
+    border-radius: {{radius.m}}px;
+    padding: 5px 12px;
+    min-height: {{size.control}}px;
+    font-size: {{font.base}}px;
+}
+QPushButton:hover { background: {{hoverBar}}; border-color: {{selectionBorder}}; }
+QPushButton:pressed { background: {{pressed}}; }
+QPushButton:disabled { background: {{chromeFixed}}; color: {{textDisabled}}; border-color: {{strokeCard}}; }
+QCheckBox { spacing: 6px; color: {{textPrimary}}; font-size: {{font.base}}px; }
+QCheckBox::indicator {
+    width: 15px; height: 15px;
+    border: 1px solid {{selectionBorder}};
+    border-radius: {{radius.s}}px;
+    background: {{surface}};
+}
+QCheckBox::indicator:hover { border-color: {{textSecondary}}; }
+QCheckBox::indicator:checked { background: {{accent}}; border-color: {{accent}}; }
+QGroupBox {
+    background: {{surface}};
+    border: none;
+    border-radius: {{radius.m}}px;
+    margin-top: 18px;
+    padding: 10px 10px 8px 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin; left: 10px; padding: 0 6px;
+    color: {{textSecondary}}; font-size: {{font.caption}}px; font-weight: 600;
+}
+
+/* --- barra de status --- */
+QStatusBar {
+    background: {{commandBar}};
+    border: none;
+    border-top: 1px solid {{divider}};
+    color: {{textSecondary}};
+    padding: 0px 8px;
+    min-height: {{size.statusH}}px;
+    font-size: {{font.base}}px;
+}
+QStatusBar QLabel { color: {{textSecondary}}; font-size: {{font.base}}px; }
+QLabel#statusMono { font-family: "Cascadia Mono", "Consolas"; color: {{textSecondary}}; }
+
+/* --- scrollbar 8px, sem setas --- */
+QScrollBar:vertical { background: transparent; width: {{size.scrollbar}}px; margin: 0px; border: none; }
+QScrollBar::handle:vertical { background: {{selectionBorder}}; min-height: 24px; border: none; border-radius: {{radius.m}}px; }
+QScrollBar::handle:vertical:hover { background: {{textDisabled}}; }
+QScrollBar:horizontal { background: transparent; height: {{size.scrollbar}}px; margin: 0px; border: none; }
+QScrollBar::handle:horizontal { background: {{selectionBorder}}; min-width: 24px; border: none; border-radius: {{radius.m}}px; }
+QScrollBar::handle:horizontal:hover { background: {{textDisabled}}; }
+QScrollBar::add-line, QScrollBar::sub-line { height: 0px; width: 0px; border: none; }
+QScrollBar::add-page, QScrollBar::sub-page { background: transparent; }
+
+/* --- overlays --- */
+QMenu {
+    background: {{outputPane}};
+    border: 1px solid {{selectionBorder}};
+    border-radius: {{radius.m}}px;
+    padding: 3px;
+    color: {{textPrimary}};
+    font-size: {{font.base}}px;
+}
+/* itens de menu em pilula (o editor de referencia arredonda os itens) */
+QMenu::item { padding: 5px 20px 5px 10px; border: none; border-radius: {{radius.s}}px; margin: 1px 4px; }
+QMenu::item:selected { background: {{hoverRow}}; color: {{textPrimary}}; }
+QMenu::separator { height: 1px; background: {{gridAlt}}; margin: 4px 8px; }
+QToolTip {
+    background: {{outputPane}}; color: {{textPrimary}};
+    border: 1px solid {{selectionBorder}}; border-radius: {{radius.m}}px; padding: 4px 6px;
+}
+QSplitter::handle { background: {{divider}}; width: {{size.splitter}}px; height: {{size.splitter}}px; }
+QSplitter::handle:hover { background: {{accent}}; }
+
+/* --- rotulos --- */
+QLabel#panelTitle, QLabel#explorerTitle { color: {{textSecondary}}; font-size: {{font.caption}}px; font-weight: 600; }
+QLabel#muted { color: {{textSecondary}}; font-size: {{font.base}}px; }
+QLabel#monoValue { color: {{textPrimary}}; font-family: "Cascadia Mono", "Consolas"; font-size: {{font.base}}px; }
+QLabel#projectName { color: {{textPrimary}}; font-size: {{font.base}}px; }
+QLabel#docBreadcrumb, QLabel#docScope { color: {{textSecondary}}; font-size: {{font.base}}px; }
+QLabel#emptyState {
+    background: {{outputPane}}; border: 1px dashed {{selectionBorder}};
+    border-radius: {{radius.m}}px; color: {{textSecondary}}; font-size: {{font.base}}px; padding: 20px;
+}
+QToolButton#titleMenuButton {
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+    /* medido: os itens de menu do VS chegam a #FFFFFF; o nosso parava em #E6E6E6 */
+    color: #FFFFFF;
+    font-size: 12px;
+    /* VS medido: passo entre itens = largura do texto + 16px (8px por lado) */
+    padding: 0px 4px;
+    min-height: 30px;
+}
+QToolButton#titleMenuButton:hover { background: #353535; color: #FFFFFF; }
+QToolButton#titleMenuButton:pressed { background: #3A3A3A; }
+QToolButton#titleMenuButton::menu-indicator { image: none; width: 0px; }
+
+/* --- linha de menu: busca e chip da solucao (modelo VS) --- */
+/* VS 2026: a busca do titulo e plana (sem caixa) e so ganha caixa no hover/foco */
+QLineEdit#titleSearch {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: {{radius.m}}px;
+    padding: 2px 4px 2px 2px;
+    color: #C8C8C8;
+    font-size: 12px;
+}
+QLineEdit#titleSearch:hover { background: #262626; border-color: #333333; }
+QLineEdit#titleSearch:focus { background: #1F1F1F; border-color: #454545; color: #E6E6E6; }
+QLabel#userAvatar {
+    background: #0E639C;
+    color: #FFFFFF;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+QToolButton#titleSearchMenu {
+    background: transparent; border: none; color: #CECECE; font-size: 9px;
+}
+QToolButton#titleSearchMenu:hover { background: #333333; border-radius: 4px; color: #FFFFFF; }
+/* VS medido (x=800): campo do workspace = #292929 com 1px #0E0E0E em cima/embaixo,
+   22px de altura, sem cantos arredondados e texto em negrito */
+QLabel#projectName {
+    background: #292929;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid #0E0E0E;
+    border-bottom: 1px solid #0E0E0E;
+    border-radius: 0px;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0px 8px;
+}
+
+/* --- painel Detalhes: anatomia do painel de Source Control (medido #353535) --- */
+/* barra interna do painel: faixa reta de ponta a ponta (o raio agora e do card) */
+QWidget#detailsToolbar { background: #353535; border: none; }
+QComboBox#detailsScope {
+    background: transparent; border: none; border-radius: {{radius.s}}px;
+    color: #E6E6E6; padding: 0px 16px 0px 6px; font-size: {{font.base}}px;
+}
+QComboBox#detailsScope:hover { background: #3D3D3D; }
+QComboBox#detailsScope::drop-down { border: none; width: 14px; }
+QToolButton#detailsGlyph {
+    background: transparent; border: none; border-radius: {{radius.s}}px;
+    color: #D6D6D6; font-size: 12px;
+}
+QToolButton#detailsGlyph:hover { background: #3D3D3D; color: #FFFFFF; }
+QLabel#detailsSummary { color: {{textSecondary}}; font-size: {{font.caption}}px; padding: 6px 10px 0px 10px; }
+QLineEdit#detailsFilter {
+    background: #353535; border: 1px solid #3A3A3A; border-radius: {{radius.m}}px;
+    padding: 2px 6px; color: #E6E6E6; font-size: {{font.base}}px;
+}
+QLineEdit#detailsFilter:hover { border-color: {{selectionBorder}}; }
+QLineEdit#detailsFilter:focus { border-color: {{accent}}; }
+QToolButton#detailsPrimary {
+    background: #353535; border: 1px solid #3A3A3A; border-radius: {{radius.m}}px;
+    color: {{textPrimary}}; font-size: {{font.base}}px; padding: 0px 10px;
+}
+QToolButton#detailsPrimary:hover { background: #3D3D3D; border-color: {{selectionBorder}}; }
+QPushButton#detailsSection {
+    background: transparent; border: none; border-radius: 0px;
+    color: {{textPrimary}}; font-size: {{font.base}}px; font-weight: 600;
+    text-align: left; padding: 0px 8px; margin: 0px 4px; min-height: 22px;
+}
+QPushButton#detailsSection:hover { background: {{hoverSoft}}; border-radius: {{radius.s}}px; }
+QWidget#detailsSectionBody { background: transparent; }
+QWidget#detailsRow { background: transparent; }
+QScrollArea#detailsScroll, QScrollArea#detailsScroll > QWidget > QWidget { background: transparent; border: none; }
+QLabel#detailsKey { color: {{textSecondary}}; font-size: {{font.caption}}px; }
+/* badge de status: no painel de referencia cada linha termina numa etiqueta curta */
+QLabel#detailsBadge {
+    background: #2D3B2D; color: #8FD18F; border-radius: {{radius.s}}px;
+    padding: 0px 6px; font-size: {{font.caption}}px;
+}
+QLabel#detailsNote { color: {{textSecondary}}; font-size: {{font.caption}}px; padding: 6px 10px 8px 10px; }
+
+/* semanticos (nao sao tema): severidade e alerta */
+QLabel#warning { background: #332B00; border: none; border-left: 3px solid #FFC107; border-radius: {{radius.m}}px; color: #FFE082; padding: 8px 10px; }
+QLabel#cloudStatus, QLabel#formHint { background: {{outputPane}}; border: 1px solid {{strokeCard}}; border-left: 3px solid {{accent}}; border-radius: {{radius.m}}px; color: {{textSecondary}}; padding: 6px 8px; }
+QLabel#cloudStatus[failed="true"], QLabel#formHint[error="true"] { background: #2A1E1E; border-color: #5A3030; border-left-color: #C0504D; color: #E6B8B4; }

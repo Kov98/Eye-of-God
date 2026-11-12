@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ctrls="clr-namespace:Microsoft.VisualStudio.Shell.Controls;assembly=Microsoft.VisualStudio.Shell.Styles" xmlns:cvrts="clr-namespace:Microsoft.VisualStudio.Shell.Converters;assembly=Microsoft.VisualStudio.Shell.Styles" xmlns:imgbg="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging" xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles;assembly=Microsoft.VisualStudio.Shell.Styles" xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI" xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0">
+  <vs:FormattedStringConverter x:Key="FormattedStringConverter" />
+  <vsui:AccessKeyRemovingConverter x:Key="AccessKeyRemovingConverter" />
+  <vsui:NullToEmptyStringConverter x:Key="NullToEmptyStringConverter" />
+  <Style x:Key="ToolBarOverflowButtonStyle" BasedOn="{x:Static styles:ShellStyles.ButtonBase}" TargetType="{x:Type ToggleButton}">
+    <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillTransparentBrushKey}}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.ControlStrokeTransparentBrushKey}}" />
+    <Setter Property="FrameworkElement.FocusVisualStyle" Value="{x:Static styles:ShellStyles.FocusVisual}" />
+    <Setter Property="Margin" Value="{x:Static styles:Spacings.XXXS}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ToggleButton}">
+          <Border Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="{x:Static styles:CornerRadii.M}" Padding="{TemplateBinding Control.Padding}">
+            <Path Name="Icon" Data="{x:Static styles:Geometries.MoreHorizontal}" Fill="{TemplateBinding Control.Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="{x:Static styles:Sizes.IconS}" Height="{Binding ActualWidth, RelativeSource={RelativeSource Self}}" />
+          </Border>
+          <ControlTemplate.Triggers>
+            <DataTrigger Value="Vertical" Binding="{Binding Orientation, RelativeSource={RelativeSource AncestorType=ToolBar}}">
+              <Setter TargetName="Icon" Value="{x:Static styles:Geometries.MoreVertical}" Property="Path.Data" />
+            </DataTrigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.SubtleFillSecondaryBrushKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.ControlStrokeSecondaryBrushKey}}" />
+      </Trigger>
+      <Trigger Property="IsPressed" Value="True">
+        <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.SubtleFillTertiaryBrushKey}}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.SubtleFillTertiaryBrushKey}}" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="ToolBarThumbStyle" TargetType="{x:Type Thumb}">
+    <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentLayeredBorderBrushKey}}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellColors.ControlFillTransparentBrushKey}}" />
+    <Setter Property="Margin" Value="{x:Static styles:Spacings.XXXSInvert}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Thumb}">
+          <Border Name="ThumbBorder" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" />
+          <ControlTemplate.Triggers>
+            <DataTrigger Value="Horizontal" Binding="{Binding Orientation, RelativeSource={RelativeSource AncestorType=ToolBar}}">
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:StrokeWidths.RightThicker}" Property="Border.BorderThickness" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:CornerRadii.TopLeftBottomLeftM}" Property="Border.CornerRadius" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:Spacings.RightXXSInvert}" Property="Margin" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:Sizes.ResizeGripSize}" Property="Width" />
+            </DataTrigger>
+            <DataTrigger Value="Vertical" Binding="{Binding Orientation, RelativeSource={RelativeSource AncestorType=ToolBar}}">
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:StrokeWidths.BottomThicker}" Property="Border.BorderThickness" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:CornerRadii.TopLeftTopRightM}" Property="Border.CornerRadius" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:Sizes.ResizeGripSize}" Property="Height" />
+              <Setter TargetName="ThumbBorder" Value="{x:Static styles:Spacings.BottomXXSInvert}" Property="Margin" />
+            </DataTrigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="UIElement.IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellColors.AccentFillDefaultBrushKey}}" />
+        <Setter Property="FrameworkElement.Cursor" Value="SizeAll" />
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+  <Style x:Key="{x:Type vs:VsToolBar}" TargetType="{x:Type vs:VsToolBar}">
+    <Style.Resources>
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+          <ResourceDictionary Source="VsQuickCustomizeButtonStyle.xaml" />
+          <ResourceDictionary Source="VsQuickCustomizeMenuItemStyle.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+      </ResourceDictionary>
+    </Style.Resources>
+    <Setter Property="AutomationProperties.Name" Value="{Binding Text, Converter={StaticResource AccessKeyRemovingConverter}}" />
+    <Setter Property="Background" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentLayeredBackgroundBrushKey}}" />
+    <Setter Property="ToolBar.Band" Value="{Binding PlacementSlot, Mode=TwoWay}" />
+    <Setter Property="ToolBar.BandIndex" Value="{Binding BandIndex, Mode=TwoWay}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static styles:ShellInternalColors.EnvironmentLayeredBorderBrushKey}}" />
+    <Setter Property="BorderThickness" Value="{x:Static styles:StrokeWidths.Thin}" />
+    <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
+    <Setter Property="Foreground" Value="{DynamicResource {x:Static styles:ShellColors.TextFillPrimaryBrushKey}}" />
+    <Setter Property="ItemsSource" Value="{Binding Items}" />
+    <Setter Property="Margin" Value="{x:Static styles:Spacings.XXS}" />
+    <Setter Property="MinHeight" Value="{x:Static styles:Sizes.NonClientControlHeight}" />
+    <Setter Property="MinWidth" Value="33" />
+    <Setter Property="Padding" Value="{x:Static styles:Spacings.XXXS}" />
+    <Setter Property="UIElement.SnapsToDevicePixels" Value="True" />
+    <Setter Property="vs:VsToolBar.ToolBarCornerRadius" Value="{x:Static styles:CornerRadii.M}" />
+    <Setter Property="FrameworkElement.UseLayoutRounding" Value="True" />
+    <Setter Property="Visibility" Value="{Binding IsVisible, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}" />
+    <Setter Property="imgbg:ImageThemingUtilities.ImageBackgroundColor" Value="{DynamicResource {x:Static styles:ShellColors.SolidBackgroundFillSecondaryColorKey}}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type vs:VsToolBar}">
+          <Border Name="MainPanelBorder" Background="{TemplateBinding Control.Background}" BorderBrush="{TemplateBinding Control.BorderBrush}" BorderThickness="{TemplateBinding Control.BorderThickness}" CornerRadius="{TemplateBinding vs:VsToolBar.ToolBarCornerRadius}" Padding="{TemplateBinding Control.Padding}">
+            <Grid Name="PART_ContentGrid">
+              <vs:VsToolBarThumb x:Name="ToolBarThumb" Style="{StaticResource ToolBarThumbStyle}" />
+              <ContentPresenter Name="ToolBarHeader" ContentSource="Header" HorizontalAlignment="Center" Margin="{x:Static styles:Spacings.HorizontalXXS}" VerticalAlignment="Center" />
+              <vs:VsToolBarPanel x:Name="PART_ToolBarPanel" IsItemsHost="True" IsStretching="{TemplateBinding vs:VsToolBar.IsStretching}" />
+              <vs:VsToolBarOverflowToggleButton x:Name="PART_OverflowButton" AutomationProperties.AutomationId="Additional Toolbar Items" InputMethod.IsInputMethodSuspended="True" ClickMode="Press" Padding="0" Visibility="Collapsed" Style="{StaticResource ToolBarOverflowButtonStyle}" AutomationProperties.Name="{Binding ToolTip, RelativeSource={RelativeSource Self}, Converter={StaticResource NullToEmptyStringConverter}}" IsChecked="{Binding IsOverflowOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ToolTip="{Binding Text, ConverterParameter=VsToolBar_ToolTipText, Converter={StaticResource FormattedStringConverter}}" />
+              <ctrls:Popup Name="OverflowPopup" AutomationProperties.AutomationId="Toolbar Options Menu" FocusOnOpen="False" StaysOpen="False" IsOpen="{Binding IsOverflowOpen, RelativeSource={RelativeSource TemplatedParent}}" PlacementTarget="{Binding Mode=OneTime, ElementName=PART_OverflowButton}">
+                <StackPanel KeyboardNavigation.DirectionalNavigation="Cycle" KeyboardNavigation.TabNavigation="Cycle" Margin="{x:Static styles:Spacings.XSNudge}" Orientation="Vertical">
+                  <vs:VsToolBarOverflowPanel x:Name="PART_ToolBarOverflowPanel" Focusable="False" HorizontalAlignment="Left" WrapWidth="200" Visibility="{TemplateBinding HasOverflowItems, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}" />
+                  <StackPanel Orientation="Vertical" Visibility="{TemplateBinding IsQuickCustomizeEnabled, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}">
+                    <ctrls:Separator Visibility="{TemplateBinding HasOverflowItems, Converter={x:Static cvrts:Converters.BooleanVisibilityConverter}}" />
+                    <vs:DummyParentMenuItem>
+                      <vs:VsQuickCustomizeButton AutomationProperties.AutomationId="Add or Remove Buttons" vs:VsToolBar.IsToolBarHostedMenuItem="True" Header="{x:Static vs:MainWindowResources.QuickCustomizeHeader}" QuickCustomizeDataSource="{Binding QuickCustomizeDataSource}" />
+                    </vs:DummyParentMenuItem>
+                  </StackPanel>
+                </StackPanel>
+              </ctrls:Popup>
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="ToolBar.HasOverflowItems" Value="True">
+              <Setter TargetName="PART_OverflowButton" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="vs:VsToolBar.IsQuickCustomizeEnabled" Value="True">
+              <Setter TargetName="PART_OverflowButton" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <DataTrigger Value="False" Binding="{Binding AreAnimationsAllowed, Source={x:Static vsui:EnvironmentRenderCapabilities.Current}}">
+              <Setter TargetName="OverflowPopup" Property="Popup.PopupAnimation" Value="None" />
+            </DataTrigger>
+            <Trigger Property="ToolBar.IsOverflowOpen" Value="True">
+              <Setter TargetName="ToolBarThumb" Property="IsEnabled" Value="False" />
+            </Trigger>
+            <Trigger Property="Header" Value="{x:Null}">
+              <Setter TargetName="ToolBarHeader" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="ToolBarTray.IsLocked" Value="True">
+              <Setter TargetName="PART_ToolBarPanel" Value="{x:Static styles:Spacings.HorizontalXXXS}" Property="Margin" />
+              <Setter TargetName="ToolBarThumb" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="ToolBar.Orientation" Value="Vertical">
+              <Setter Value="{x:Static styles:Spacings.VerticalXXS}" Property="Margin" />
+              <Setter Property="MinHeight" Value="33" />
+              <Setter Value="{x:Static styles:Sizes.NonClientControlHeight}" Property="MinWidth" />
+              <Setter TargetName="OverflowPopup" Property="Popup.Placement" Value="Right" />
+              <Setter TargetName="PART_OverflowButton" Property="Grid.Row" Value="3" />
+              <Setter TargetName="PART_ToolBarPanel" Property="Grid.Row" Value="2" />
+              <Setter TargetName="ToolBarHeader" Property="Grid.Row" Value="1" />
+              <Setter TargetName="ToolBarThumb" Property="Grid.Row" Value="0" />
+            </Trigger>
+            <Trigger Property="ToolBar.Orientation" Value="Horizontal">
+              <Setter TargetName="PART_OverflowButton" Property="Grid.Column" Value="3" />
+              <Setter TargetName="PART_ToolBarPanel" Property="Grid.Column" Value="2" />
+              <Setter TargetName="ToolBarHeader" Property="Grid.Column" Value="1" />
+              <Setter TargetName="ToolBarThumb" Property="Grid.Column" Value="0" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter Value="{DynamicResource {x:Static styles:ShellColors.TextFillDisabledBrushKey}}" Property="Foreground" />
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+</ResourceDictionary>

@@ -1313,6 +1313,8 @@ void test_api_service() {
     const auto queue = service.handle({"GET", "/v1/queue", auth, ""});
     check(queue.status == 200 && queue.body.find("queued-job") != std::string::npos,
           "API lists queue");
+    check(queue.body.find(R"json("provider":"m365")json") != std::string::npos,
+          "API queue reports the provider");
     check(queue.body.find("secret-ref") == std::string::npos,
           "API queue does not expose vault key");
     std::filesystem::create_directories(root / "cloud" / "workers");
@@ -1329,6 +1331,19 @@ void test_api_service() {
     check(prometheus.status == 200 &&
           prometheus.body.find("olho_cloud_queue_jobs") != std::string::npos,
           "API exposes Prometheus metrics");
+    // Dropbox jobs carry no tenant and must be accepted; an unknown provider
+    // must be refused before it reaches a worker. This runs after the metrics
+    // assertions so the queued count there stays one.
+    const auto dropbox_job = service.handle({"POST", "/v1/jobs", auth,
+        R"json({"job_id":"queued-dbx","provider":"dropbox","account":"k@e.test","legal_basis":"warrant","vault_key":"secret-ref","root_path":"/caso","download_files":true})json"});
+    check(dropbox_job.status == 201, "API enqueues a dropbox job without tenant");
+    const auto bad_provider = service.handle({"POST", "/v1/jobs", auth,
+        R"json({"job_id":"queued-bad","provider":"icloud","account":"k@e.test","legal_basis":"warrant","vault_key":"secret-ref"})json"});
+    check(bad_provider.status == 400, "API refuses an unknown provider");
+    const auto queue_after = service.handle({"GET", "/v1/queue", auth, ""});
+    check(queue_after.body.find(R"json("provider":"dropbox")json") != std::string::npos &&
+              queue_after.body.find("queued-bad") == std::string::npos,
+          "dropbox job queued and the bad one dropped");
     JobQueue queue_store((root / "cloud" / "queue").string());
     check(queue_store.claim("queued-job", "worker-1", 60, error),
           "queue claim succeeds");

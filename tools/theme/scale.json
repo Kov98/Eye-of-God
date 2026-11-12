@@ -1,0 +1,47 @@
+{
+ "space": {
+  "none": 0,
+  "xxs": 2,
+  "xs": 4,
+  "s": 8,
+  "m": 12,
+  "l": 16,
+  "xl": 20,
+  "xxl": 24
+ },
+ "radius": {
+  "none": 0,
+  "s": 4,
+  "m": 6,
+  "l": 8,
+  "xl": 10,
+  "tab": 6,
+  "pill": 12
+ },
+ "stroke": {
+  "thin": 1,
+  "thick": 2,
+  "thicker": 3,
+  "thickest": 4
+ },
+ "size": {
+  "control": 24,
+  "content": 16,
+  "icon": 16,
+  "iconS": 16,
+  "iconM": 24,
+  "nonClientH": 30,
+  "nonClientW": 44,
+  "tabMinW": 74,
+  "tabClose": 14,
+  "rowH": 22,
+  "scrollbar": 8,
+  "splitter": 1,
+  "statusH": 24
+ },
+ "font": {
+  "base": 12,
+  "caption": 11,
+  "code": 14
+ }
+}

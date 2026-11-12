@@ -1,4 +1,4 @@
-﻿# Olho de Deus — Deep Engine
+# Olho de Deus — Deep Engine
 
 Status: quinquagésimo terceiro corte. O binário original `OlhoDeDeus.exe` continua
 intacto; o novo alvo é `OlhoDeDeus_deep.exe`, construído de `main.cpp`,
@@ -119,6 +119,61 @@ intacto; o novo alvo é `OlhoDeDeus_deep.exe`, construído de `main.cpp`,
 - Toda coleta grava JSONL e, por padrão, `<saída>\case.db`.
 - `--case-query <db> <sql>` devolve JSON; `--case-summary <db>` mostra contagens.
 
+
+### Selo de integridade do caso
+
+- O banco é um SQLite vivo (o VFS grava em qualquer deslocamento), então o selo
+  fica **ao lado** do arquivo: um HMAC-SHA256 por bloco de 4 KiB, chaveado por 32
+  bytes derivados da chave do caso (keystream CTR em `0xF0000000000`, um
+  deslocamento que nunca coincide com página real). Cobre `case.db`, `case.db-journal`
+  e `case.db-wal`; a verificação aponta o **número do bloco** alterado.
+- **Tudo o que a ferramenta extrai para dentro do caso** ganhou selo de pasta,
+  `media.seal` (o nome é histórico, do primeiro caso de uso): um SHA-256 por
+  arquivo (hash em fluxo, 1 MiB por vez), recursivo, em ordem estável de caminho,
+  com um HMAC da lista inteira. Cobre `recovered/` (export do `wa_recover`),
+  `media/`, `cloud/` (manifestos e downloads dos conectores) e `social/`
+  (Facebook, Instagram, Takeout, Telegram) — cada pasta com o seu selo.
+  Detecta conteúdo trocado, tamanho diferente, arquivo removido, arquivo novo na
+  pasta e arquivo renomeado; aponta o caminho relativo.
+- **`case.seal`, o índice do caso**: um selo mora dentro do que ele sela, então
+  apagar a pasta levava o selo junto e o caso parecia nunca ter sido selado. O
+  índice fica na raiz e guarda nome + digest de **cada** selo. Com ele, selo
+  apagado, pasta selada removida e selo novo fora do índice viram falha com o
+  caminho apontado — e não mais ambigüidade. O índice é recusado se não houver
+  nenhum selo para indexar (índice vazio daria impressão de caso coberto).
+- **O selo entra sozinho no fim da aquisição**: ao terminar a recuperação de
+  WhatsApp (Android), a coleta de nuvem ou a importação de export social, a GUI
+  roda o selo do caso — banco, pastas e índice — sem depender de alguém lembrar do
+  menu (Projeto → Selar caso). Prova não selada no minuto seguinte é prova que
+  ninguém consegue provar depois.
+- **O selo do banco é streaming**: o `case.db` é lido em blocos de 4 KiB, o HMAC de
+  cada bloco vai direto para o `.tmp`, e o arquivo **nunca** é carregado inteiro
+  para a memória. Um banco de 128 MB mostra `... 19338/32768 blocos - 75.5 MB /
+  128.0 MB` (selo de 1.048.592 B = 32 B por bloco); um de 8 GB não derruba o
+  processo por falta de RAM. Se o banco mudar de tamanho durante a leitura, o selo
+  **não é publicado** — banco vivo não tem tamanho estável.
+- **Progresso e escrita atômica**: o selo avisa `... N/M arquivos - X GB / Y GB`
+  **no máximo 4 vezes por segundo** (o fim sempre aparece), com duas dimensões:
+  contar só arquivos deixaria um vídeo de 8 GB parado em `1/1`; contar só bytes
+  não diria quantos faltam. A GUI mostra ao vivo, linha a linha, enquanto o filho
+  roda — e grava em `.tmp`
+  antes de publicar com rename. Se a publicação falha — arquivo travado, disco
+  cheio —, o selo **anterior continua válido e inteiro**, e o temporário é
+  removido: um selo pela metade é pior que selo nenhum, porque parece
+  corrupção da prova em vez do que é.
+- HMAC por bloco no banco (precisa dizer *onde*) e lista de digests na mídia
+  (basta dizer *qual*): 32 MB de selo para responder a mesma pergunta num vídeo
+  de 4 GB não se justifica.
+- **O laudo confere o selo antes de existir**: `olho_report` verifica o banco e
+  **todas** as pastas seladas do caso (recuperação e aquisição de nuvem/social) e,
+  se algo não confere, **recusa** imprimir (exit 4, nenhum arquivo escrito) —
+  um PDF nascido de prova adulterada dá aparência de perícia ao que já foi mexido.
+  `--allow-broken-seal` emite o laudo **documentando** a violação, com a frase
+  "SELO DE INTEGRIDADE VIOLADO" no corpo; sem selo ou sem chave o laudo sai e diz
+  isso por escrito ("ausente" / "presente, NAO verificado").
+- CLI: `--case-seal/--case-check --case DIR [--media DIR]` cobrem os dois;
+  `--media-seal/--media-check --media DIR --key K` selam só a mídia.
+  Pasta de mídia não selada é reportada como "sem selo", não como adulteração.
 ### 8. Aquisição raw e assinatura
 
 - `imaging.cpp`: raw em blocos de 4 MiB, SHA-256 incremental, split e manifesto
@@ -197,6 +252,54 @@ intacto; o novo alvo é `OlhoDeDeus_deep.exe`, construído de `main.cpp`,
   avisos; sem formulário perdido no topo.
 - Console preto com logs verdes/vermelhos/cinza; status discreto.
 - Toolbar somente com ícones 20×20 e tooltips.
+
+### Mídia de WhatsApp e mídia efêmera ("ver uma vez")
+
+- `wa_recover.exe` abre o `msgstore.db` com a chave do aparelho, decifra o banco
+  (SQLCipher, com replay de WAL), decifra os `.enc` de mídia e escreve
+  `report.json` com **uma entrada por arquivo** (`midia[]`), incluindo a marca
+  `view_once`.
+- A marca nasce no banco: `discover_media` reconhece a coluna `view_once` e a
+  tabela dedicada `message_view_once`. Como o aplicativo apaga o arquivo depois da
+  primeira visualização, a linha do banco pode ser a única prova de que a mídia
+  existiu.
+- `wa_recover` escreve **`timeline.jsonl`** junto do export, com as mesmas chaves
+  dos importadores de nuvem e rede social (`timestamp_utc`, `provider`, `channel`,
+  `event_id`, `record_id`, `event_data`). A aba **Timeline** da GUI varre o caso
+  inteiro atrás de `timeline.jsonl` — raiz (engine de disco), `recovered/`
+  (WhatsApp), `social/` e `cloud/`. Antes ela olhava só a raiz e a nuvem, então
+  uma aquisição de WhatsApp deixava a Timeline vazia mesmo com centenas de
+  mensagens no caso.
+- O carregamento da Timeline vive em **`timeline_index.cpp`** (com oráculo próprio
+  em `.oracle_timeline/`): varre o caso inteiro, ordena **cronologicamente entre
+  provedores** e devolve `total`/`truncated`. O limite de exibição é 5.000 e a GUI
+  mostra `5000 de 200000 eventos (limite de exibicao)` — nunca o número cortado
+  como se fosse o todo. Medido: 5.000 eventos em **85 ms**, 200 mil parseados sem
+  limite custariam **1,14 s**, e por isso acima do teto o carregador só conta.
+- **A Timeline carrega em thread própria, com progresso e seleção preservada**: o
+  worker publica um contador de linhas por átomo e o timer mostra
+  `carregando timeline... 120.000 linhas`; ao terminar, a linha que o operador
+  estava olhando é reselecionada (a tabela é reconstruída do zero). Antes,
+  "carregar mais" jogava a seleção para o topo. O resultado volta por QTimer (mesmo
+  padrão da coleta e do import social) e a janela nunca congela — o corte por data
+  custa ~1 s em 200 mil eventos. Pedido de carga durante outra carga fica pendente
+  em vez de bloquear ou se perder; o destrutor faz join da thread.
+- **Paginação por ação, sem recarregar o caso**: `Exibir → Timeline: carregar mais`
+  multiplica o teto por 5 (5.000 → 25.000 → 125.000 → 200.000) e chama só
+  `refresh_timeline()` — tabela, contador, gráfico e mensagens; manifesto, árvores e
+  galeria não são relidos. O limite vale por caso.
+- **Dois modos de corte**, escolhidos no menu `Exibir`:
+  - *ordem de arquivo* (padrão): para de interpretar ao encher a página — **86 ms**
+    em 200 mil eventos, mas a primeira página não é "os mais antigos do caso";
+  - *por data* (`Timeline: cortar por data`): interpreta o caso inteiro e mantém os N
+    mais antigos numa heap máxima — **959 ms** em 200 mil eventos, primeira página
+    é o começo da história. A primeira versão varria a janela a cada troca e levava
+    **6.476 ms**; a heap resolveu.
+- Na Galeria: selo `VER 1X` na miniatura, etiqueta `MIDIA EFEMERA (VER UMA VEZ)`
+  na vista ampliada, linha `Efemera` em vermelho no painel, contagem na barra de
+  status e filtro `Ver uma vez (N)`.
+- `wa_recover.exe` passou a ter alvo próprio no `build_deep.ps1` (antes era
+  construído à mão e ficava fora de qualquer build reproduzível).
 
 
 ## Cloud / Enterprise — fase 1

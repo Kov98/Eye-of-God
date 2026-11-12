@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Border x:Class="Microsoft.VisualStudio.PlatformUI.OutputWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Uid="OutputWindow_1" xmlns:platformui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.UI.Internal">
+  <Border.Background>
+    <SolidColorBrush x:Uid="SolidColorBrush_1" Color="{Binding Path=BackgroundColor}" />
+  </Border.Background>
+  <Decorator.Child>
+    <ContentPresenter x:Uid="ContentPresenter_1" Content="{Binding Path=ActivePane}" />
+  </Decorator.Child>
+</Border>

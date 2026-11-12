@@ -1,4 +1,4 @@
-﻿#include "api.hpp"
+#include "api.hpp"
 #include "cloud/enterprise/secret_store.hpp"
 
 #include "cloud/core/manifest_verify.hpp"
@@ -373,18 +373,27 @@ ApiResponse CloudApiService::enqueue(const ApiRequest& request) {
         return error(400, "invalid JSON body");
     }
     if (!body.is_object()) return error(400, "invalid JSON body");
-    for (const char* key : {"job_id", "account", "tenant_id", "legal_basis",
-                             "vault_key", "vault_ref", "since", "until"}) {
+    for (const char* key : {"job_id", "provider", "account", "tenant_id", "legal_basis",
+                             "vault_key", "vault_ref", "since", "until", "root_path"}) {
         if (body.contains(key) && !body[key].is_string())
             return error(400, std::string("field must be a string: ") + key);
     }
     if ((body.contains("priority") && !body["priority"].is_number_integer()) ||
         (body.contains("max_pages") && !body["max_pages"].is_number_integer()) ||
         (body.contains("download_attachments") &&
-         !body["download_attachments"].is_boolean()))
+         !body["download_attachments"].is_boolean()) ||
+        (body.contains("download_files") && !body["download_files"].is_boolean()))
         return error(400, "invalid numeric/boolean field");
     QueuedJob job;
     job.job_id = body.value("job_id", "");
+    job.provider = body.value("provider", "m365");
+    // The provider decides which identifier is mandatory: Graph needs a tenant,
+    // Dropbox has none. Refusing here keeps an unrunnable job out of the queue
+    // instead of failing it later in a worker.
+    if (job.provider != "m365" && job.provider != "dropbox")
+        return error(400, "unsupported provider: " + job.provider);
+    job.root_path = body.value("root_path", "/");
+    job.download_files = body.value("download_files", false);
     job.account = body.value("account", "");
     job.tenant_id = body.value("tenant_id", "");
     job.legal_basis = body.value("legal_basis", "");
@@ -424,8 +433,11 @@ ApiResponse CloudApiService::queue(const ApiRequest& request) {
     for (const auto& job : queue_.list()) {
         entries.push_back({
             {"job_id", job.job_id},
+            {"provider", job.provider},
             {"account", job.account},
             {"tenant_id", job.tenant_id},
+            {"root_path", job.root_path},
+            {"download_files", job.download_files},
             {"legal_basis", job.legal_basis},
             {"since", job.since},
             {"until", job.until},

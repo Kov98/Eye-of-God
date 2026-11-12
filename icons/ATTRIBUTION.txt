@@ -1,0 +1,3 @@
+Navigation icons generated from Lucide (https://lucide.dev), ISC license.
+Generated as PNG at 64x64 by tools/generate_icons.js.
+No VirtualBox icons are used.

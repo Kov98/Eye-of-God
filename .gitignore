@@ -41,3 +41,26 @@
 /.idea/
 __pycache__/
 *.pyc
+# ---------------------------------------------------------------------------
+# Artefatos de execucao (logs, estado local, restos de teste)
+# ---------------------------------------------------------------------------
+*.log
+/toolbar.ini
+/toolbar.ini.test-bak
+/layout.ini*
+/notes_utf8.txt
+/conversations.json
+/recovered/
+*.seal
+*.seal.tmp
+*.tmp
+
+# Fixtures e saidas dos oraculos (157 MB de binarios, bancos e PDFs gerados).
+# Os RUNNERS e as FONTES de teste entram por git add -f: sao o que reproduz a
+# suite numa maquina limpa, e nao cabem no mesmo saco das fixtures.
+.oracle*/
+.recovered/
+
+
+# Corpus gerado pelo selftest do validador de PDF
+/ferramentas/pdfcheck/out/

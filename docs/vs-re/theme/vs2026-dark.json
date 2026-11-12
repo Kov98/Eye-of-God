@@ -1,0 +1,303 @@
+{
+ "meta": {
+  "target": "Visual Studio Community 2026 18.10.12224.181 (tema Escuro)",
+  "method": "amostragem de pixel da janela real + ajuste de modelo de overlay sobre a base",
+  "formula_branco": "hex = base + alpha*(255 - base)",
+  "formula_preto": "hex = base - alpha*base",
+  "base": "#1C1C1C",
+  "max_reconstruction_residual_levels": 0,
+  "open_item": "hover/pressed/focus por token nao medidos (janela do produto minimizada); o modelo preve pelo alpha"
+ },
+ "scale": [
+  {
+   "role": "chrome / barra de titulo+menu",
+   "hex": "#1C1C1C",
+   "kind": "base",
+   "mode": "branco",
+   "alpha_pct": 0.0,
+   "delta": 0,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#1C1C1C"
+  },
+  {
+   "role": "editor / documento",
+   "hex": "#1E1E1E",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 0.88,
+   "delta": 2,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#1E1E1E"
+  },
+  {
+   "role": "painel de saida (Output)",
+   "hex": "#1F1F1F",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 1.32,
+   "delta": 3,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#1F1F1F"
+  },
+  {
+   "role": "linha alternada de grade",
+   "hex": "#232323",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 3.08,
+   "delta": 7,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#232323"
+  },
+  {
+   "role": "command bar / status",
+   "hex": "#262626",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 4.41,
+   "delta": 10,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#262626"
+  },
+  {
+   "role": "faixa inferior da tab strip",
+   "hex": "#272727",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 4.85,
+   "delta": 11,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#272727"
+  },
+  {
+   "role": "painel / dock",
+   "hex": "#282828",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 5.29,
+   "delta": 12,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#282828"
+  },
+  {
+   "role": "faixa superior da tab strip",
+   "hex": "#2B2B2B",
+   "kind": "surface",
+   "mode": "branco",
+   "alpha_pct": 6.61,
+   "delta": 15,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#2B2B2B"
+  },
+  {
+   "role": "hover / selecao neutra",
+   "hex": "#353535",
+   "kind": "state",
+   "mode": "branco",
+   "alpha_pct": 11.01,
+   "delta": 25,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#353535"
+  },
+  {
+   "role": "borda de item selecionado",
+   "hex": "#454545",
+   "kind": "state",
+   "mode": "branco",
+   "alpha_pct": 18.06,
+   "delta": 41,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#454545"
+  },
+  {
+   "role": "divisoria de 1px",
+   "hex": "#0E0E0E",
+   "kind": "edge",
+   "mode": "preto",
+   "alpha_pct": 50.0,
+   "delta": -14,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#0E0E0E"
+  },
+  {
+   "role": "faixa de borda inferior",
+   "hex": "#141414",
+   "kind": "edge",
+   "mode": "preto",
+   "alpha_pct": 28.57,
+   "delta": -8,
+   "neutral": true,
+   "predicted_hex_of_that_alpha": "#141414"
+  }
+ ],
+ "tokens_from_xaml": {
+  "note": "nomes reais usados pelos templates; ver catalog/TOKENS.md",
+  "fills": [
+   "ControlFillTransparent",
+   "ControlFillDefault",
+   "ControlFillSecondary",
+   "ControlFillTertiary",
+   "SubtleFillSecondary",
+   "SubtleFillTertiary",
+   "LayerFillDefault",
+   "ControlStrongFillDefault"
+  ],
+  "strokes": [
+   "ControlStrokeTransparent",
+   "ControlStrokeDefault",
+   "ControlStrokeSecondary",
+   "DividerStrokeDefault"
+  ],
+  "text": [
+   "TextFillPrimary",
+   "TextFillSecondary",
+   "TextFillDisabled"
+  ],
+  "accent": [
+   "AccentFillDefault",
+   "AccentFillSecondary",
+   "AccentFillTertiary",
+   "TextOnAccentFillPrimary"
+  ],
+  "environment": [
+   "ToolWindowBackground",
+   "ToolWindowText",
+   "CommandBarBorder",
+   "MainWindowResizeGripTexture1"
+  ]
+ },
+ "typography": {
+  "shell": {
+   "family": "Segoe UI",
+   "px": 12
+  },
+  "code": {
+   "family": "Cascadia Mono",
+   "px": 14
+  },
+  "caption": 12,
+  "body": 14,
+  "bodyLarge": 18,
+  "subtitle": 20,
+  "title": 28,
+  "titleLarge": 40,
+  "display": 68
+ },
+ "geometry": {
+  "control_min": 24,
+  "content_min": 16,
+  "radius": {
+   "none": 0,
+   "s": 2,
+   "m": 4,
+   "l": 6,
+   "xl": 8
+  },
+  "stroke": {
+   "thin": 1,
+   "thick": 2,
+   "thicker": 3,
+   "thickest": 4
+  },
+  "non_client": {
+   "height": 30,
+   "width": 44
+  },
+  "icons": {
+   "xxs": 8,
+   "xs": 12,
+   "s": 16,
+   "m": 24,
+   "l": 32
+  },
+  "measured_bands": {
+   "title_menu": 30,
+   "command_row1": 29,
+   "gap": 6,
+   "command_row2": 25,
+   "tab_strip_upper": 22,
+   "tab_strip_lower": 16,
+   "status": 24,
+   "scrollbar": 8,
+   "splitter": 1
+  }
+ },
+ "states_measured": {
+  "method": "injecao de ponteiro + PrintWindow + diff de pixel contra baseline; janela do produto restaurada e devolvida ao estado original (diff final vazio)",
+  "states": [
+   {
+    "role": "repouso de controle (ControlFillDefault)",
+    "hex": "#262626",
+    "alpha_pct": 4.41,
+    "measured_at": "botao de comando em repouso"
+   },
+   {
+    "role": "item de menu-bar ativo (menu aberto)",
+    "hex": "#292929",
+    "alpha_pct": 5.73,
+    "measured_at": "item Arquivo com menu aberto"
+   },
+   {
+    "role": "pressed (ControlFillTertiary)",
+    "hex": "#2F2F2F",
+    "alpha_pct": 8.37,
+    "measured_at": "botao de comando com mouse pressionado"
+   },
+   {
+    "role": "hover de botao de comando (ControlFillSecondary)",
+    "hex": "#333333",
+    "alpha_pct": 10.13,
+    "measured_at": "icone Salvar sob o ponteiro"
+   },
+   {
+    "role": "hover de linha/aba + selecao (SubtleFillSecondary)",
+    "hex": "#353535",
+    "alpha_pct": 11.01,
+    "measured_at": "linha da Solution Explorer e aba inativa"
+   },
+   {
+    "role": "borda de item selecionado (ControlStrokeSecondary)",
+    "hex": "#454545",
+    "alpha_pct": 18.06,
+    "measured_at": "contorno de selecao"
+   }
+  ],
+  "note": "hover nao e um valor unico: botao de comando usa ~10,13% e linha/aba usa ~11,01% - tokens diferentes",
+  "not_observed": [
+   "anel de foco (nao apareceu na caixa de busca)",
+   "menu popup (renderiza em HWND separado; PrintWindow da janela principal nao captura)"
+  ]
+ },
+ "authoritative_palette": {
+  "file": "tokens-shell-dark.json",
+  "source": "Common7\\IDE\\CommonExtensions\\Platform\\Shell.Dark.pkgdef",
+  "tokens": 236,
+  "correction": "A afirmacao anterior de que hex nao existe em disco estava ERRADA. A paleta existe, codificada em blobs '=hex:' de pkgdef, com os NOMES dos tokens tambem hex-encoded (por isso varreduras de string falharam).",
+  "validated": [
+   {
+    "token": "EnvironmentBackground",
+    "hex": "#1C1C1C",
+    "equals_base": true
+   },
+   {
+    "token": "AccentFillDefault",
+    "hex": "#9184EE",
+    "matches_measured_accent": true
+   },
+   {
+    "token": "ControlAltFillTertiary",
+    "hex": "#FFFFFF",
+    "alpha": 11,
+    "composited": "#262626",
+    "matches_measured": "#262626"
+   },
+   {
+    "token": "CardBackgroundFillDefault",
+    "hex": "#FFFFFF",
+    "alpha": 13,
+    "composited": "#282828",
+    "matches_measured": "#282828"
+   }
+  ]
+ }
+}

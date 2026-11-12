@@ -1,0 +1,30 @@
+[package]
+name = "formatguard"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+description = "Parsers Rust para entrada hostil (Apple binary plist bplist00 e protobuf) com ABI C estreita"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+name = "formatguard"
+# cdylib e staticlib sao as entregas (o C++ do produto linka estatico, sem DLL ao lado do exe).
+# rlib existe para os testes de integracao e para os binarios do proprio crate.
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+debug = false
+# overflow-checks ligado em release de proposito: nenhuma conta do parser pode
+# estourar, e se alguma estourar o defeito aparece (localmente) em vez de virar
+# um valor silenciosamente errado num laudo. Todo caminho de entrada usa checked_*.
+overflow-checks = true
+# unwind (padrao) e necessario para a rede de seguranca catch_unwind da ABI.
+# Com panic="abort" um panic mataria o processo em vez de virar codigo de erro.
+panic = "unwind"
+
+[profile.test]
+opt-level = 2

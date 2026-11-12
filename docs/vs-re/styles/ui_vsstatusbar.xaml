@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StatusBar x:Class="Microsoft.VisualStudio.PlatformUI.VsStatusBar" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Microsoft.VisualStudio.PlatformUI" xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0" x:Uid="StatusBar_1">
+  <FrameworkElement.Resources>
+    <ResourceDictionary>
+      <sys:Double x:Key="ProgressBarCompartmentWidth" x:Uid="sys:Double_1">100</sys:Double>
+      <sys:Double x:Key="ProgressBarCompartmentHeight" x:Uid="sys:Double_2">15</sys:Double>
+      <sys:Double x:Key="LineCompartmentWidth" x:Uid="sys:Double_5">90</sys:Double>
+      <sys:Double x:Key="ColumnCompartmentWidth" x:Uid="sys:Double_6">90</sys:Double>
+      <sys:Double x:Key="CharacterCompartmentWidth" x:Uid="sys:Double_7">90</sys:Double>
+      <sys:Double x:Key="InsertionModeCompartmentWidth" x:Uid="sys:Double_8">30</sys:Double>
+      <sys:Double x:Key="SelectionModeCompartmentWidth" x:Uid="sys:Double_9">30</sys:Double>
+      <Duration x:Key="AnimationImageDuration" x:Uid="Duration_1">0:0:0.2</Duration>
+      <ui:StringConcatenatingConverter x:Key="StringConcatenating" x:Uid="ui:StringConcatenatingConverter_1" />
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibility" x:Uid="BooleanToVisibilityConverter_1" />
+      <local:NotifyCollectionChangedProxyConverter x:Key="NotifyCollectionChangedProxyConverter" x:Uid="local:NotifyCollectionChangedProxyConverter_1" />
+      <Style x:Key="{x:Type TextBlock}" x:Uid="Style_1" TargetType="{x:Type TextBlock}">
+        <Setter x:Uid="Setter_1" Property="Margin" Value="1" />
+        <Setter x:Uid="Setter_11" Property="MinHeight" Value="16" />
+        <Setter x:Uid="Setter_2" Property="VerticalAlignment" Value="Center" />
+      </Style>
+      <Style x:Key="{x:Type StatusBarItem}" x:Uid="Style_2" TargetType="{x:Type StatusBarItem}">
+        <Setter x:Uid="Setter_3" Property="DockPanel.Dock" Value="Right" />
+        <Setter x:Uid="Setter_4" Property="Visibility" Value="Hidden" />
+      </Style>
+      <Style x:Key="{x:Type local:VsStatusBar}" x:Uid="Style_3" BasedOn="{StaticResource {x:Type StatusBar}}" TargetType="{x:Type local:VsStatusBar}">
+        <Setter x:Uid="Setter_5" Property="TextElement.FontFamily" Value="{Binding Path=(TextElement.FontFamily), RelativeSource={RelativeSource Mode=FindAncestor, AncestorLevel=1, AncestorType={x:Type DependencyObject}}}" />
+        <Setter x:Uid="Setter_6" Property="TextElement.FontSize" Value="{Binding Path=(TextElement.FontSize), RelativeSource={RelativeSource Mode=FindAncestor, AncestorLevel=1, AncestorType={x:Type DependencyObject}}}" />
+        <Setter x:Uid="Setter_7" Property="TextElement.Foreground" Value="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Mode=FindAncestor, AncestorLevel=1, AncestorType={x:Type DependencyObject}}}" />
+        <Setter x:Uid="Setter_8" Property="Background" Value="#00FFFFFF" />
+        <Setter x:Uid="Setter_9" Property="MinHeight" Value="22" />
+        <Setter x:Uid="Setter_10" Property="Template">
+          <Setter.Value>
+            <ControlTemplate x:Uid="ControlTemplate_1" TargetType="{x:Type local:VsStatusBar}">
+              <DockPanel x:Uid="DockPanel_1" Background="{TemplateBinding Control.Background}">
+                <StatusBarItem Name="AnimationCompartment" x:Uid="AnimationCompartment" Visibility="Visible">
+                  <ItemsControl x:Uid="ItemsControl_1" ItemsSource="{Binding Animations, Converter={StaticResource NotifyCollectionChangedProxyConverter}}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate x:Uid="ItemsPanelTemplate_1">
+                        <StackPanel x:Uid="StackPanel_5" Orientation="Horizontal" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:Uid="DataTemplate_1">
+                        <local:ImageSlider x:Uid="local:ImageSlider_1" Margin="8,0,0,0" ImageDuration="{StaticResource AnimationImageDuration}" Images="{Binding}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StatusBarItem>
+                <StatusBarItem Name="ProgressBarCompartment" x:Uid="ProgressBarCompartment">
+                  <ProgressBar x:Uid="ProgressBar_1" Width="{StaticResource ProgressBarCompartmentWidth}" Height="{StaticResource ProgressBarCompartmentHeight}" Maximum="{Binding ProgressBarMax}" Value="{Binding ProgressBarValue}" />
+                </StatusBarItem>
+                <StatusBarItem Name="InsertionModeCompartment" x:Uid="InsertionModeCompartment">
+                  <TextBlock x:Uid="TextBlock_1" MinWidth="{StaticResource SelectionModeCompartmentWidth}" Text="{Binding InsertionMode}" />
+                </StatusBarItem>
+                <StatusBarItem Name="SelectionModeCompartment" x:Uid="SelectionModeCompartment">
+                  <TextBlock x:Uid="TextBlock_2" MinWidth="{StaticResource InsertionModeCompartmentWidth}" Text="{Binding SelectionMode}" />
+                </StatusBarItem>
+                <StatusBarItem Name="TextCompartment" x:Uid="TextCompartment" Visibility="Visible">
+                  <TextBlock x:Uid="TextBlock_4" TextTrimming="CharacterEllipsis" Text="{Binding Text}" />
+                </StatusBarItem>
+              </DockPanel>
+              <ControlTemplate.Triggers>
+                <DataTrigger x:Uid="DataTrigger_1" Value="{x:Static local:StatusBarMode.EditorMode}" Binding="{Binding Mode}">
+                  <Setter x:Uid="Setter_12" TargetName="SelectionModeCompartment" Property="Visibility" Value="Visible" />
+                  <Setter x:Uid="Setter_13" TargetName="InsertionModeCompartment" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger x:Uid="DataTrigger_4" Value="true" Binding="{Binding IsProgressBarActive}">
+                  <Setter x:Uid="Setter_17" TargetName="ProgressBarCompartment" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger x:Uid="DataTrigger_5" Value="false" Binding="{Binding IsVisible}">
+                  <Setter x:Uid="Setter_18" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </ResourceDictionary>
+  </FrameworkElement.Resources>
+</StatusBar>
