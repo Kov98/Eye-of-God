@@ -707,6 +707,15 @@ public:
 
 class MainWindow : public QMainWindow {
 public:
+    // --- modo evidencia (--screenshot) -------------------------------------
+    // Carrega um caso e escolhe a aba sem interacao. Existe porque todo recurso
+    // desta janela ficou sem prova visual: automacao de janela nesta maquina nao
+    // e confiavel, e uma foto tirada pelo proprio app e evidencia melhor que
+    // nenhuma.
+    void screenshot_setup(const QString& case_dir, const QString& tab_name);
+    // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
+    bool timeline_busy() const { return timeline_running_; }
+
     ~MainWindow() override {
         /* auto_hide_ nao e QObject: sem isso vazava (auditoria, A2) */
         delete auto_hide_;
@@ -5829,16 +5838,62 @@ QString load_style_sheet() {
     return style_sheet();
 }
 } // namespace
+void MainWindow::screenshot_setup(const QString& case_dir, const QString& tab_name) {
+    if (!case_dir.isEmpty()) load_case(case_dir);
+    if (tab_name.isEmpty() || center_tabs_ == nullptr) return;
+    for (int i = 0; i < center_tabs_->count(); ++i) {
+        const QString text = center_tabs_->tabText(i);
+        if (text.compare(tab_name, Qt::CaseInsensitive) == 0 ||
+            text.contains(tab_name, Qt::CaseInsensitive)) {
+            center_tabs_->setCurrentIndex(i);
+            return;
+        }
+    }
+    std::printf("screenshot: aba nao encontrada: %s\n", qUtf8Printable(tab_name));
+}
+
 int run_gui(HINSTANCE) {
     int argc = 1;
     char app_name[] = "OlhoDeDeus_gui";
     char* argv[] = {app_name, nullptr};
     QApplication app(argc, argv);
+
+    // Etapa 1: modo evidencia. Abre a janela, carrega um caso, escolhe a aba,
+    // espera a Timeline assentar, salva o PNG e sai. Sem isso, nenhum recurso de
+    // GUI deste repositorio tem prova visual.
+    QString shot_path;
+    QString shot_case;
+    QString shot_tab;
+    int shot_delay_ms = 800;
+    {
+        int count = 0;
+        LPWSTR* list = ::CommandLineToArgvW(::GetCommandLineW(), &count);
+        if (list != nullptr) {
+            for (int i = 1; i < count; ++i) {
+                const QString arg = QString::fromWCharArray(list[i]);
+                const bool has_value = i + 1 < count;
+                if (arg == "--screenshot" && has_value) {
+                    shot_path = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--case" && has_value) {
+                    shot_case = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--tab" && has_value) {
+                    shot_tab = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--delay" && has_value) {
+                    shot_delay_ms = QString::fromWCharArray(list[++i]).toInt();
+                }
+            }
+            ::LocalFree(list);
+        }
+    }
+    const bool screenshot_mode = !shot_path.isEmpty();
+
     /* instancia unica: duas copias do app escrevem no mesmo toolbar.ini e
-       layout.ini (QSettings em cache por processo) e uma desfaz a outra */
+       layout.ini (QSettings em cache por processo) e uma desfaz a outra.
+       No modo evidencia o cadeado e ignorado de proposito: fotografar uma janela
+       que ja esta aberta e um uso legitimo. */
     QLockFile instance_lock(QDir::tempPath() + "/olho-de-deus-gui.lock");
     instance_lock.setStaleLockTime(30000);
-    if (!instance_lock.tryLock(300)) {
+    if (!screenshot_mode && !instance_lock.tryLock(300)) {
         /* ja existe uma janela: traz ela para a frente e sai (sem dialogo,
            que ficaria preso se ninguem clicasse) */
         if (HWND existing = ::FindWindowW(nullptr, L"Olho de Deus - Deep Engine")) {
@@ -5852,7 +5907,41 @@ int run_gui(HINSTANCE) {
     QFont font("Segoe UI", 10);
     app.setFont(font);
     MainWindow window;
-    window.showMaximized();
+    if (!screenshot_mode) {
+        window.showMaximized();
+        return app.exec();
+    }
+
+    window.resize(1440, 900);
+    window.show();
+    // ADIADO de proposito: o construtor da janela enfileira um load_case() sem
+    // argumentos (o caso mais recente de cases/) e ele roda no primeiro giro do
+    // event loop. Chamar o setup agora faria o caso pedido ser sobrescrito pelo
+    // automatico - foi exatamente o que aconteceu no primeiro teste.
+    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab]() {
+        window.screenshot_setup(shot_case, shot_tab);
+    });
+
+    // Espera em passos de 100 ms: primeiro a Timeline (thread propria), depois o
+    // pintor do WM. Teto de 20 s para nao pendurar um CI.
+    auto* waiter = new QTimer(&window);
+    auto elapsed = std::make_shared<int>(0);
+    QObject::connect(waiter, &QTimer::timeout, &window,
+                     [&window, waiter, elapsed, shot_path, shot_delay_ms]() {
+        *elapsed += 100;
+        if (window.timeline_busy() && *elapsed < 20000) return;
+        // O setup entra no primeiro giro do event loop; a foto espera pelo menos
+        // dois tiques depois disso.
+        if (*elapsed < shot_delay_ms + 200) return;
+        waiter->stop();
+        const QPixmap pixmap = window.grab();
+        const bool saved = !pixmap.isNull() && pixmap.save(shot_path, "PNG");
+        std::printf("screenshot: %s salvo=%d %dx%d\n", qUtf8Printable(shot_path),
+                    saved ? 1 : 0, pixmap.width(), pixmap.height());
+        std::fflush(stdout);
+        QCoreApplication::exit(saved ? 0 : 2);
+    });
+    waiter->start(100);
     return app.exec();
 }
 
