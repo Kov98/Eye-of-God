@@ -126,6 +126,7 @@
 
 #include <functional>
 #include <atomic>
+#include <cmath>
 #include <thread>
 
 namespace deep {
@@ -285,19 +286,53 @@ protected:
                                  lane_metrics.elidedText(name, Qt::ElideMiddle, 134));
             }
 
+            // Posicao de cada evento: primeiro passo, porque as barras precisam dos
+            // indices de faixa antes de desenhar qualquer coisa.
+            QVector<double> x_of(times_.size(), 0.0);
+            QVector<int> count_of(lane_count, 0);
             for (int i = 0; i < times_.size(); ++i) {
                 const double ratio = static_cast<double>(first.msecsTo(times_[i])) / span;
-                const int source = source_index.value(
-                    labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed().isEmpty()
-                        ? QStringLiteral("Evento")
-                        : labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed());
-                const int lane = lane_for_source(source);
+                x_of[i] = area.left() + area.width() * ratio;
+                QString key = labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed();
+                if (key.isEmpty()) key = QStringLiteral("Evento");
+                const int lane = lane_for_source(source_index.value(key));
                 lane_of[i] = lane;
+                ++count_of[lane];
+            }
+
+            // Barras de densidade em vez de pontos: 243 mensagens em 7 minutos, uma
+            // bolinha por evento, viram uma linha continua que nao informa nada. A
+            // altura da barra diz QUANTA coisa aconteceu naquela fatia de tempo.
+            const int buckets = qBound(8, area.width() / 10, 160);
+            QVector<QVector<int>> histogram(lane_count, QVector<int>(buckets, 0));
+            for (int i = 0; i < times_.size(); ++i) {
+                const double ratio = (x_of.at(i) - area.left()) / double(qMax(1, area.width()));
+                const int bucket = qBound(0, int(ratio * (buckets - 1) + 0.5), buckets - 1);
+                ++histogram[lane_of.at(i)][bucket];
+            }
+            const double bar_width = qMax(1.0, area.width() / double(buckets) - 1.0);
+            for (int lane = 0; lane < lane_count; ++lane) {
+                int peak = 0;
+                for (int value : histogram.at(lane)) peak = qMax(peak, value);
+                if (peak <= 0) continue;
+                const double base = area.top() + lane_height * (lane + 1) - 6.0;
+                const double full = qMax(6.0, lane_height - 16.0);
+                painter.setPen(Qt::NoPen);
+                painter.setBrush(QColor(theme::accent()));
+                for (int bucket = 0; bucket < buckets; ++bucket) {
+                    const int value = histogram.at(lane).at(bucket);
+                    if (value <= 0) continue;
+                    // Escala em raiz: um pico de 40 nao pode achatr a rotina de 2.
+                    const double height = full * std::sqrt(double(value) / double(peak));
+                    const double x = area.left() + area.width() * bucket / double(buckets);
+                    painter.drawRect(QRectF(x, base - height, bar_width, height));
+                }
+            }
+
+            for (int i = 0; i < times_.size(); ++i) {
+                const int lane = lane_of.at(i);
                 const double y = area.top() + lane_height * (lane + 0.5);
-                const QPointF point(area.left() + area.width() * ratio, y);
-                painter.setBrush(QColor(theme::textOnDocument()));
-                painter.setPen(QPen(QColor(theme::document()), 1));
-                painter.drawEllipse(point, 2.5, 2.5);
+                const QPointF point(x_of.at(i), y);
 
                 // Rotulo: no maximo um a cada 150 px NA MESMA faixa, sempre dentro
                 // da area. Sem estas duas regras o texto dos eventos vizinhos se
@@ -313,7 +348,7 @@ protected:
                 if (x < area.left() + 2.0) continue;   // nao cabe nem recuando
                 last_label_x[lane] = point.x();
                 painter.setPen(QColor(theme::textDim()));
-                painter.drawText(QPointF(x, y - 7.0), text);
+                painter.drawText(QPointF(x, area.top() + lane_height * lane + 14.0), text);
             }
         } else {
         struct Event { double x; double y; const char* label; const char* time; };
