@@ -220,19 +220,23 @@ protected:
         // timeline sao POR FONTE, e sem o nome a faixa nao significa nada.
         const QRect area = rect().adjusted(150, 34, -26, -44);
         painter.setPen(QPen(QColor(theme::lineGrid()), 1));
-        painter.drawLine(area.left(), area.bottom(), area.right(), area.bottom());
-        painter.drawLine(area.left(), area.top(), area.left(), area.bottom());
+        if (!times_.isEmpty()) {
+            painter.drawLine(area.left(), area.bottom(), area.right(), area.bottom());
+            painter.drawLine(area.left(), area.top(), area.left(), area.bottom());
+        }
         painter.setFont(QFont("Segoe UI", 8));
         painter.setPen(QColor(theme::textMuted()));
-        for (int i = 0; i <= 4; ++i) {
-            const int x = area.left() + area.width() * i / 4;
-            painter.drawLine(x, area.bottom(), x, area.bottom() + 6);
-            QString axis = QString("2026-10-%1").arg(20 + i);
-            if (!times_.isEmpty()) {
-                const qint64 span = qMax<qint64>(1, times_.first().msecsTo(times_.last()));
-                axis = times_.first().addMSecs(span * i / 4).toString("MM-dd HH:mm");
+        // Eixo so quando existe dado. Antes ele imprimia "2026-10-20 .. 2026-10-24"
+        // mesmo sem nenhum evento no caso: data inventada num laudo e inaceitavel.
+        if (!times_.isEmpty()) {
+            const qint64 span = qMax<qint64>(1, times_.first().msecsTo(times_.last()));
+            for (int i = 0; i <= 4; ++i) {
+                const int x = area.left() + area.width() * i / 4;
+                painter.drawLine(x, area.bottom(), x, area.bottom() + 6);
+                const QString axis =
+                    times_.first().addMSecs(span * i / 4).toString("MM-dd HH:mm");
+                painter.drawText(x - 30, area.bottom() + 22, axis);
             }
-            painter.drawText(x - 30, area.bottom() + 22, axis);
         }
         if (!times_.isEmpty()) {
             const QDateTime first = times_.first();
@@ -351,28 +355,31 @@ protected:
                 painter.drawText(QPointF(x, area.top() + lane_height * lane + 14.0), text);
             }
         } else {
-        struct Event { double x; double y; const char* label; const char* time; };
-        const Event events[] = {
-            {0.10, 0.30, "Aquisicao iniciada", "08:12"},
-            {0.28, 0.62, "$MFT parseado", "08:19"},
-            {0.46, 0.40, "USN journal", "08:27"},
-            {0.62, 0.72, "Browser artifacts", "08:41"},
-            {0.78, 0.28, "EVTX correlacionado", "09:03"},
-            {0.91, 0.54, "Relatorio gerado", "09:18"}
-        };
-        for (const Event& event : events) {
-            const QPointF point(area.left() + area.width() * event.x,
-                                area.top() + area.height() * (1.0 - event.y));
-            painter.setPen(QPen(QColor(theme::lineSoft()), 1, Qt::DashLine));
-            painter.drawLine(QPointF(point.x(), area.bottom()), point);
-            painter.setBrush(QColor(theme::textOnDocument()));
-            painter.setPen(QPen(QColor(theme::textOnDocument()), 1));
-            painter.drawEllipse(point, 4, 4);
-            painter.setPen(QColor(theme::textDim()));
-            painter.drawText(point + QPointF(8, -7), event.label);
-            painter.setPen(QColor(theme::gutter()));
-            painter.drawText(point + QPointF(8, 9), event.time);
-        }
+            // ESTADO VAZIO HONESTO.
+            //
+            // Aqui havia uma timeline de enfeite: seis eventos inventados
+            // ("Aquisicao iniciada 08:12", "$MFT parseado 08:19"...) desenhados
+            // mesmo com zero eventos no caso. Num produto forense isso e o pior
+            // tipo de defeito: o painel AFIRMA atividade que nao existe. Caso sem
+            // timeline agora diz que nao tem.
+            const QRect card(area.center().x() - 210, area.center().y() - 42, 420, 84);
+            painter.setPen(QPen(QColor(theme::selectionBorder()), 1));
+            painter.setBrush(QColor(theme::surface()));
+            painter.drawRoundedRect(card, 4, 4);
+            QFont empty_font("Segoe UI", 9, QFont::DemiBold);
+            painter.setFont(empty_font);
+            painter.setPen(QColor(theme::textPrimary()));
+            painter.drawText(card.adjusted(14, 12, -14, 0), Qt::AlignHCenter | Qt::AlignTop,
+                             QStringLiteral("Nenhum evento de timeline neste caso"));
+            QFont hint_font("Segoe UI", 8);
+            painter.setFont(hint_font);
+            painter.setPen(QColor(theme::textSecondary()));
+            painter.drawText(card.adjusted(14, 34, -14, -8),
+                             Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap,
+                             QStringLiteral("A aba Tabela lista os arquivos do caso e o laudo "
+                                            "carrega a evidencia. A linha do tempo aparece "
+                                            "quando existe timeline.jsonl em qualquer pasta "
+                                            "do caso (raiz, recovered/, social/ ou cloud/)."));
         }
         painter.setPen(QColor(theme::textOnDocument()));
         painter.setFont(QFont("Segoe UI", 10, QFont::DemiBold));
