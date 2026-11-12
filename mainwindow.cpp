@@ -705,6 +705,12 @@ public:
     }
 };
 
+// Ligado pelo run_gui antes de construir a janela. No modo evidencia o
+// carregamento automatico do caso mais recente e suprimido: ele e enfileirado no
+// construtor e rodava DEPOIS do caso pedido na linha de comando, desfazendo o
+// pedido (e disparando duas cargas concorrentes da Timeline).
+bool g_gui_evidence_mode = false;
+
 class MainWindow : public QMainWindow {
 public:
     // --- modo evidencia (--screenshot) -------------------------------------
@@ -747,7 +753,9 @@ public:
             if (cloud_status_ != nullptr) refresh_cloud_status();
         });
         cloud_timer_->start(1200);
-        QTimer::singleShot(0, this, [this]() { load_case(); });
+        if (!g_gui_evidence_mode) {
+            QTimer::singleShot(0, this, [this]() { load_case(); });
+        }
     }
 
 protected:
@@ -5886,6 +5894,7 @@ int run_gui(HINSTANCE) {
         }
     }
     const bool screenshot_mode = !shot_path.isEmpty();
+    g_gui_evidence_mode = screenshot_mode;
 
     /* instancia unica: duas copias do app escrevem no mesmo toolbar.ini e
        layout.ini (QSettings em cache por processo) e uma desfaz a outra.
