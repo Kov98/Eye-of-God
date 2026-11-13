@@ -157,6 +157,34 @@ exporta o **caso inteiro** a partir do `case.db`. Este exporta a **janela
 carregada e filtrada**. Sao coisas diferentes, e um CSV que dissesse "caso
 inteiro" enquanto o operador tem um filtro ligado seria um laudo errado.
 
+## Levar o recorte para o laudo
+
+O `olho_report` aceita um ou mais `--recorte ARQUIVO` (o `.csv` ou `.jsonl`
+exportado, com o `.meta.json` ao lado):
+
+```powershell
+.\olho_report.exe cases\meu-caso --out laudo.pdf --recorte saida\timeline-filtrada.csv
+```
+
+Para cada recorte o laudo:
+
+1. le o sidecar e escolhe a chave certa (`sha256_csv` ou `sha256_jsonl`, pelo
+   `format` registrado);
+2. calcula o **sha256 do arquivo** e compara com o sidecar;
+3. escreve no corpo: `Recorte anexado: <arquivo> - 500 evento(s), filtro
+   provider=Telegram, sha256 CONFIRMADO (1779ba3bc643...)` e, na linha seguinte, o
+   `scope` do recorte ("janela carregada da Timeline, nao o banco do caso").
+
+**Divergencia recusa o laudo**: exit **4**, nenhum PDF escrito, com a mensagem do
+que falhou (arquivo ausente, sidecar ausente/ilegivel, ou hash diferente). E a
+mesma regra do selo de integridade, e pelo mesmo motivo: citar um anexo que nao
+bate da aparencia de prova a um recorte que ja foi mexido. Para DOCUMENTAR a
+divergencia existe `--allow-broken-recorte`, que emite o laudo com a marca
+`RECORTE ANEXADO DIVERGENTE` no corpo.
+
+Verificado pelo gate: laudo com recorte sai e cita o hash; recorte com um byte
+alterado e recusado com exit 4 sem PDF; recorte JSONL usa `sha256_jsonl`.
+
 ## Limites conhecidos
 
 - O filtro nao persiste entre sessoes nem troca de caso junto com o layout.

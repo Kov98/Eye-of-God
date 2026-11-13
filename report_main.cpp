@@ -21,6 +21,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,16 @@ bool has_flag(int argc, char** argv, const char* name) {
     return false;
 }
 
+// Flags que podem aparecer mais de uma vez (--recorte). arg_value devolve so o
+// primeiro, e um laudo pode citar varios recortes.
+std::vector<std::string> arg_all(int argc, char** argv, const char* name) {
+    std::vector<std::string> out;
+    for (int i = 1; i + 1 < argc; ++i) {
+        if (std::strcmp(argv[i], name) == 0) out.push_back(argv[i + 1]);
+    }
+    return out;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -63,8 +74,12 @@ int main(int argc, char** argv) {
         std::printf("uso: %s <case-dir> --out <file.pdf> [--id X] [--operator Y]"
                     " [--legal Z] [--device W] [--notes \"...\"]\n"
                     "       [--seal-key ARQUIVO] [--allow-broken-seal]\n"
+                    "       [--recorte ARQUIVO]... [--allow-broken-recorte]\n"
                     "  o selo de integridade (db + midia) e verificado antes de gerar o laudo;\n"
-                    "  selo violado recusa o laudo com exit 4, salvo --allow-broken-seal\n",
+                    "  selo violado recusa o laudo com exit 4, salvo --allow-broken-seal\n"
+                    "  cada --recorte e um export da Timeline (.csv/.jsonl): o laudo cita o\n"
+                    "  recorte e confere o sha256 contra o .meta.json; divergencia recusa o\n"
+                    "  laudo com exit 4, salvo --allow-broken-recorte\n",
                     argv[0]);
         return 2;
     }
@@ -300,6 +315,84 @@ int main(int argc, char** argv) {
     } else if (!seal_checked && seal_failures.empty()) {
         doc.notes.push_back("Selo de integridade: presente, NAO verificado - a chave do caso nao "
                             "foi encontrada. Use --seal-key para apontar a chave.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Recortes anexados: exports da Timeline (.csv/.jsonl) com sidecar.
+    // -----------------------------------------------------------------------
+    // Um recorte e o que o perito viu na tela, exportado com procedencia. O laudo
+    // cita o recorte E confere o hash do arquivo contra o sidecar: citar um anexo
+    // que nao bate seria pior que nao citar. Divergencia recusa o laudo (exit 4),
+    // com a mesma regra do selo.
+    const std::vector<std::string> recortes = arg_all(argc, argv, "--recorte");
+    const bool allow_broken_recorte = has_flag(argc, argv, "--allow-broken-recorte");
+    std::vector<std::string> recorte_failures;
+    for (const std::string& path : recortes) {
+        const fs::path file(path);
+        const fs::path meta(path + ".meta.json");
+        if (!fs::is_regular_file(file)) {
+            recorte_failures.push_back(path + ": arquivo do recorte nao existe");
+            continue;
+        }
+        if (!fs::is_regular_file(meta)) {
+            recorte_failures.push_back(path + ": sidecar .meta.json ausente");
+            continue;
+        }
+        std::ifstream meta_in(meta, std::ios::binary);
+        const std::string meta_text((std::istreambuf_iterator<char>(meta_in)),
+                                    std::istreambuf_iterator<char>());
+        const nlohmann::json meta_json = nlohmann::json::parse(meta_text, nullptr, false);
+        if (meta_json.is_discarded()) {
+            recorte_failures.push_back(path + ": sidecar ilegivel (JSON invalido)");
+            continue;
+        }
+        const std::string format = meta_json.value("format", "");
+        const std::string hash_key =
+            format.find("jsonl") != std::string::npos ? "sha256_jsonl" : "sha256_csv";
+        const std::string expected = meta_json.value(hash_key, "");
+        std::string actual;
+        std::uint64_t size = 0;
+        std::string error;
+        if (!olho::ios::sha256_file(path, actual, size, error)) {
+            recorte_failures.push_back(path + ": nao consegui ler o arquivo (" + error + ")");
+            continue;
+        }
+        if (expected.empty()) {
+            recorte_failures.push_back(path + ": sidecar sem o campo " + hash_key);
+            continue;
+        }
+        if (actual != expected) {
+            recorte_failures.push_back(path + ": sha256 do arquivo nao bate com o sidecar");
+            continue;
+        }
+        const int rows = meta_json.value("rows", 0);
+        const std::string filter = meta_json.value("filter", "");
+        const std::string scope = meta_json.value("scope", "");
+        doc.notes.push_back("Recorte anexado: " + file.filename().string() + " - " +
+                            std::to_string(rows) + " evento(s), filtro " + filter +
+                            ", sha256 CONFIRMADO (" + actual.substr(0, 16) + "...)");
+        if (!scope.empty()) doc.notes.push_back("  escopo do recorte: " + scope);
+        std::printf("recorte: %s - %d evento(s), filtro %s, sha256 confirmado\n",
+                    file.filename().string().c_str(), rows, filter.c_str());
+    }
+    if (!recorte_failures.empty()) {
+        for (const std::string& line : recorte_failures) {
+            std::printf("  [!] %s\n", line.c_str());
+        }
+        if (!allow_broken_recorte) {
+            std::printf("LAUDO RECUSADO: o recorte anexado nao confere. Nenhum arquivo foi "
+                        "escrito.\n");
+            std::printf("  Gere o recorte de novo pela Timeline, ou emita com "
+                        "--allow-broken-recorte para DOCUMENTAR a divergencia.\n");
+            return 4;
+        }
+        doc.notes.push_back("RECORTE ANEXADO DIVERGENTE: laudo emitido com --allow-broken-recorte; "
+                            "o anexo NAO e atestado de integridade.");
+        for (const std::string& line : recorte_failures) {
+            doc.notes.push_back("recorte: " + line);
+        }
+        std::printf("[!] recorte divergente, laudo emitido porque --allow-broken-recorte foi "
+                    "passado\n");
     }
 
     // Hash every file under the case directory: this is the evidence list.

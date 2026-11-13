@@ -287,6 +287,43 @@ foreach ($alvo in @(0, -1)) {
 }
 
 Write-Host ''
+Write-Host '--- laudo cita o recorte e confere o hash dele ---'
+$pdf = Join-Path $dir 'laudo_recorte.pdf'
+$pdfTampered = Join-Path $dir 'laudo_recorte_adulterado.pdf'
+Remove-Item $pdf, $pdfTampered -Force -ErrorAction SilentlyContinue
+$o = Join-Path $dir 'out_report.txt'
+$p = Start-Process -FilePath (Join-Path $root 'olho_report.exe') -ArgumentList @($caso, '--out', $pdf, '--recorte', $csv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_report.txt')
+$log = @(Get-Content $o -ErrorAction SilentlyContinue)
+$citou = ($p.ExitCode -eq 0) -and (@($log | Where-Object { $_ -match 'recorte: .* sha256 confirmado' }).Count -eq 1) -and (Test-Path $pdf)
+if (-not $citou) { $falhas++ }
+Write-Host ('{0} laudo com recorte saiu e citou o hash  (exit={1})' -f $(if ($citou) { '[ok]  ' } else { '[FALHA]' }), $p.ExitCode)
+if (-not $citou) { @($log | Select-Object -Last 4) | ForEach-Object { Write-Host ('        ' + $_) } }
+
+# Recorte adulterado: o laudo tem que ser RECUSADO (exit 4) e nao escrever PDF.
+$copiaCsv = Join-Path $dir 'recorte_adulterado.csv'
+Copy-Item $csv $copiaCsv -Force
+Copy-Item ($csv + '.meta.json') ($copiaCsv + '.meta.json') -Force
+$conteudo = [System.IO.File]::ReadAllText($copiaCsv)
+[System.IO.File]::WriteAllText($copiaCsv, $conteudo + " ")
+$o2 = Join-Path $dir 'out_report_tamper.txt'
+$p2 = Start-Process -FilePath (Join-Path $root 'olho_report.exe') -ArgumentList @($caso, '--out', $pdfTampered, '--recorte', $copiaCsv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o2 -RedirectStandardError (Join-Path $dir 'err_report_tamper.txt')
+$recusou = ($p2.ExitCode -eq 4) -and (-not (Test-Path $pdfTampered))
+if (-not $recusou) { $falhas++ }
+$linhaRecusa = @(Get-Content $o2 -ErrorAction SilentlyContinue | Where-Object { $_ -match 'nao bate com o sidecar|LAUDO RECUSADO' }) | Select-Object -First 1
+Write-Host ('{0} recorte adulterado recusa o laudo  (exit={1})  {2}' -f $(if ($recusou) { '[ok]  ' } else { '[FALHA]' }), $p2.ExitCode, $linhaRecusa)
+
+# Recorte em JSONL usa a outra chave do sidecar (sha256_jsonl).
+if (Test-Path $jsonl) {
+    $pdf2 = Join-Path $dir 'laudo_recorte_jsonl.pdf'
+    Remove-Item $pdf2 -Force -ErrorAction SilentlyContinue
+    $o3 = Join-Path $dir 'out_report_jsonl.txt'
+    $p3 = Start-Process -FilePath (Join-Path $root 'olho_report.exe') -ArgumentList @($caso, '--out', $pdf2, '--recorte', $jsonl) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o3 -RedirectStandardError (Join-Path $dir 'err_report_jsonl.txt')
+    $jsonlOk = ($p3.ExitCode -eq 0) -and (Test-Path $pdf2)
+    if (-not $jsonlOk) { $falhas++ }
+    Write-Host ('{0} recorte JSONL tambem passa  (exit={1})' -f $(if ($jsonlOk) { '[ok]  ' } else { '[FALHA]' }), $p3.ExitCode)
+}
+
+Write-Host ''
 if ($falhas -ne 0) {
     Write-Host ('FALHOU: ' + $falhas + ' divergencia(s)')
     exit 1
