@@ -22,7 +22,8 @@ if (-not (Test-Path $sqliteObject)) {
 # diagnostico deixa de representar o produto.
 $sources = @(
     'gui_main.cpp', 'mainwindow.cpp', 'chatview.cpp', 'acquireview.cpp',
-    'galleryview.cpp', 'timeline_index.cpp', 'ios_keybag.cpp', 'ios_backup.cpp',
+    'galleryview.cpp', 'timeline_index.cpp', 'timeline_export.cpp', 'ios_keybag.cpp',
+    'ios_backup.cpp',
     'android_adb.cpp', 'android_backup.cpp', 'social/zip_reader.cpp',
     'social/mbox_reader.cpp', 'social/takeout_import.cpp', 'social/telegram_import.cpp',
     'social/dyi_import.cpp', 'manifest_sign.cpp', 'hardware_inventory.cpp',

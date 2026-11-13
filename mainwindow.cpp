@@ -88,6 +88,7 @@
 #include "docktitle.hpp"
 #include "autohide.hpp"
 #include "chatview.hpp"
+#include "timeline_export.hpp"
 #include "timeline_index.hpp"
 #include "acquireview.hpp"
 #include "galleryview.hpp"
@@ -843,6 +844,8 @@ public:
     // --filter do modo evidencia. Fica pendente porque a Timeline carrega em
     // thread: no instante do setup o combo de provedores ainda esta vazio.
     void set_pending_filter_spec(const QString& spec) { pending_filter_spec_ = spec; }
+    // --export-csv do modo evidencia: exporta depois da carga e do filtro.
+    void set_pending_export_path(const QString& path) { pending_export_path_ = path; }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1096,6 +1099,8 @@ private:
     // limite vale por caso (abrir outro caso volta ao padrao).
     QAction* timeline_more_ = nullptr;
     QAction* timeline_chrono_ = nullptr;
+    QAction* timeline_export_ = nullptr;
+    QString pending_export_path_;   // --export-csv do modo evidencia
     int timeline_cap_ = 5000;
     bool timeline_chronological_ = false;
     QString timeline_cap_case_;
@@ -4757,6 +4762,27 @@ private:
         });
         timeline_chrono_->setCheckable(true);
         timeline_chrono_->setEnabled(false);
+        // Export do que esta na TELA (lista + filtro), com sidecar de procedencia.
+        // O export do caso inteiro e outro caminho (deep::forensic, a partir do
+        // banco): misturar os dois num botao so faria o laudo citar um recorte
+        // como se fosse o caso.
+        timeline_export_ = view->addAction("Timeline: exportar o que esta filtrado (CSV)",
+                                          this, [this]() {
+            if (timeline_filtered_events_.isEmpty()) {
+                append("[export] a lista da Timeline esta vazia; nada a exportar\n");
+                return;
+            }
+            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString suggested = QDir(base).filePath(
+                QStringLiteral("timeline-filtrada-%1.csv")
+                    .arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")));
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Exportar timeline filtrada"), suggested,
+                QStringLiteral("CSV (*.csv)"));
+            if (path.isEmpty()) return;
+            export_filtered_timeline_to(path);
+        });
+        timeline_export_->setEnabled(true);
 
         auto* tools = bar->addMenu("Ferramentas");
         const QStringList tool_names = {"Pericia", "Avancado", "Sanitizacao",
@@ -5908,6 +5934,34 @@ private:
         apply_timeline_filter();
     }
 
+    /* Export do que esta na tela. O menu chama com o caminho escolhido, o modo
+       evidencia chama com o --export-csv; os dois passam por aqui, entao a foto
+       nao prova um caminho que o operador nao tem. Sempre imprime o resultado:
+       "exportei" sem numero e afirmacao sem prova. */
+    void export_filtered_timeline_to(const QString& path) {
+        const olho::ui::timeline_export_result result = olho::ui::export_timeline_csv(
+            path, timeline_filtered_events_, current_timeline_filter(), case_dir_);
+        if (!result.ok) {
+            append("[export] falhou: " + result.error + "\n");
+            std::printf("export: FALHOU %s\n", qUtf8Printable(result.error));
+            std::fflush(stdout);
+            return;
+        }
+        append(QString("[export] %1 linhas, %2 bytes\n[export] csv: %3\n[export] meta: %4\n"
+                       "[export] sha256: %5\n")
+                   .arg(result.rows)
+                   .arg(result.bytes)
+                   .arg(result.csv_path, result.meta_path, result.sha256));
+        if (status_label_ != nullptr) {
+            status_label_->setText(QString("Exportado: %1 linhas").arg(result.rows));
+        }
+        std::printf("export: linhas=%lld bytes=%lld sha256=%s csv=%s meta=%s\n",
+                    static_cast<long long>(result.rows),
+                    static_cast<long long>(result.bytes), qUtf8Printable(result.sha256),
+                    qUtf8Printable(result.csv_path), qUtf8Printable(result.meta_path));
+        std::fflush(stdout);
+    }
+
     // Aplica o --filter do modo evidencia nos MESMOS widgets que o operador usa,
     // para a foto provar o caminho real e nao um estado paralelo de teste.
     void apply_filter_spec(const QString& spec) {
@@ -6137,6 +6191,11 @@ private:
             const QString spec = pending_filter_spec_;
             pending_filter_spec_.clear();
             apply_filter_spec(spec);
+        }
+        if (!pending_export_path_.isEmpty()) {
+            const QString path = pending_export_path_;
+            pending_export_path_.clear();
+            export_filtered_timeline_to(path);
         }
         if (status_label_ && !case_id.isEmpty()) {
             status_label_->setText(QString("Caso %1 carregado: %2 eventos.")
@@ -6551,6 +6610,7 @@ int run_gui(HINSTANCE) {
     QString shot_case;
     QString shot_tab;
     QString shot_filter;
+    QString shot_export;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -6567,6 +6627,8 @@ int run_gui(HINSTANCE) {
                     shot_tab = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--filter" && has_value) {
                     shot_filter = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--export-csv" && has_value) {
+                    shot_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--delay" && has_value) {
                     shot_delay_ms = QString::fromWCharArray(list[++i]).toInt();
                 }
@@ -6608,8 +6670,9 @@ int run_gui(HINSTANCE) {
     // argumentos (o caso mais recente de cases/) e ele roda no primeiro giro do
     // event loop. Chamar o setup agora faria o caso pedido ser sobrescrito pelo
     // automatico - foi exatamente o que aconteceu no primeiro teste.
-    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab, shot_filter]() {
+    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab, shot_filter, shot_export]() {
         window.set_pending_filter_spec(shot_filter);
+        window.set_pending_export_path(shot_export);
         window.screenshot_setup(shot_case, shot_tab);
     });
 

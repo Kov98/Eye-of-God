@@ -1,11 +1,15 @@
 // language: C++, file: .oracle_timeline/timeline_oracle.cpp
 // Oraculo do carregador de timeline: quatro produtores, limite de exibicao e
 // contagem honesta do que ficou de fora.
+#include "timeline_export.hpp"
 #include "timeline_index.hpp"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QString>
 #include <QTextStream>
 
@@ -312,6 +316,113 @@ int main(int argc, char** argv) {
             olho::ui::filter_timeline(QVector<olho::ui::timeline_event>(), none);
         check("entrada vazia devolve zeros",
               nothing.matched == 0 && nothing.hidden == 0 && nothing.events.isEmpty());
+    }
+
+    // 10. Export CSV do que esta na tela (lista filtrada) + sidecar de procedencia.
+    {
+        const QString dir = QDir(QCoreApplication::applicationDirPath())
+                                .filePath(QStringLiteral("tl_export"));
+        QDir(dir).removeRecursively();
+        QDir().mkpath(dir);
+
+        QVector<olho::ui::timeline_event> rows;
+        auto make_row = [](const QString& stamp, const QString& provider,
+                           const QString& channel, const QString& event_id,
+                           const QString& raw, bool cloud) {
+            olho::ui::timeline_event event;
+            event.timestamp_text = stamp;
+            event.when = QDateTime::fromString(stamp, Qt::ISODateWithMs);
+            if (event.when.isValid()) event.when = event.when.toLocalTime();
+            event.provider = provider;
+            event.channel = channel;
+            event.event_id = event_id;
+            event.record_id = QStringLiteral("rec-") + event_id;
+            event.raw = raw;
+            event.from_cloud = cloud;
+            return event;
+        };
+        // O raw tem virgula e aspas de proposito: e o que quebra CSV ingenuo.
+        rows << make_row(QStringLiteral("2023-11-14T10:00:00.000Z"), "WhatsApp",
+                         "WhatsApp/Messages", "w1",
+                         QStringLiteral("{\"a\": \"x,y\", \"b\": \"aspas \\\"aqui\\\"\"}"), false);
+        rows << make_row(QStringLiteral("2023-11-15T11:30:00.000Z"), "Telegram",
+                         "Telegram/Messages", "t1", QStringLiteral("{\"a\": 1}"), true);
+
+        olho::ui::timeline_filter filter;
+        filter.provider = QStringLiteral("Telegram");
+        const QString csv = QDir(dir).filePath(QStringLiteral("saida.csv"));
+        const olho::ui::timeline_export_result result =
+            olho::ui::export_timeline_csv(csv, rows, filter, dir);
+        check("export escreve o CSV", result.ok, result.error);
+        check("export conta as linhas", result.rows == rows.size(),
+              QStringLiteral("linhas=%1").arg(result.rows));
+
+        QFile file(csv);
+        const bool opened = file.open(QIODevice::ReadOnly);
+        const QByteArray content = opened ? file.readAll() : QByteArray();
+        if (opened) file.close();
+        check("CSV comeca com BOM UTF-8", content.startsWith("\xEF\xBB\xBF"));
+        const QByteArray crlf = content;
+        const QList<QByteArray> lines = crlf.split('\n');
+        // Com BOM + cabecalho + 2 linhas + CRLF final sobram 4 partes (a ultima vazia).
+        check("CSV tem cabecalho e uma linha por evento", lines.size() == rows.size() + 2,
+              QStringLiteral("partes=%1").arg(lines.size()));
+        check("cabecalho do CSV e o combinado",
+              QString::fromUtf8(lines.value(0)).contains(
+                  QStringLiteral("timestamp_utc\",\"when_local\",\"provider\",\"channel\","
+                                 "\"event_id\",\"record_id\",\"from_cloud\",\"size_bytes\","
+                                 "\"sha256\",\"raw_json\"")));
+        // O campo esperado e o proprio raw com as aspas dobradas (RFC 4180); comparar
+        // com um literal escrito a mao erra por uma barra invertida, como errou aqui.
+        QByteArray expected_field = rows.at(0).raw.toUtf8();
+        expected_field.replace('"', "\"\"");
+        check("linha com virgula e aspas continua cotada",
+              lines.value(1).contains(expected_field),
+              QString::fromUtf8(expected_field).left(48));
+        // Coluna sha256 = hash do raw do evento; confere contra o hash calculado aqui.
+        const QByteArray raw_sha = QCryptographicHash::hash(rows.at(0).raw.toUtf8(),
+                                                            QCryptographicHash::Sha256).toHex();
+        check("coluna sha256 e do conteudo cru", lines.value(1).contains(raw_sha));
+        check("linhas terminam em CRLF", content.endsWith("\r\n"));
+
+        const QByteArray file_sha = QCryptographicHash::hash(content, QCryptographicHash::Sha256)
+                                        .toHex();
+        check("sha256 do resultado bate com o arquivo", result.sha256 == QString::fromLatin1(file_sha),
+              result.sha256.left(16));
+        check("bytes do resultado batem com o arquivo",
+              result.bytes == content.size(),
+              QStringLiteral("bytes=%1 arquivo=%2").arg(result.bytes).arg(content.size()));
+
+        QFile meta(result.meta_path);
+        bool meta_ok = meta.open(QIODevice::ReadOnly);
+        QJsonObject meta_json;
+        if (meta_ok) {
+            meta_json = QJsonDocument::fromJson(meta.readAll()).object();
+            meta.close();
+        }
+        check("sidecar de procedencia existe", meta_ok);
+        check("sidecar registra linhas e sha256",
+              meta_json.value(QStringLiteral("rows")).toInt() == rows.size() &&
+                  meta_json.value(QStringLiteral("sha256_csv")).toString() == result.sha256);
+        check("sidecar registra o filtro aplicado",
+              meta_json.value(QStringLiteral("filter")).toString() ==
+                  QStringLiteral("provider=Telegram"),
+              meta_json.value(QStringLiteral("filter")).toString());
+        check("sidecar diz qual e o escopo",
+              meta_json.value(QStringLiteral("scope")).toString().contains(
+                  QStringLiteral("janela carregada")));
+        check("export nao deixa .tmp para tras", !QFile::exists(csv + QStringLiteral(".tmp")));
+
+        const olho::ui::timeline_export_result empty_export = olho::ui::export_timeline_csv(
+            QDir(dir).filePath(QStringLiteral("vazio.csv")),
+            QVector<olho::ui::timeline_event>(), filter, dir);
+        check("export de lista vazia ainda escreve cabecalho",
+              empty_export.ok && empty_export.rows == 0 && empty_export.bytes > 0);
+
+        const olho::ui::timeline_export_result bad = olho::ui::export_timeline_csv(
+            QDir(dir).filePath(QStringLiteral("nao_existe/sub/saida.csv")), rows, filter, dir);
+        check("export para caminho impossivel falha com erro", !bad.ok && !bad.error.isEmpty(),
+              bad.error);
     }
 
     QTextStream(stdout) << QStringLiteral("\ntimeline_oracle: %1 verificacoes, %2 falha(s)\n")

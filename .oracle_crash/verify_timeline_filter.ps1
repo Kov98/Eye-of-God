@@ -73,9 +73,63 @@ foreach ($c in $casos) {
     Write-Host ('{0} {1,-32} independente={2,5}  barra={3,5}  lista={4,5}  exit={5}' -f $(if ($ok) { '[ok]  ' } else { '[FALHA]' }), $label, $c.esperado, $got, $rows, $p.ExitCode)
 }
 Write-Host ''
+Write-Host '--- export CSV do que esta filtrado ---'
+# O CSV diz ser "o que esta na tela". Aqui ele e conferido contra a fonte: o mesmo
+# filtro aplicado por PowerShell no timeline.jsonl cru.
+$csv = Join-Path $dir 'export_filtrado.csv'
+$meta = $csv + '.meta.json'
+Remove-Item $csv, $meta, ($csv + '.tmp') -Force -ErrorAction SilentlyContinue
+$o = Join-Path $dir 'out_export.txt'
+$e = Join-Path $dir 'err_export.txt'
+$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', 'provider=Telegram', '--export-csv', $csv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError $e
+$log = @(Get-Content $o -ErrorAction SilentlyContinue)
+$exportLine = @($log | Where-Object { $_ -match 'export: linhas=' }) | Select-Object -Last 1
+$exportOk = ($p.ExitCode -eq 0) -and ($exportLine -match 'linhas=(\d+)')
+if (-not $exportOk) { $falhas++ }
+Write-Host ('{0} GUI exportou  {1}' -f $(if ($exportOk) { '[ok]  ' } else { '[FALHA]' }), $exportLine)
+if ($exportOk -and (Test-Path $csv)) {
+    $rowsCsv = @(Import-Csv -Path $csv)
+    $sameCount = ($rowsCsv.Count -eq 500)
+    if (-not $sameCount) { $falhas++ }
+    Write-Host ('{0} CSV tem 500 linhas  ({1})' -f $(if ($sameCount) { '[ok]  ' } else { '[FALHA]' }), $rowsCsv.Count)
+
+    # Ids do CSV x ids do arquivo cru com o mesmo filtro.
+    $esperados = New-Object System.Collections.Generic.List[string]
+    foreach ($f in @(Get-ChildItem -Path $caso -Recurse -Filter timeline.jsonl -File)) {
+        foreach ($line in (Get-Content $f.FullName)) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $row = $line | ConvertFrom-Json
+            if ($row.provider -eq 'Telegram') { $esperados.Add([string]$row.event_id) }
+        }
+    }
+    $csvIds = @($rowsCsv | ForEach-Object { $_.event_id })
+    $diff = Compare-Object -ReferenceObject $esperados -DifferenceObject $csvIds
+    $sameIds = ($null -eq $diff)
+    if (-not $sameIds) { $falhas++ }
+    Write-Host ('{0} mesmos event_id do cru  (csv={1} cru={2})' -f $(if ($sameIds) { '[ok]  ' } else { '[FALHA]' }), $csvIds.Count, $esperados.Count)
+
+    $hashFile = (Get-FileHash -Path $csv -Algorithm SHA256).Hash.ToLower()
+    $metaJson = Get-Content -Raw $meta | ConvertFrom-Json
+    $hashOk = ($hashFile -eq $metaJson.sha256_csv)
+    if (-not $hashOk) { $falhas++ }
+    Write-Host ('{0} sha256 do sidecar bate com o arquivo  ({1}...)' -f $(if ($hashOk) { '[ok]  ' } else { '[FALHA]' }), $hashFile.Substring(0, 12))
+
+    $filterOk = ($metaJson.filter -eq 'provider=Telegram') -and ($metaJson.rows -eq 500)
+    if (-not $filterOk) { $falhas++ }
+    Write-Host ('{0} sidecar registra filtro e linhas  ({1} / {2})' -f $(if ($filterOk) { '[ok]  ' } else { '[FALHA]' }), $metaJson.filter, $metaJson.rows)
+
+    $tmpOk = -not (Test-Path ($csv + '.tmp'))
+    if (-not $tmpOk) { $falhas++ }
+    Write-Host ('{0} sem .tmp para tras' -f $(if ($tmpOk) { '[ok]  ' } else { '[FALHA]' }))
+} else {
+    $falhas++
+    Write-Host '[FALHA] CSV nao foi escrito'
+}
+
+Write-Host ''
 if ($falhas -ne 0) {
-    Write-Host ('FALHOU: ' + $falhas + ' caso(s) divergentes')
+    Write-Host ('FALHOU: ' + $falhas + ' divergencia(s)')
     exit 1
 }
-Write-Host ('ok: ' + $casos.Count + ' filtros conferidos contra a contagem independente')
+Write-Host ('ok: ' + $casos.Count + ' filtros + export CSV conferidos contra a contagem independente')
 exit 0

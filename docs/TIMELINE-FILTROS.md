@@ -74,6 +74,32 @@ nos mesmos widgets (nao existe caminho paralelo de teste):
 Chaves aceitas: `provider`, `channel`, `from`, `to` (`yyyy-MM-dd`), `cloud`
 (`1`/`0`). O log imprime `barra: timeline: 500 de 2519 carregados (filtro esconde 2019)`.
 
+## Exportar o que esta filtrado (CSV)
+
+Menu **Exibir > Timeline: exportar o que esta filtrado (CSV)**. Sai um `.csv` com
+o que a lista mostra e um `.meta.json` ao lado com a procedencia.
+
+**Colunas:** `timestamp_utc, when_local, provider, channel, event_id, record_id,
+from_cloud, size_bytes, sha256, raw_json`.
+
+- A coluna `sha256` e o hash do **conteudo cru** da linha - o mesmo hash que o
+  painel Detalhes mostra para o evento. Planilha e tela podem ser conferidas uma
+  contra a outra sem abrir o app.
+- `raw_json` vai junto: o CSV e a evidencia, nao um resumo dela.
+- Todo campo sai entre aspas com as internas dobradas (RFC 4180), BOM UTF-8 e
+  CRLF - abre no Excel sem virar ANSI e sem quebrar em virgula.
+- Grava em `.tmp` e publica por rename: export interrompido nao deixa CSV meio
+  escrito com nome final.
+
+**Sidecar `.meta.json`:** formato (`olho-timeline-csv/1`), `generated_at_utc`,
+`case_dir`, `rows`, `bytes`, `sha256_csv`, `filter` (a especificacao aplicada) e
+`scope` = "janela carregada da Timeline (nao o banco do caso)".
+
+**Por que nao reusa o export do banco:** `deep::forensic::export_case_timeline()`
+exporta o **caso inteiro** a partir do `case.db`. Este exporta a **janela
+carregada e filtrada**. Sao coisas diferentes, e um CSV que dissesse "caso
+inteiro" enquanto o operador tem um filtro ligado seria um laudo errado.
+
 ## Limites conhecidos
 
 - O filtro nao persiste entre sessoes nem troca de caso junto com o layout.
