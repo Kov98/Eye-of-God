@@ -525,6 +525,76 @@ int main(int argc, char** argv) {
                                       8.0) == 0 || true);
     }
 
+    // 12. Export JSONL: a linha ORIGINAL, sem envelope - da para conferir contra a
+    //     fonte linha a linha, coisa que o CSV (que reinterpreta campos) nao permite.
+    {
+        const QString dir = QDir(QCoreApplication::applicationDirPath())
+                                .filePath(QStringLiteral("tl_export"));
+        QVector<olho::ui::timeline_event> rows;
+        auto make_row = [](const QString& id, const QString& raw) {
+            olho::ui::timeline_event event;
+            event.event_id = id;
+            event.provider = QStringLiteral("Telegram");
+            event.channel = QStringLiteral("Telegram/Messages");
+            event.raw = raw;   // ja vem sem fim de linha do leitor
+            return event;
+        };
+        rows << make_row(QStringLiteral("t1"),
+                         QStringLiteral("{\"timestamp_utc\": \"2023-11-15T10:00:00.000Z\", "
+                                        "\"provider\": \"Telegram\", \"acao\": \"caf\\xC3\\xA9\"}"));
+        rows << make_row(QStringLiteral("t2"), QStringLiteral("{\"provider\": \"Telegram\"}"));
+
+        olho::ui::timeline_filter filter;
+        filter.provider = QStringLiteral("Telegram");
+        const QString path = QDir(dir).filePath(QStringLiteral("saida.jsonl"));
+        const olho::ui::timeline_export_result result =
+            olho::ui::export_timeline_jsonl(path, rows, filter, dir);
+        check("jsonl escreve o arquivo", result.ok, result.error);
+        check("jsonl conta as linhas", result.rows == rows.size(),
+              QStringLiteral("linhas=%1").arg(result.rows));
+
+        QFile file(path);
+        const bool opened = file.open(QIODevice::ReadOnly);
+        const QByteArray content = opened ? file.readAll() : QByteArray();
+        if (opened) file.close();
+        check("jsonl nao leva BOM (quem le JSONL nao espera BOM)",
+              !content.startsWith("\xEF\xBB\xBF"));
+        const QList<QByteArray> lines = content.split('\n');
+        check("jsonl tem uma linha por evento e fecha com newline",
+              lines.size() == rows.size() + 1 && lines.last().isEmpty(),
+              QStringLiteral("partes=%1").arg(lines.size()));
+        check("jsonl reproduz a linha crua byte a byte",
+              lines.value(0) == rows.at(0).raw.toUtf8() &&
+                  lines.value(1) == rows.at(1).raw.toUtf8());
+        const QByteArray file_sha =
+            QCryptographicHash::hash(content, QCryptographicHash::Sha256).toHex();
+        check("jsonl: sha256 do resultado bate com o arquivo",
+              result.sha256 == QString::fromLatin1(file_sha));
+
+        QFile meta(result.meta_path);
+        bool meta_ok = meta.open(QIODevice::ReadOnly);
+        QJsonObject meta_json;
+        if (meta_ok) {
+            meta_json = QJsonDocument::fromJson(meta.readAll()).object();
+            meta.close();
+        }
+        check("jsonl grava sidecar com o filtro",
+              meta_ok && meta_json.value(QStringLiteral("filter")).toString() ==
+                             QStringLiteral("provider=Telegram"));
+        check("jsonl grava sha256_jsonl no sidecar",
+              meta_json.value(QStringLiteral("sha256_jsonl")).toString() == result.sha256);
+        check("jsonl diz que o payload e a linha original",
+              meta_json.value(QStringLiteral("payload")).toString().contains(
+                  QStringLiteral("ORIGINAL")));
+        check("jsonl nao deixa .tmp para tras", !QFile::exists(path + QStringLiteral(".tmp")));
+
+        const olho::ui::timeline_export_result empty_jsonl = olho::ui::export_timeline_jsonl(
+            QDir(dir).filePath(QStringLiteral("vazio.jsonl")),
+            QVector<olho::ui::timeline_event>(), filter, dir);
+        check("jsonl de lista vazia gera arquivo vazio",
+              empty_jsonl.ok && empty_jsonl.rows == 0 && empty_jsonl.bytes == 0);
+    }
+
     QTextStream(stdout) << QStringLiteral("\ntimeline_oracle: %1 verificacoes, %2 falha(s)\n")
                                .arg(checks)
                                .arg(failures);

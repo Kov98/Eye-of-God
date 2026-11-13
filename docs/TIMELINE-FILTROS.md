@@ -137,6 +137,21 @@ from_cloud, size_bytes, sha256, raw_json`.
 `case_dir`, `rows`, `bytes`, `sha256_csv`, `filter` (a especificacao aplicada) e
 `scope` = "janela carregada da Timeline (nao o banco do caso)".
 
+### JSONL (para reprocessar)
+
+Menu **Exibir > Timeline: exportar o que esta filtrado (JSONL)**. Sai a **linha
+original** de cada evento, uma por linha, sem envelope e **sem BOM** - nada e
+re-serializado, entao quem reprocessa recebe exatamente o que o produtor gravou.
+
+- E o formato conferivel: o gate compara o arquivo exportado com as linhas do
+  `timeline.jsonl` cru, **linha a linha** (`Compare-Object` vazio). O CSV nao
+  permite isso porque reinterpreta os campos.
+- Fim de linha normalizado para `\n` (o leitor da Timeline descarta o EOL da
+  fonte, entao CRLF viraria ambiguedade).
+- O sidecar `.meta.json` e o mesmo do CSV, com `sha256_jsonl`, `rows`, `filter`,
+  `scope` e `payload` dizendo que o conteudo e a linha original.
+- Lista vazia gera arquivo vazio (0 byte) valido, nao um arquivo com cabecalho.
+
 **Por que nao reusa o export do banco:** `deep::forensic::export_case_timeline()`
 exporta o **caso inteiro** a partir do `case.db`. Este exporta a **janela
 carregada e filtrada**. Sao coisas diferentes, e um CSV que dissesse "caso

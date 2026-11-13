@@ -129,6 +129,53 @@ if ($exportOk -and (Test-Path $csv)) {
 }
 
 Write-Host ''
+Write-Host '--- export JSONL: linha original conferida contra a fonte ---'
+$jsonl = Join-Path $dir 'export_filtrado.jsonl'
+Remove-Item $jsonl, ($jsonl + '.meta.json'), ($jsonl + '.tmp') -Force -ErrorAction SilentlyContinue
+$o = Join-Path $dir 'out_jsonl.txt'
+$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--export-jsonl', $jsonl) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_jsonl.txt')
+$log = @(Get-Content $o -ErrorAction SilentlyContinue)
+$linhaExport = @($log | Where-Object { $_ -match 'formato=jsonl' }) | Select-Object -Last 1
+$exportOk = ($p.ExitCode -eq 0) -and ($linhaExport -match 'linhas=(\d+)')
+if (-not $exportOk) { $falhas++ }
+Write-Host ('{0} GUI exportou JSONL  {1}' -f $(if ($exportOk) { '[ok]  ' } else { '[FALHA]' }), $linhaExport)
+
+if ($exportOk -and (Test-Path $jsonl)) {
+    $linhasJsonl = @(Get-Content -Path $jsonl -Encoding UTF8)
+    # Linhas da fonte com o mesmo filtro, lidas do arquivo cru.
+    $linhasFonte = New-Object System.Collections.Generic.List[string]
+    foreach ($f in @(Get-ChildItem -Path $caso -Recurse -Filter timeline.jsonl -File)) {
+        foreach ($line in (Get-Content -Path $f.FullName -Encoding UTF8)) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $row = $line | ConvertFrom-Json
+            if ($row.provider -eq 'Telegram') { $linhasFonte.Add($line) }
+        }
+    }
+    $countOk = ($linhasJsonl.Count -eq 500) -and ($linhasFonte.Count -eq 500)
+    if (-not $countOk) { $falhas++ }
+    Write-Host ('{0} 500 linhas nos dois lados  (jsonl={1} fonte={2})' -f $(if ($countOk) { '[ok]  ' } else { '[FALHA]' }), $linhasJsonl.Count, $linhasFonte.Count)
+
+    # Identidade linha a linha: e a prova de que o export nao reescreveu a evidencia.
+    $diff = Compare-Object -ReferenceObject $linhasFonte -DifferenceObject $linhasJsonl
+    $sameLines = ($null -eq $diff)
+    if (-not $sameLines) { $falhas++ }
+    Write-Host ('{0} conteudo identico linha a linha  (diferencas={1})' -f $(if ($sameLines) { '[ok]  ' } else { '[FALHA]' }), @($diff).Count)
+
+    $hashFile = (Get-FileHash -Path $jsonl -Algorithm SHA256).Hash.ToLower()
+    $metaJson = Get-Content -Raw ($jsonl + '.meta.json') | ConvertFrom-Json
+    $hashOk = ($hashFile -eq $metaJson.sha256_jsonl) -and ($metaJson.rows -eq 500)
+    if (-not $hashOk) { $falhas++ }
+    Write-Host ('{0} sidecar do JSONL bate  ({1}... / {2} linhas)' -f $(if ($hashOk) { '[ok]  ' } else { '[FALHA]' }), $hashFile.Substring(0, 12), $metaJson.rows)
+
+    $tmpOk = -not (Test-Path ($jsonl + '.tmp'))
+    if (-not $tmpOk) { $falhas++ }
+    Write-Host ('{0} jsonl sem .tmp para tras' -f $(if ($tmpOk) { '[ok]  ' } else { '[FALHA]' }))
+} else {
+    $falhas++
+    Write-Host '[FALHA] JSONL nao foi escrito'
+}
+
+Write-Host ''
 Write-Host '--- janela com HORA (o filtro deixou de ser por dia) ---'
 function Count-Between([datetime]$fromLocal, [datetime]$toLocal) {
     $total = 0

@@ -39,4 +39,12 @@ timeline_export_result export_timeline_csv(const QString& csv_path,
                                            const timeline_filter& filter,
                                            const QString& case_dir);
 
+// JSONL: a linha ORIGINAL de cada evento, uma por linha, sem envelope e sem BOM.
+// Serve para reprocessar sem passar por planilha - e por ser a linha crua, da para
+// conferir contra a fonte linha a linha (o CSV ja reinterpreta os campos).
+timeline_export_result export_timeline_jsonl(const QString& jsonl_path,
+                                             const QVector<timeline_event>& events,
+                                             const timeline_filter& filter,
+                                             const QString& case_dir);
+
 }  // namespace olho::ui
