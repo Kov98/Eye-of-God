@@ -287,6 +287,54 @@ foreach ($alvo in @(0, -1)) {
 }
 
 Write-Host ''
+Write-Host '--- export das conversas (aba Chat) ---'
+$chatJson = Join-Path $root '.oracle\wa_e2e\conversations.json'
+if (-not (Test-Path $chatJson)) { $chatJson = Join-Path $root '.oracle\case_test\recovered\conversations.json' }
+if (Test-Path $chatJson) {
+    $chatCsv = Join-Path $dir 'conversas.csv'
+    Remove-Item $chatCsv, ($chatCsv + '.meta.json') -Force -ErrorAction SilentlyContinue
+    $o = Join-Path $dir 'out_chat.txt'
+    $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Chat', '--chat-json', $chatJson, '--export-chat', $chatCsv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_chat.txt')
+    $log = @(Get-Content $o -ErrorAction SilentlyContinue)
+    $linhaChat = @($log | Where-Object { $_ -match 'chat: linhas=' }) | Select-Object -Last 1
+    $chatOk = ($p.ExitCode -eq 0) -and ($linhaChat -match 'linhas=(\d+)')
+    if (-not $chatOk) { $falhas++ }
+    Write-Host ('{0} GUI exportou as conversas  {1}' -f $(if ($chatOk) { '[ok]  ' } else { '[FALHA]' }), $linhaChat)
+
+    if ($chatOk -and (Test-Path $chatCsv)) {
+        $csvChat = @(Import-Csv -Path $chatCsv)
+
+        # Contagem independente: mensagens com texto + apagadas que tem algum texto.
+        $bruto = Get-Content -Raw $chatJson | ConvertFrom-Json
+        $vivas = @($bruto.conversas | ForEach-Object { $_.mensagens } | Where-Object { $_.texto })
+        $recuperadas = @($bruto.apagadas | Where-Object { @($_.textos | Where-Object { $_ }).Count -gt 0 })
+        $esperadoChat = $vivas.Count + $recuperadas.Count
+        $contagemOk = ($csvChat.Count -eq $esperadoChat)
+        if (-not $contagemOk) { $falhas++ }
+        Write-Host ('{0} linhas batem com o JSON  (csv={1} vivas={2} recuperadas={3})' -f $(if ($contagemOk) { '[ok]  ' } else { '[FALHA]' }), $csvChat.Count, $vivas.Count, $recuperadas.Count)
+
+        # Multiconjunto de textos: o export nao pode ter reescrito nem perdido nada.
+        $textosCsv = @($csvChat | ForEach-Object { $_.texto } | Sort-Object)
+        $textosJson = @(@($vivas | ForEach-Object { $_.texto }) + @($recuperadas | ForEach-Object { @($_.textos | Where-Object { $_ })[-1] }) | Sort-Object)
+        $diffTextos = Compare-Object -ReferenceObject $textosJson -DifferenceObject $textosCsv
+        $textosOk = ($null -eq $diffTextos)
+        if (-not $textosOk) { $falhas++ }
+        Write-Host ('{0} mesmos textos do JSON  (diferencas={1})' -f $(if ($textosOk) { '[ok]  ' } else { '[FALHA]' }), @($diffTextos).Count)
+
+        $hashChat = (Get-FileHash -Path $chatCsv -Algorithm SHA256).Hash.ToLower()
+        $metaChat = Get-Content -Raw ($chatCsv + '.meta.json') | ConvertFrom-Json
+        $sideChatOk = ($hashChat -eq $metaChat.sha256_csv) -and ($metaChat.rows -eq $csvChat.Count) -and ($metaChat.section -eq 'chat')
+        if (-not $sideChatOk) { $falhas++ }
+        Write-Host ('{0} sidecar do chat bate  ({1}... / {2} linhas / secao={3})' -f $(if ($sideChatOk) { '[ok]  ' } else { '[FALHA]' }), $hashChat.Substring(0, 12), $metaChat.rows, $metaChat.section)
+    } else {
+        $falhas++
+        Write-Host '[FALHA] CSV do chat nao foi escrito'
+    }
+} else {
+    Write-Host '[pulado] fixture de conversas ausente'
+}
+
+Write-Host ''
 Write-Host '--- export do manifesto da Galeria (sha256 conferido por arquivo) ---'
 $galeriaFixture = Join-Path $here 'galeria_fixture'
 if (-not (Test-Path $galeriaFixture)) {

@@ -12,6 +12,7 @@
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QFileInfo>
 #include <QJsonObject>
 #include <QLabel>
 #include <QListWidget>
@@ -58,6 +59,7 @@ struct ChatView::impl {
     };
     QVector<chat> chats;
     QVector<message> deleted;
+    QString source_json;   // de onde vieram as conversas (procedencia do export)
 };
 
 ChatView::ChatView(QWidget* parent) : QWidget(parent), data_(new impl) {
@@ -163,6 +165,7 @@ bool ChatView::load(const QString& conversations_json, QString* error) {
         return false;
     }
 
+    data_->source_json = QFileInfo(conversations_json).absoluteFilePath();
     data_->chats.clear();
     data_->deleted.clear();
     live_count_ = 0;
@@ -217,6 +220,73 @@ bool ChatView::load(const QString& conversations_json, QString* error) {
     if (chats_->count() > 0) chats_->setCurrentRow(0);
     rebuild();
     return true;
+}
+
+
+export_result ChatView::export_messages_csv(const QString& path) {
+    export_result result;
+    if (data_ == nullptr) {
+        result.error = QStringLiteral("chat nao inicializado");
+        return result;
+    }
+    const auto field = [](QByteArray& out, const QString& value) {
+        QByteArray bytes = value.toUtf8();
+        bytes.replace('"', "\"\"");
+        out.append('"');
+        out.append(bytes);
+        out.append('"');
+    };
+    QByteArray out;
+    out.append("\xEF\xBB\xBF", 3);
+    out.append("\"fonte\",\"conversa\",\"quando\",\"quando_epoch\",\"texto\",\"apagada\","
+               "\"origem\"\r\n");
+    qint64 rows = 0;
+    const auto write_row = [&](const QString& fonte, const QString& conversa, qint64 ts,
+                               const QString& texto, bool apagada, const QString& origem) {
+        field(out, fonte);
+        out.append(',');
+        field(out, conversa);
+        out.append(',');
+        field(out, format_stamp(ts));
+        out.append(',');
+        field(out, QString::number(ts));
+        out.append(',');
+        field(out, texto);
+        out.append(',');
+        field(out, apagada ? QStringLiteral("1") : QStringLiteral("0"));
+        out.append(',');
+        field(out, origem);
+        out.append("\r\n");
+        ++rows;
+    };
+    for (const impl::chat& chat : data_->chats) {
+        for (const impl::message& msg : chat.messages) {
+            write_row(QStringLiteral("conversa"), chat.jid, msg.ts, msg.text, msg.deleted,
+                      msg.origin);
+        }
+    }
+    // As recuperadas so entram quando a tela as mostra: o export e "o que esta na
+    // tela", nao "tudo que existe em algum lugar".
+    const bool with_deleted = show_deleted_ != nullptr && show_deleted_->isChecked();
+    if (with_deleted) {
+        for (const impl::message& msg : data_->deleted) {
+            write_row(QStringLiteral("recuperada"), QString(), msg.ts, msg.text, true,
+                      msg.origin);
+        }
+    }
+    QJsonObject extra;
+    extra.insert(QStringLiteral("section"), QStringLiteral("chat"));
+    extra.insert(QStringLiteral("source_json"), data_->source_json);
+    extra.insert(QStringLiteral("filter"), with_deleted
+                                               ? QStringLiteral("conversas + recuperadas")
+                                               : QStringLiteral("somente conversas"));
+    extra.insert(QStringLiteral("scope"),
+                 QStringLiteral("conversas carregadas no visualizador (nao o banco do caso)"));
+    extra.insert(QStringLiteral("payload"),
+                 QStringLiteral("colunas: fonte, conversa, quando, quando_epoch, texto, "
+                                "apagada, origem"));
+    return publish_export(path, out, QStringLiteral("olho-chat-csv/1"),
+                          QStringLiteral("sha256_csv"), rows, extra);
 }
 
 void ChatView::clear_bubbles() {

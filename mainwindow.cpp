@@ -998,6 +998,11 @@ public:
         pending_gallery_dir_ = dir;
         pending_gallery_export_ = export_path;
     }
+    // --chat-json / --export-chat do modo evidencia.
+    void set_pending_chat(const QString& json_path, const QString& export_path) {
+        pending_chat_json_ = json_path;
+        pending_chat_export_ = export_path;
+    }
     // --click-row do modo evidencia: clica na barra da linha pedida (-1 = ultima).
     void set_pending_click_row(int row) { pending_click_row_ = row; }
     // --drag-rows A B do modo evidencia: arrasta da barra da linha A ate a da B.
@@ -1263,6 +1268,8 @@ private:
     QString pending_export_jsonl_path_;   // --export-jsonl do modo evidencia
     QString pending_gallery_dir_;         // --gallery-dir do modo evidencia
     QString pending_gallery_export_;      // --export-gallery do modo evidencia
+    QString pending_chat_json_;           // --chat-json do modo evidencia
+    QString pending_chat_export_;         // --export-chat do modo evidencia
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
     int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
     int pending_drag_b_ = -2;
@@ -4953,6 +4960,19 @@ private:
             export_filtered_timeline_to(path);
         });
         timeline_export_->setEnabled(true);
+        // Chat: as conversas carregadas (e as recuperadas, quando a tela as mostra).
+        view->addAction("Chat: exportar as conversas (CSV)", this, [this]() {
+            if (chat_view_ == nullptr) return;
+            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString suggested = QDir(base).filePath(
+                QStringLiteral("conversas-%1.csv")
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Exportar conversas"), suggested,
+                QStringLiteral("CSV (*.csv)"));
+            if (path.isEmpty()) return;
+            export_chat_messages(path);
+        });
         // Galeria: o manifesto do que a grade mostra, com sha256 de cada arquivo.
         view->addAction("Galeria: exportar o que esta na tela (CSV)", this, [this]() {
             if (gallery_view_ == nullptr || gallery_view_->item_count() == 0) {
@@ -6258,6 +6278,27 @@ private:
         std::fflush(stdout);
     }
 
+    /* Export das conversas carregadas. Mesmo contrato dos outros exports. */
+    void export_chat_messages(const QString& path) {
+        if (chat_view_ == nullptr) return;
+        const olho::ui::export_result result = chat_view_->export_messages_csv(path);
+        if (!result.ok) {
+            append("[chat] export falhou: " + result.error + "\n");
+            std::printf("chat: FALHOU %s\n", qUtf8Printable(result.error));
+            std::fflush(stdout);
+            return;
+        }
+        append(QString("[chat] %1 mensagem(ns), %2 bytes\n[chat] csv: %3\n[chat] sha256: %4\n")
+                   .arg(result.rows)
+                   .arg(result.bytes)
+                   .arg(result.path, result.sha256));
+        std::printf("chat: linhas=%lld bytes=%lld sha256=%s arquivo=%s meta=%s\n",
+                    static_cast<long long>(result.rows),
+                    static_cast<long long>(result.bytes), qUtf8Printable(result.sha256),
+                    qUtf8Printable(result.path), qUtf8Printable(result.meta_path));
+        std::fflush(stdout);
+    }
+
     /* Export da grade da Galeria. Mesmo padrao do export da Timeline: publicacao
        atomica, sha256 e sidecar de procedencia (export_publish.cpp). */
     void export_gallery_manifest(const QString& path) {
@@ -6862,6 +6903,15 @@ void MainWindow::screenshot_setup(const QString& case_dir, const QString& tab_na
         pending_gallery_export_.clear();
         export_gallery_manifest(path);
     }
+    // Chat: a conversa pedida vence o autoload do construtor.
+    if (!pending_chat_json_.isEmpty() && chat_view_ != nullptr) {
+        chat_view_->load(pending_chat_json_);
+    }
+    if (!pending_chat_export_.isEmpty()) {
+        const QString path = pending_chat_export_;
+        pending_chat_export_.clear();
+        export_chat_messages(path);
+    }
     if (tab_name.isEmpty() || center_tabs_ == nullptr) return;
     for (int i = 0; i < center_tabs_->count(); ++i) {
         const QString text = center_tabs_->tabText(i);
@@ -6999,6 +7049,8 @@ int run_gui(HINSTANCE) {
     QString shot_export_jsonl;
     QString shot_gallery_dir;
     QString shot_gallery_export;
+    QString shot_chat_json;
+    QString shot_chat_export;
     int shot_click_row = -2;
     int shot_drag_a = -2;
     int shot_drag_b = -2;
@@ -7026,6 +7078,10 @@ int run_gui(HINSTANCE) {
                     shot_gallery_dir = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--export-gallery" && has_value) {
                     shot_gallery_export = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--chat-json" && has_value) {
+                    shot_chat_json = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--export-chat" && has_value) {
+                    shot_chat_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--click-row" && has_value) {
                     shot_click_row = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--drag-rows" && i + 2 < count) {
@@ -7074,12 +7130,13 @@ int run_gui(HINSTANCE) {
     // automatico - foi exatamente o que aconteceu no primeiro teste.
     QTimer::singleShot(0, &window,
                        [&window, shot_case, shot_tab, shot_filter, shot_export, shot_export_jsonl,
-                        shot_gallery_dir, shot_gallery_export, shot_click_row, shot_drag_a,
-                        shot_drag_b]() {
+                        shot_gallery_dir, shot_gallery_export, shot_chat_json,
+                        shot_chat_export, shot_click_row, shot_drag_a, shot_drag_b]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_export_jsonl_path(shot_export_jsonl);
         window.set_pending_gallery(shot_gallery_dir, shot_gallery_export);
+        window.set_pending_chat(shot_chat_json, shot_chat_export);
         window.set_pending_click_row(shot_click_row);
         window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
         window.screenshot_setup(shot_case, shot_tab);

@@ -9,6 +9,8 @@
 // open the database and knows no SQL.
 #pragma once
 
+#include "export_publish.hpp"   // publicacao de export: um caminho so no produto
+
 #include <QString>
 #include <QWidget>
 
@@ -34,6 +36,11 @@ public:
 
     int live_count() const { return live_count_; }
     int deleted_count() const { return deleted_count_; }
+
+    // Exporta o que o visualizador tem carregado: as conversas e, quando o
+    // "mostrar recuperadas" esta ligado, as mensagens apagadas recuperadas.
+    // Mesmo contrato de publicacao da Timeline e da Galeria.
+    export_result export_messages_csv(const QString& path);
 
 private:
     void clear_bubbles();
