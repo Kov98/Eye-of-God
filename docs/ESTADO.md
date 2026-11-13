@@ -21,7 +21,7 @@ verdes**, exit 0.
 | Selo: mídia extraída, intruso e remoção | estágio | `intacto=True intruso_exit=5` / `pasta_removida_exit=5` |
 | Selo: progresso + escrita atômica | estágio | `sem_tmp=True travado_exit=5 selo_sobreviveu=True` |
 | Laudo recusa selo violado | estágio | `adulterado_exit=4 nuvem_exit=4 selo_apagado_exit=4` |
-| Timeline do caso | `.oracle_timeline\run_all.ps1` | **87 verificações, 0 falhas** |
+| Timeline do caso | `.oracle_timeline\run_all.ps1` | **94 verificações, 0 falhas** |
 | Galeria + EXIF + efêmera | `.oracle_gallery\run_all.ps1` | 12 verificações, 0 falhas |
 | iOS backup + keybag | `.oracle_ios\run_all.ps1` | 73 de 73 |
 | Android ADB + `.ab` | `.oracle_android\run_oracle.ps1` | 243 verificações, 0 falhas |
@@ -127,3 +127,4 @@ powershell -File .oracle_crash\verify_timeline_filter.ps1 # filtros, exports, la
 | `715f06e` | submenu Exibir > Exportar |
 | `47915a9` | `--recorte` por pasta + botão de voltar o período |
 | `ac0c640` | laudo da GUI cita os exports do caso automaticamente |
+| `d784fbe` | zoom no eixo do tempo (lente, não filtro) |
