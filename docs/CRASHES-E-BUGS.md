@@ -331,9 +331,18 @@ e menu do titulo em silencio.
 | `OlhoDeDeus_gui.exe` (produto) | 20 | **0** |
 
 Antes, o mesmo comando e o mesmo caso (`.oracle/wa_tl`): 10 de 25 no debug e 6 de
-15 no produto. Para repetir:
-`powershell -File .oracle_crash\verify_crash_fix.ps1` — o script sai com codigo 1
-se qualquer fechamento falhar, entao serve de gate.
+15 no produto.
+
+Tres caminhos de fechamento foram exercitados depois da correcao:
+
+| caminho | script | rodadas | falhas |
+|---|---|---|---|
+| `--screenshot` (debug + produto) | `verify_crash_fix.ps1` | 60 | 0 |
+| fechar a janela de verdade (`WM_CLOSE`) | `verify_close_path.ps1` | 6 | 0 |
+| 7 casos x 2 abas + caso vazio | `sweep_cases.ps1` | 15 | 0 |
+
+**81 fechamentos, 0 crashes, 0 relatorios gravados.** Os tres scripts saem com
+codigo 1 se qualquer execucao falhar, entao servem de gate.
 
 ### Reproducao isolada: por que ela NAO derrubava o processo
 
