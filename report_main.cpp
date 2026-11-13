@@ -324,9 +324,35 @@ int main(int argc, char** argv) {
     // cita o recorte E confere o hash do arquivo contra o sidecar: citar um anexo
     // que nao bate seria pior que nao citar. Divergencia recusa o laudo (exit 4),
     // com a mesma regra do selo.
-    const std::vector<std::string> recortes = arg_all(argc, argv, "--recorte");
+    std::vector<std::string> recortes = arg_all(argc, argv, "--recorte");
     const bool allow_broken_recorte = has_flag(argc, argv, "--allow-broken-recorte");
     std::vector<std::string> recorte_failures;
+    // Uma PASTA vale como lista de recortes: um caso pode ter varios anexos, e
+    // exigir um --recorte por arquivo e o atrito que faz o perito anexar so um.
+    // Ordenado por nome para o laudo sair igual toda vez.
+    {
+        std::vector<std::string> expanded;
+        for (const std::string& path : recortes) {
+            std::error_code dir_ec;
+            if (!fs::is_directory(path, dir_ec)) {
+                expanded.push_back(path);
+                continue;
+            }
+            std::vector<std::string> inside;
+            for (const auto& entry : fs::directory_iterator(path, dir_ec)) {
+                if (!entry.is_regular_file()) continue;
+                const std::string ext = entry.path().extension().string();
+                if (ext == ".csv" || ext == ".jsonl") inside.push_back(entry.path().string());
+            }
+            std::sort(inside.begin(), inside.end());
+            if (inside.empty()) {
+                recorte_failures.push_back(path + ": pasta sem arquivo .csv/.jsonl para anexar");
+                continue;
+            }
+            expanded.insert(expanded.end(), inside.begin(), inside.end());
+        }
+        recortes = expanded;
+    }
     for (const std::string& path : recortes) {
         const fs::path file(path);
         const fs::path meta(path + ".meta.json");

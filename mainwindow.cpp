@@ -1010,6 +1010,8 @@ public:
         pending_drag_a_ = a;
         pending_drag_b_ = b;
     }
+    // --reset-period do modo evidencia: desfaz o arraste na mesma execucao.
+    void set_pending_reset_period(bool on) { pending_reset_period_ = on; }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1271,6 +1273,7 @@ private:
     QString pending_chat_json_;           // --chat-json do modo evidencia
     QString pending_chat_export_;         // --export-chat do modo evidencia
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
+    bool pending_reset_period_ = false;   // --reset-period do modo evidencia
     int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
     int pending_drag_b_ = -2;
     int timeline_cap_ = 5000;
@@ -5890,6 +5893,17 @@ private:
         timeline_cloud_only_ = checkbox("So nuvem", "timelineCloudOnly");
         timeline_cloud_only_->setToolTip("Somente eventos vindos de cloud/");
         row->addWidget(timeline_cloud_only_);
+        // Voltar o periodo a janela do caso sem mexer em provedor/canal/nuvem: o
+        // "limpar" zera tudo, e as vezes o operador so quer desfazer o recorte.
+        auto* reset_period = new QToolButton(bar);
+        reset_period->setObjectName("timelinePeriodReset");
+        reset_period->setText(QString::fromUtf8("\u21BA"));
+        reset_period->setToolTip("Voltar o periodo a janela do caso");
+        reset_period->setFixedSize(20, 20);
+        reset_period->setFocusPolicy(Qt::NoFocus);
+        row->addWidget(reset_period);
+        connect(reset_period, &QToolButton::clicked, this,
+                [this]() { reset_timeline_period(); });
         auto* clear = new QToolButton(bar);
         clear->setObjectName("timelineFilterClear");
         clear->setText(QString::fromUtf8("\u2715"));
@@ -6183,6 +6197,22 @@ private:
             std::printf("barra: %s\n", qUtf8Printable(long_text));
             std::fflush(stdout);
         }
+    }
+
+    // Periodo = janela do caso (primeiro e ultimo evento), mantendo os outros
+    // filtros. E o desfazer do arraste.
+    void reset_timeline_period() {
+        if (timeline_period_ == nullptr || timeline_from_ == nullptr ||
+            timeline_to_ == nullptr) {
+            return;
+        }
+        const QDateTime first = time_from_stamp(timeline_result_.first_stamp);
+        const QDateTime last = time_from_stamp(timeline_result_.last_stamp);
+        if (!first.isValid() || !last.isValid()) return;
+        timeline_period_->setChecked(true);
+        timeline_from_->setDateTime(first);
+        timeline_to_->setDateTime(last);
+        append("[timeline] periodo voltou a janela do caso\n");
     }
 
     void reset_timeline_filter() {
@@ -6623,6 +6653,10 @@ private:
             pending_drag_a_ = -2;
             pending_drag_b_ = -2;
             drag_timeline_rows(a, b);
+        }
+        if (pending_reset_period_) {
+            pending_reset_period_ = false;
+            reset_timeline_period();
         }
         if (status_label_ && !case_id.isEmpty()) {
             status_label_->setText(QString("Caso %1 carregado: %2 eventos.")
@@ -7066,6 +7100,7 @@ int run_gui(HINSTANCE) {
     int shot_click_row = -2;
     int shot_drag_a = -2;
     int shot_drag_b = -2;
+    bool shot_reset_period = false;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -7096,6 +7131,8 @@ int run_gui(HINSTANCE) {
                     shot_chat_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--click-row" && has_value) {
                     shot_click_row = QString::fromWCharArray(list[++i]).toInt();
+                } else if (arg == "--reset-period") {
+                    shot_reset_period = true;
                 } else if (arg == "--drag-rows" && i + 2 < count) {
                     shot_drag_a = QString::fromWCharArray(list[++i]).toInt();
                     shot_drag_b = QString::fromWCharArray(list[++i]).toInt();
@@ -7143,7 +7180,8 @@ int run_gui(HINSTANCE) {
     QTimer::singleShot(0, &window,
                        [&window, shot_case, shot_tab, shot_filter, shot_export, shot_export_jsonl,
                         shot_gallery_dir, shot_gallery_export, shot_chat_json,
-                        shot_chat_export, shot_click_row, shot_drag_a, shot_drag_b]() {
+                        shot_chat_export, shot_click_row, shot_drag_a, shot_drag_b,
+                        shot_reset_period]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_export_jsonl_path(shot_export_jsonl);
@@ -7151,6 +7189,7 @@ int run_gui(HINSTANCE) {
         window.set_pending_chat(shot_chat_json, shot_chat_export);
         window.set_pending_click_row(shot_click_row);
         window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
+        window.set_pending_reset_period(shot_reset_period);
         window.screenshot_setup(shot_case, shot_tab);
     });
 

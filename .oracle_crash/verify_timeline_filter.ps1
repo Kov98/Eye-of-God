@@ -248,6 +248,29 @@ $periodoMarcado = @($log | Where-Object { $_ -match 'arraste: ' }).Count -gt 0
 if (-not $periodoMarcado -or -not $tmpTocado) { $falhas++ }
 
 Write-Host ''
+Write-Host '--- voltar o periodo a janela do caso ---'
+$oReset = Join-Path $dir 'out_reset.txt'
+$pReset = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--drag-rows', '0', '100', '--reset-period') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oReset -RedirectStandardError (Join-Path $dir 'err_reset.txt')
+$logReset = @(Get-Content $oReset -ErrorAction SilentlyContinue)
+$linhasBarra = @($logReset | Where-Object { $_ -match 'timeline: (\d+) de (\d+) carregados' })
+# A sequencia tem varias linhas (carga, filtro, arraste, reset): o recorte e o
+# MENOR valor visto e o reset e o ULTIMO. Comparar com a primeira linha daria 500
+# (o filtro por provedor) e o teste reprovaria por engano.
+$menorVisto = -1
+$ultimoVisto = -1
+foreach ($l in $linhasBarra) {
+    if ($l -match 'timeline: (\d+) de (\d+) carregados') {
+        $n = [int]$matches[1]
+        if ($menorVisto -lt 0 -or $n -lt $menorVisto) { $menorVisto = $n }
+        $ultimoVisto = $n
+    }
+}
+$arrasteVisto = @($logReset | Where-Object { $_ -match 'arraste: linhas' }).Count -gt 0
+$resetOk = ($pReset.ExitCode -eq 0) -and $arrasteVisto -and ($menorVisto -ge 0) -and ($menorVisto -lt 500) -and ($ultimoVisto -eq 500)
+if (-not $resetOk) { $falhas++ }
+Write-Host ('{0} arraste recortou ({1}) e o botao voltou a janela do caso ({2})' -f $(if ($resetOk) { '[ok]  ' } else { '[FALHA]' }), $menorVisto, $ultimoVisto)
+
+Write-Host ''
 Write-Host '--- clique no grafico pula para o evento ---'
 # Ids na ordem cronologica, calculados do arquivo cru (o C++ nao participa).
 $ordenados = New-Object System.Collections.Generic.List[object]
@@ -294,6 +317,26 @@ $linhaMenu = @(Get-Content $oMenu -ErrorAction SilentlyContinue | Where-Object {
 $menuOk = ($pMenu.ExitCode -eq 0) -and ($linhaMenu -match 'Timeline: o que esta filtrado \(CSV\)') -and ($linhaMenu -match 'Timeline: o que esta filtrado \(JSONL\)') -and ($linhaMenu -match 'Chat: as conversas carregadas') -and ($linhaMenu -match 'Galeria: o que esta na tela') -and ($linhaMenu -match '---')
 if (-not $menuOk) { $falhas++ }
 Write-Host ('{0} os quatro exports no submenu Exportar  {1}' -f $(if ($menuOk) { '[ok]  ' } else { '[FALHA]' }), $linhaMenu)
+
+Write-Host ''
+Write-Host '--- recorte por PASTA (varios anexos de uma vez) ---'
+$pastaRecortes = Join-Path $dir 'recortes'
+if (Test-Path $pastaRecortes) { Remove-Item $pastaRecortes -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $pastaRecortes | Out-Null
+Copy-Item $csv (Join-Path $pastaRecortes 'a.csv') -Force
+Copy-Item ($csv + '.meta.json') (Join-Path $pastaRecortes 'a.csv.meta.json') -Force
+if (Test-Path $jsonl) {
+    Copy-Item $jsonl (Join-Path $pastaRecortes 'b.jsonl') -Force
+    Copy-Item ($jsonl + '.meta.json') (Join-Path $pastaRecortes 'b.jsonl.meta.json') -Force
+}
+$pdfPasta = Join-Path $dir 'laudo_pasta.pdf'
+Remove-Item $pdfPasta -Force -ErrorAction SilentlyContinue
+$oPasta = Join-Path $dir 'out_report_pasta.txt'
+$pPasta = Start-Process -FilePath (Join-Path $root 'olho_report.exe') -ArgumentList @($caso, '--out', $pdfPasta, '--recorte', $pastaRecortes) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oPasta -RedirectStandardError (Join-Path $dir 'err_report_pasta.txt')
+$citados = @(Get-Content $oPasta -ErrorAction SilentlyContinue | Where-Object { $_ -match 'recorte: .* sha256 confirmado' }).Count
+$pastaOk = ($pPasta.ExitCode -eq 0) -and ($citados -eq 2) -and (Test-Path $pdfPasta)
+if (-not $pastaOk) { $falhas++ }
+Write-Host ('{0} pasta anexou {1} recorte(s) e o laudo saiu  (exit={2})' -f $(if ($pastaOk) { '[ok]  ' } else { '[FALHA]' }), $citados, $pPasta.ExitCode)
 
 Write-Host ''
 Write-Host '--- export das conversas (aba Chat) ---'

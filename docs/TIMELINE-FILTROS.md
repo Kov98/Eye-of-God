@@ -105,6 +105,9 @@ aparece enquanto o botao esta pressionado.
   operador terminar o movimento.
 - **Arrastar da direita para a esquerda vale igual** (as bordas sao ordenadas).
 - Arraste que sai da area e **limitado a janela** do caso.
+- O botao **↺** ao lado do `✕` volta o **periodo** a janela do caso (primeiro ao
+  ultimo evento) mantendo provedor/canal/nuvem — o `✕` zera tudo, e as vezes o
+  operador só quer desfazer o recorte.
 - A precisao e de **segundo** no filtro e de **minuto** no campo (o campo mostra
   `yyyy-MM-dd HH:mm`); o intervalo exato vai no console: `[timeline] arraste:
   periodo 2023-11-15 05:00:00 -> 2023-11-15 05:51:02`.

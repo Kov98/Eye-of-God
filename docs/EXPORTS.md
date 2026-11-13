@@ -39,7 +39,9 @@ banco do caso)" ou "grade da Galeria (o que está na tela)". Nenhum export se di
 
 `olho_report --recorte ARQUIVO` aceita qualquer um dos formatos acima: escolhe a
 chave de hash pelo `format` do sidecar, calcula o sha256 do arquivo e escreve a
-citação no corpo. Divergência **recusa o laudo com exit 4** e nenhum PDF é escrito
+citação no corpo. `--recorte` também aceita uma **pasta**: ela vale como lista de
+todos os `.csv`/`.jsonl` dentro dela (ordenados por nome), para um caso com vários
+anexos não exigir um argumento por arquivo. Divergência **recusa o laudo com exit 4** e nenhum PDF é escrito
 (`--allow-broken-recorte` existe para documentar a divergência). Ver
 [TIMELINE-FILTROS.md](TIMELINE-FILTROS.md).
 
