@@ -41,6 +41,12 @@ public:
         case_handler_ = std::move(handler);
     }
 
+    // Argumentos do olho_report para este caso, incluindo --recorte quando existe
+    // uma pasta de exports. Publico para o modo evidencia poder imprimir a linha de
+    // comando que a GUI usaria: sem isso, "o laudo cita os recortes" seria afirmacao
+    // sem prova, porque a acao real abre QFileDialog.
+    QStringList report_arguments(const QString& case_dir, const QString& out_path) const;
+
 private:
     void build_android_section(QVBoxLayout* root);
     void build_ios_section(QVBoxLayout* root);

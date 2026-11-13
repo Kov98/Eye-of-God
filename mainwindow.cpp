@@ -1003,6 +1003,8 @@ public:
         pending_chat_json_ = json_path;
         pending_chat_export_ = export_path;
     }
+    // --print-report-args: imprime a linha de comando que o botao de laudo usaria.
+    void set_pending_print_report_args(bool on) { pending_print_report_args_ = on; }
     // --click-row do modo evidencia: clica na barra da linha pedida (-1 = ultima).
     void set_pending_click_row(int row) { pending_click_row_ = row; }
     // --drag-rows A B do modo evidencia: arrasta da barra da linha A ate a da B.
@@ -1272,6 +1274,7 @@ private:
     QString pending_gallery_export_;      // --export-gallery do modo evidencia
     QString pending_chat_json_;           // --chat-json do modo evidencia
     QString pending_chat_export_;         // --export-chat do modo evidencia
+    bool pending_print_report_args_ = false;   // --print-report-args
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
     bool pending_reset_period_ = false;   // --reset-period do modo evidencia
     int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
@@ -4952,7 +4955,7 @@ private:
                 append("[export] a lista da Timeline esta vazia; nada a exportar\n");
                 return;
             }
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString base = export_base_dir();
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("timeline-filtrada-%1.csv")
                     .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
@@ -4971,7 +4974,7 @@ private:
                 append("[export] a lista da Timeline esta vazia; nada a exportar\n");
                 return;
             }
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString base = export_base_dir();
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("timeline-filtrada-%1.jsonl")
                     .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
@@ -4985,7 +4988,7 @@ private:
         // Chat: as conversas carregadas (e as recuperadas, quando a tela as mostra).
         export_menu->addAction("Chat: as conversas carregadas (CSV)", this, [this]() {
             if (chat_view_ == nullptr) return;
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString base = export_base_dir();
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("conversas-%1.csv")
                     .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
@@ -5001,7 +5004,7 @@ private:
                 append("[galeria] nenhuma midia carregada; nada a exportar\n");
                 return;
             }
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString base = export_base_dir();
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("galeria-manifesto-%1.csv")
                     .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
@@ -6343,6 +6346,17 @@ private:
 
     /* Export da grade da Galeria. Mesmo padrao do export da Timeline: publicacao
        atomica, sha256 e sidecar de procedencia (export_publish.cpp). */
+    /* Pasta convencional dos exports do caso: <caso>/exports, criada na hora. O
+       laudo gerado pela GUI procura exatamente aqui (AcquireView::report_arguments),
+       entao exportar e gerar o laudo fecham o ciclo sem passar pela linha de
+       comando. */
+    QString export_base_dir() {
+        if (case_dir_.isEmpty()) return QDir::homePath();
+        const QString base = case_dir_ + "/exports";
+        QDir().mkpath(base);
+        return base;
+    }
+
     void export_gallery_manifest(const QString& path) {
         if (gallery_view_ == nullptr) return;
         const olho::ui::export_result result = gallery_view_->export_manifest_csv(path);
@@ -6958,6 +6972,17 @@ void MainWindow::screenshot_setup(const QString& case_dir, const QString& tab_na
         pending_chat_export_.clear();
         export_chat_messages(path);
     }
+    // A linha de comando do laudo sai da MESMA funcao que o botao usa: e o que
+    // permite ao gate rodar o olho_report com os argumentos reais da GUI.
+    if (pending_print_report_args_) {
+        pending_print_report_args_ = false;
+        if (acquire_view_ != nullptr) {
+            const QStringList args =
+                acquire_view_->report_arguments(case_dir_, case_dir_ + "/laudo.pdf");
+            std::printf("laudo-args: olho_report %s\n", qUtf8Printable(args.join(' ')));
+            std::fflush(stdout);
+        }
+    }
     if (tab_name.isEmpty() || center_tabs_ == nullptr) return;
     for (int i = 0; i < center_tabs_->count(); ++i) {
         const QString text = center_tabs_->tabText(i);
@@ -7101,6 +7126,7 @@ int run_gui(HINSTANCE) {
     int shot_drag_a = -2;
     int shot_drag_b = -2;
     bool shot_reset_period = false;
+    bool shot_print_report_args = false;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -7133,6 +7159,8 @@ int run_gui(HINSTANCE) {
                     shot_click_row = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--reset-period") {
                     shot_reset_period = true;
+                } else if (arg == "--print-report-args") {
+                    shot_print_report_args = true;
                 } else if (arg == "--drag-rows" && i + 2 < count) {
                     shot_drag_a = QString::fromWCharArray(list[++i]).toInt();
                     shot_drag_b = QString::fromWCharArray(list[++i]).toInt();
@@ -7181,7 +7209,7 @@ int run_gui(HINSTANCE) {
                        [&window, shot_case, shot_tab, shot_filter, shot_export, shot_export_jsonl,
                         shot_gallery_dir, shot_gallery_export, shot_chat_json,
                         shot_chat_export, shot_click_row, shot_drag_a, shot_drag_b,
-                        shot_reset_period]() {
+                        shot_reset_period, shot_print_report_args]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_export_jsonl_path(shot_export_jsonl);
@@ -7190,6 +7218,7 @@ int run_gui(HINSTANCE) {
         window.set_pending_click_row(shot_click_row);
         window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
         window.set_pending_reset_period(shot_reset_period);
+        window.set_pending_print_report_args(shot_print_report_args);
         window.screenshot_setup(shot_case, shot_tab);
     });
 

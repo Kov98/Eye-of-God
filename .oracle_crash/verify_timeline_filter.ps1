@@ -319,6 +319,35 @@ if (-not $menuOk) { $falhas++ }
 Write-Host ('{0} os quatro exports no submenu Exportar  {1}' -f $(if ($menuOk) { '[ok]  ' } else { '[FALHA]' }), $linhaMenu)
 
 Write-Host ''
+Write-Host '--- laudo da GUI cita os recortes do caso ---'
+$casoLaudo = Join-Path $dir 'caso_laudo'
+if (Test-Path $casoLaudo) { Remove-Item $casoLaudo -Recurse -Force }
+New-Item -ItemType Directory -Force -Path (Join-Path $casoLaudo 'recovered') | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $casoLaudo 'exports') | Out-Null
+Copy-Item $csv (Join-Path $casoLaudo 'exports\recorte.csv') -Force
+Copy-Item ($csv + '.meta.json') (Join-Path $casoLaudo 'exports\recorte.csv.meta.json') -Force
+$oArgs = Join-Path $dir 'out_report_args.txt'
+$pArgs = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $casoLaudo, '--print-report-args') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oArgs -RedirectStandardError (Join-Path $dir 'err_report_args.txt')
+$linhaArgs = @(Get-Content $oArgs -ErrorAction SilentlyContinue | Where-Object { $_ -match 'laudo-args:' }) | Select-Object -Last 1
+$temRecorte = ($pArgs.ExitCode -eq 0) -and ($linhaArgs -match '--recorte') -and ($linhaArgs -match 'exports')
+if (-not $temRecorte) { $falhas++ }
+Write-Host ('{0} GUI inclui --recorte nos argumentos  {1}' -f $(if ($temRecorte) { '[ok]  ' } else { '[FALHA]' }), $linhaArgs)
+
+if ($temRecorte) {
+    $argsTexto = $linhaArgs -replace '^laudo-args: olho_report ', ''
+    $listaArgs = @($argsTexto -split ' ' | Where-Object { $_ -ne '' })
+    $pdfGui = Join-Path $casoLaudo 'laudo.pdf'
+    Remove-Item $pdfGui -Force -ErrorAction SilentlyContinue
+    $oGui = Join-Path $dir 'out_report_gui.txt'
+    $pGui = Start-Process -FilePath (Join-Path $root 'olho_report.exe') -ArgumentList $listaArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oGui -RedirectStandardError (Join-Path $dir 'err_report_gui.txt')
+    $citouRecorte = @(Get-Content $oGui -ErrorAction SilentlyContinue | Where-Object { $_ -match 'recorte: .* sha256 confirmado' }).Count -ge 1
+    $cicloOk = ($pGui.ExitCode -eq 0) -and $citouRecorte -and (Test-Path $pdfGui)
+    if (-not $cicloOk) { $falhas++ }
+    Write-Host ('{0} olho_report com os argumentos da GUI citou o recorte  (exit={1})' -f $(if ($cicloOk) { '[ok]  ' } else { '[FALHA]' }), $pGui.ExitCode)
+    if (-not $cicloOk) { @(Get-Content $oGui | Select-Object -Last 4) | ForEach-Object { Write-Host ('        ' + $_) } }
+}
+
+Write-Host ''
 Write-Host '--- recorte por PASTA (varios anexos de uma vez) ---'
 $pastaRecortes = Join-Path $dir 'recortes'
 if (Test-Path $pastaRecortes) { Remove-Item $pastaRecortes -Recurse -Force }

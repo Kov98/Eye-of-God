@@ -481,6 +481,28 @@ void AcquireView::seal_case_after_recovery(const QString& case_dir) {
     append_log("[selo] caso selado e indexado; alteracao posterior reprova o laudo");
 }
 
+QStringList AcquireView::report_arguments(const QString& case_dir, const QString& out_path) const {
+    QStringList args;
+    args << case_dir + "/recovered" << "--out" << out_path;
+    // O laudo cita o que o perito exportou. A pasta e convencional em dois lugares
+    // porque a GUI exporta para <caso>/exports e a recuperacao vive em
+    // <caso>/recovered: checar os dois evita "exportei e o laudo nao viu".
+    const QStringList candidates = {
+        case_dir + "/exports",
+        case_dir + "/recovered/exports",
+    };
+    for (const QString& dir : candidates) {
+        QDir folder(dir);
+        if (!folder.exists()) continue;
+        const QStringList entries = folder.entryList({"*.csv", "*.jsonl"}, QDir::Files,
+                                                     QDir::Name);
+        if (entries.isEmpty()) continue;
+        args << "--recorte" << dir;
+        break;   // uma pasta basta: varias so duplicariam os anexos
+    }
+    return args;
+}
+
 void AcquireView::action_generate_report() {
     if (last_case_dir_.isEmpty() || !QDir(last_case_dir_ + "/recovered").exists()) {
         append_log("[!] nenhum caso recuperado nesta sessao; rode uma recuperacao primeiro");
@@ -496,11 +518,18 @@ void AcquireView::action_generate_report() {
         append_log("[!] olho_report.exe nao esta ao lado do executavel");
         return;
     }
-    start_job([this, tool, out]() {
+    // Os argumentos saem de report_arguments(): a mesma funcao que o modo evidencia
+    // imprime, entao o que o teste prova e o que o botao faz.
+    const QStringList arguments = report_arguments(last_case_dir_, out);
+    const bool with_recortes = arguments.contains(QStringLiteral("--recorte"));
+    start_job([this, tool, out, arguments, with_recortes]() {
         append_log("[laudo] gerando PDF do caso " + last_case_dir_);
+        if (with_recortes) {
+            append_log("[laudo] os recortes exportados do caso vao ser citados e verificados");
+        }
         QProcess proc;
         proc.setProgram(tool);
-        proc.setArguments({last_case_dir_ + "/recovered", "--out", out});
+        proc.setArguments(arguments);
         proc.setProcessChannelMode(QProcess::MergedChannels);
         proc.start();
         if (!proc.waitForStarted(10000)) {

@@ -35,6 +35,17 @@ O `scope` sempre diz o que o arquivo **é**: "janela carregada da Timeline (não
 banco do caso)" ou "grade da Galeria (o que está na tela)". Nenhum export se diz
 "caso inteiro" quando é um recorte.
 
+## Onde os exports nascem
+
+Os quatro exports da GUI (Timeline CSV/JSONL, Chat, Galeria) sugerem
+`<caso>/exports/` como destino, e a pasta é criada na hora. Isso não é estética:
+**o laudo gerado pela GUI procura exatamente ali**.
+
+`AcquireView::report_arguments()` monta a linha do `olho_report` e, quando
+`<caso>/exports` (ou `<caso>/recovered/exports`) tem `.csv`/`.jsonl`, acrescenta
+`--recorte <pasta>`. O botão de laudo loga `[laudo] os recortes exportados do caso
+vão ser citados e verificados`, e divergência continua recusando o PDF (exit 4).
+
 ## Recital no laudo
 
 `olho_report --recorte ARQUIVO` aceita qualquer um dos formatos acima: escolhe a
