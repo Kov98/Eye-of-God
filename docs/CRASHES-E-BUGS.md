@@ -247,7 +247,7 @@ usuário pode querer. Preferir a ação de menu.
 
 ---
 
-## 9. PRIMEIRA REPRODUCAO DETERMINISTICA (12/11/2026) — crash no desmonte da janela
+## 9. crash no desmonte da janela — RESOLVIDO em 12/11/2026
 
 Ate aqui este documento tinha 29 APPCRASH em 30 dias **sem** saber onde o processo
 morria (secao 4). O modo evidencia `--screenshot` mudou isso: ele carrega um caso,
@@ -282,25 +282,66 @@ de um caso.
 - Nao e dupla carga: o modo evidencia suprime o load_case() automatico do
   construtor (g_gui_evidence_mode) e o crash continua.
 
-### Suspeitos (ordem de probabilidade, NAO verificados)
+Os tres suspeitos que estavam aqui (QFileSystemModel, `delete auto_hide_`,
+ordem com o QApplication) foram descartados: a falha foi localizada na pilha.
 
-1. **Desmonte de modelo de sistema de arquivos**: project_model_ (QFileSystemModel)
-   cria thread interna de watcher; destruir a janela enquanto ela ainda observa
-   diretorios e causa classica de AV em Qt 6.
-2. **delete auto_hide_ no destrutor** antes dos widgets que ele observa.
-3. Ordem entre MainWindow e QApplication: hoje a janela morre antes do app
-   (correto), mas com widgets de dock flutuantes a ordem fina de deleteLater pode
-   inverter.
+### Causa raiz (provada, nao hipotese)
 
-### Por que isto e a melhor pista que ja apareceu
+O relatorio que a propria GUI grava no crash (`crash-<pid>.txt`,
+`write_crash_report` em mainwindow.cpp:6068) passou a incluir o `exe_base` e o
+endereco absoluto de cada frame, e isso fecha o caso em tres passos:
 
-O crash tem **taxa de ~40%**, **gatilho automatico** (o app sai sozinho) e
-**artefato verificavel** por execucao. Ligar LocalDumps (WER) e rodar isto em laco
-da o dump com pilha em minutos — sem precisar reproduzir uso humano.
+1. `codigo=0xc0000005 endereco=<exe_base>+0x25766` — o RVA sai direto da conta.
+2. `addr2line -f -C -e OlhoDeDeus_gui_dbg.exe 0x140025766` devolve
+   `QHashPrivate::Data<QHashPrivate::Node<QDockWidget*, ui::DockTitleBar*> >::Bucket::offset()`
+   em `qhash.h:313`, embutida em `findBucketWithHash()`.
+3. Esse tipo de hash aparece **uma unica vez** no repositorio: `dock_title_bars_`
+   (mainwindow.cpp:929).
 
-### Correcao proposta (NAO aplicada)
+Com marcadores temporarios de desmonte no stderr, o ponto exato da morte aparece:
 
-Nada alem de coletar o dump primeiro. Qualquer "correcao" antes do dump e chute, e
-o pedido do Kai foi explicito: documentar, nao mexer.
+| marcador | resultado |
+|---|---|
+| `~MainWindow: corpo inicio` … `corpo fim (threads juntadas)` | ok |
+| `destroyed treeDock: antes do remove` / `remove ok` | ok |
+| `destroyed detailsDock: antes do remove` | **morre aqui** |
+
+Como o defeito funciona: `dock_title_bars_` era **membro** do MainWindow e o
+`remove()` rodava dentro do lambda ligado a `QObject::destroyed` do dock.
+Membros morrem em `~MainWindow`; os docks so sao apagados depois, em
+`QObject::~QObject`. O lambda, portanto, rodava com o hash **ja destruido**: o
+primeiro `remove()` ainda acertava a memoria liberada, o segundo caia.
+
+### Correcao aplicada
+
+O hash membro foi removido. `dock_title_bar()` passa a achar a barra pela arvore
+do proprio dock (`dynamic_cast` sobre `dock->findChildren<QWidget*>()`), e o
+`connect(dock, &QObject::destroyed, …)` sumiu junto. Sem mapa guardando ponteiro
+de widget, nao sobra objeto para sobreviver ao dono.
+
+`make_dock()` ganhou uma invariante explicita: se `dock_title_bar(dock)` nao
+devolver a barra recem-criada, sai um `qWarning` — sem isso o painel perderia pin
+e menu do titulo em silencio.
+
+### Medicao depois da correcao
+
+| binario | rodadas | falhas |
+|---|---|---|
+| `OlhoDeDeus_gui_dbg.exe` (debug) | 40 | **0** |
+| `OlhoDeDeus_gui.exe` (produto) | 20 | **0** |
+
+Antes, o mesmo comando e o mesmo caso (`.oracle/wa_tl`): 10 de 25 no debug e 6 de
+15 no produto. Para repetir:
+`powershell -File .oracle_crash\verify_crash_fix.ps1` — o script sai com codigo 1
+se qualquer fechamento falhar, entao serve de gate.
+
+### Reproducao isolada: por que ela NAO derrubava o processo
+
+`.oracle_crash/dock_hash_lifetime.cpp` repete o padrao (hash membro + lambda de
+`destroyed`, com e sem churn de heap) em 4 modos e 20 rodadas cada: **0 falhas**.
+Num processo pequeno o bloco liberado continua mapeado, entao ler memoria morta
+nao gera excecao. Foi o heap movimentado da janela real que transformou o UB em
+`0xC0000005`. Fica registrado como limite do repro isolado — nao como prova
+contraria.
 
 

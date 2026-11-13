@@ -926,7 +926,6 @@ private:
         QPushButton* header = nullptr;
         QWidget* body = nullptr;
     };
-    QHash<QDockWidget*, ui::DockTitleBar*> dock_title_bars_;
     QVector<DetailsRow> details_rows_;
     QVector<DetailsSection> details_sections_;
     QLabel* details_summary_ = nullptr;
@@ -5027,9 +5026,20 @@ private:
         if (!restoreState(st)) qWarning("restoreState falhou; layout padrao mantido");
     }
 
-    /* barra de titulo embutida no card de cada dock */
+    /* Barra de titulo embutida no card de cada dock.
+       Isto era um QHash<QDockWidget*, DockTitleBar*> guardado como membro da
+       janela e mantido por um sinal destroyed. O hash morria junto com os
+       membros, mas os docks so sao apagados depois, em QObject::~QObject - o
+       remove() do sinal lia memoria ja liberada e derrubava o processo no
+       fechamento (0xC0000005 dentro de QHashPrivate::Data::findBucketWithHash,
+       qhash.h:313). A busca pela arvore nao tem esse acoplamento de vida: o
+       dono do ponteiro passa a ser o proprio dock. */
     ui::DockTitleBar* dock_title_bar(QDockWidget* dock) const {
-        return dock_title_bars_.value(dock, nullptr);
+        if (dock == nullptr) return nullptr;
+        for (QWidget* w : dock->findChildren<QWidget*>()) {
+            if (auto* bar = dynamic_cast<ui::DockTitleBar*>(w)) return bar;
+        }
+        return nullptr;
     }
 
     QDockWidget* make_dock(const QString& title, const QString& object_name, QWidget* content) {
@@ -5058,8 +5068,8 @@ private:
         drag_strip->setFixedHeight(6);
         drag_strip->setStyleSheet("background: transparent;");
         dock->setTitleBarWidget(drag_strip);
-        dock_title_bars_.insert(dock, title_bar);
-        connect(dock, &QObject::destroyed, this, [this, dock]() { dock_title_bars_.remove(dock); });
+        /* sem bookkeeping por ponteiro: a barra e achada pela arvore em
+           dock_title_bar(), entao nao existe mapa para sobreviver ao widget */
         /* VS (Solution Explorer): a linha do titulo tem o titulo e os glifos
            (pin, opcoes, fechar) - nao uma fileira de icones. As acoes extras do
            painel passam para o menu de opcoes, sem perder funcao. */
@@ -5080,6 +5090,13 @@ private:
         for (QLabel* lbl : content->findChildren<QLabel*>()) {
             const QString n = lbl->objectName();
             if (n == "explorerTitle" || n == "panelTitle" || n == "brandTitle") lbl->hide();
+        }
+        /* Invariante do dock_title_bar(): a barra tem que ser achada pela arvore
+           do dock, que e o caminho que liga o pin e o menu do titulo. Se esta
+           busca voltar errado, o painel perde os glifos em silencio. */
+        if (dock_title_bar(dock) != title_bar) {
+            qWarning("dock %s: barra de titulo nao encontrada pela arvore",
+                     qUtf8Printable(object_name));
         }
         return dock;
     }
@@ -6029,6 +6046,12 @@ LONG WINAPI write_crash_report(EXCEPTION_POINTERS* info) {
         append_hex(text, used, sizeof(text),
                    reinterpret_cast<std::uintptr_t>(info->ExceptionRecord->ExceptionAddress));
         append_text(text, used, sizeof(text), "\n");
+        // A base do proprio exe vai no topo: sem ela, "modulo+offset" do endereco
+        // da falha nao se converte em arquivo:linha depois.
+        HMODULE self = ::GetModuleHandleA(nullptr);
+        append_text(text, used, sizeof(text), "exe_base=");
+        append_hex(text, used, sizeof(text), reinterpret_cast<std::uintptr_t>(self));
+        append_text(text, used, sizeof(text), "\n");
     }
     append_text(text, used, sizeof(text), "pilha (modulo+offset, mais novo primeiro):\n");
     void* frames[48] = {0};
@@ -6052,6 +6075,10 @@ LONG WINAPI write_crash_report(EXCEPTION_POINTERS* info) {
         append_hex(text, used, sizeof(text),
                    reinterpret_cast<std::uintptr_t>(frames[i]) -
                        reinterpret_cast<std::uintptr_t>(module));
+        append_text(text, used, sizeof(text), "  addr=");
+        append_hex(text, used, sizeof(text), reinterpret_cast<std::uintptr_t>(frames[i]));
+        append_text(text, used, sizeof(text), "  base=");
+        append_hex(text, used, sizeof(text), reinterpret_cast<std::uintptr_t>(module));
         append_text(text, used, sizeof(text), "\n");
     }
     DWORD written = 0;
