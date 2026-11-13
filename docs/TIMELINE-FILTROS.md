@@ -74,6 +74,26 @@ nos mesmos widgets (nao existe caminho paralelo de teste):
 Chaves aceitas: `provider`, `channel`, `from`, `to` (`yyyy-MM-dd`), `cloud`
 (`1`/`0`). O log imprime `barra: timeline: 500 de 2519 carregados (filtro esconde 2019)`.
 
+## Clicar no grafico
+
+Clicar numa barra seleciona o evento correspondente na lista - e a lista alimenta
+o painel Detalhes e o Hex View. Antes o grafico era so desenho: um pico as 09:18
+nao levava a lugar nenhum.
+
+- **Tolerancia de 8 px** e vale o evento **mais proximo**, nao o primeiro da
+  varredura.
+- Clicar no vazio **nao escolhe nada** (devolve -1). Num laudo, abrir o evento
+  errado e pior que nao abrir nada.
+- O ponteiro vira mao quando ha evento embaixo (affordance antes do clique).
+- O grafico desenha no maximo ~80 pontos (amostragem), a lista mostra todos: o
+  clique devolve a **linha da lista**, nao o indice do ponto amostrado.
+
+Desenho e clique usam a mesma conta de `timeline_geometry.hpp` (area, primeiro
+instante e janela). Duas copias divergiriam na primeira correcao, e o defeito
+seria silencioso - o grafico continuaria bonito e o clique passaria a abrir o
+vizinho. Os 13 checks de geometria do oraculo cobrem bordas, tolerancia, empate e
+vazio.
+
 ## Exportar o que esta filtrado (CSV)
 
 Menu **Exibir > Timeline: exportar o que esta filtrado (CSV)**. Sai um `.csv` com

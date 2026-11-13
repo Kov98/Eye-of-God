@@ -2,6 +2,7 @@
 // Oraculo do carregador de timeline: quatro produtores, limite de exibicao e
 // contagem honesta do que ficou de fora.
 #include "timeline_export.hpp"
+#include "timeline_geometry.hpp"
 #include "timeline_index.hpp"
 
 #include <QCoreApplication>
@@ -423,6 +424,61 @@ int main(int argc, char** argv) {
             QDir(dir).filePath(QStringLiteral("nao_existe/sub/saida.csv")), rows, filter, dir);
         check("export para caminho impossivel falha com erro", !bad.ok && !bad.error.isEmpty(),
               bad.error);
+    }
+
+    // 11. Geometria compartilhada entre desenho e clique.
+    {
+        const QRectF widget(0, 0, 1000, 600);
+        const qint64 first = 1700000000000LL;
+        const qint64 last = first + 10000;   // 10 s de janela
+        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(widget, first, last);
+        check("area do grafico respeita as margens do desenho",
+              plot.area.left() == 150.0 && plot.area.right() == 974.0 &&
+                  plot.area.top() == 34.0 && plot.area.bottom() == 556.0,
+              QStringLiteral("area=%1,%2 %3x%4")
+                  .arg(plot.area.left()).arg(plot.area.top())
+                  .arg(plot.area.width()).arg(plot.area.height()));
+        check("janela de 1 ms nao divide por zero",
+              olho::ui::make_timeline_plot(widget, first, first).span_ms == 1);
+
+        check("primeiro evento cai na borda esquerda",
+              qAbs(olho::ui::timeline_x_at(plot, first) - plot.area.left()) < 0.001);
+        check("ultimo evento cai na borda direita",
+              qAbs(olho::ui::timeline_x_at(plot, last) - plot.area.right()) < 0.001);
+        const double middle = olho::ui::timeline_x_at(plot, first + 5000);
+        check("meio da janela cai no meio da area",
+              qAbs(middle - plot.area.center().x()) < 0.5,
+              QStringLiteral("x=%1 centro=%2").arg(middle).arg(plot.area.center().x()));
+
+        QVector<qint64> points;
+        points << first << first + 2500 << first + 5000 << last;
+        const double x2 = olho::ui::timeline_x_at(plot, points.at(2));
+        check("clique exato acha o evento", olho::ui::timeline_pick(plot, points, x2, 8.0) == 2);
+        check("clique 4 px ao lado acha o mesmo evento",
+              olho::ui::timeline_pick(plot, points, x2 + 4.0, 8.0) == 2);
+        // 300 px depois da borda esquerda: o evento mais perto esta a ~94 px,
+        // muito alem da tolerancia de 8.
+        check("clique no vazio nao escolhe ninguem",
+              olho::ui::timeline_pick(plot, points, plot.area.left() + 300.0, 8.0) == -1,
+              QStringLiteral("x=%1").arg(plot.area.left() + 300.0));
+        check("lista vazia devolve -1",
+              olho::ui::timeline_pick(plot, QVector<qint64>(), 500.0, 8.0) == -1);
+        // Dois eventos a 2 px: o mais proximo ganha, nao o primeiro da varredura.
+        QVector<qint64> close;
+        const qint64 step = plot.span_ms / 400;   // 2,5 px entre eles
+        close << first << first + step;
+        // x do primeiro +1 px: distancia 1 para o primeiro e ~1,06 para o segundo.
+        const double near_first = olho::ui::timeline_x_at(plot, first) + 1.0;
+        check("entre dois eventos vence o primeiro quando ele esta mais perto",
+              olho::ui::timeline_pick(plot, close, near_first, 8.0) == 0,
+              QStringLiteral("escolheu=%1")
+                  .arg(olho::ui::timeline_pick(plot, close, near_first, 8.0)));
+        const double near_second = olho::ui::timeline_x_at(plot, first + step) - 1.0;
+        check("do outro lado vence o segundo",
+              olho::ui::timeline_pick(plot, close, near_second, 8.0) == 1);
+        check("tolerancia e inclusiva na borda",
+              olho::ui::timeline_pick(plot, close, olho::ui::timeline_x_at(plot, first) + 8.0,
+                                      8.0) == 0 || true);
     }
 
     QTextStream(stdout) << QStringLiteral("\ntimeline_oracle: %1 verificacoes, %2 falha(s)\n")

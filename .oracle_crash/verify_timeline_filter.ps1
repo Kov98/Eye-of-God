@@ -127,9 +127,48 @@ if ($exportOk -and (Test-Path $csv)) {
 }
 
 Write-Host ''
+Write-Host '--- clique no grafico pula para o evento ---'
+# Ids na ordem cronologica, calculados do arquivo cru (o C++ nao participa).
+$ordenados = New-Object System.Collections.Generic.List[object]
+foreach ($f in @(Get-ChildItem -Path $caso -Recurse -Filter timeline.jsonl -File)) {
+    foreach ($line in (Get-Content $f.FullName)) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        $row = $line | ConvertFrom-Json
+        if ($row.provider -ne 'Telegram') { continue }
+        # Ordem estavel pedida por (timestamp, indice de leitura): o PowerShell 5.1
+        # nao tem -Stable, e Sort-Object por duas chaves da o mesmo resultado.
+        $ordenados.Add([pscustomobject]@{
+            id = [string]$row.event_id
+            ts = [datetime]::Parse($row.timestamp_utc, $null, [System.Globalization.DateTimeStyles]::RoundtripKind)
+            idx = $ordenados.Count
+        })
+    }
+}
+$cronologico = @($ordenados | Sort-Object -Property ts, idx | ForEach-Object { $_.id })
+Write-Host ('    eventos Telegram em ordem cronologica: ' + $cronologico.Count)
+
+foreach ($alvo in @(0, -1)) {
+    $o = Join-Path $dir 'out_click.txt'
+    $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', 'provider=Telegram', '--click-row', $alvo) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_click.txt')
+    $log = @(Get-Content $o -ErrorAction SilentlyContinue)
+    $line = @($log | Where-Object { $_ -match 'clique: pedido=' }) | Select-Object -Last 1
+    $got = -1; $drawn = -1; $id = ''
+    if ($line -match 'pedido=(-?\d+) desenhado=(-?\d+) obtido=(-?\d+) evento=(\S*)') {
+        $drawn = [int]$matches[2]
+        $got = [int]$matches[3]
+        $id = $matches[4]
+    }
+    $esperadoId = if ($drawn -ge 0 -and $drawn -lt $cronologico.Count) { $cronologico[$drawn] } else { '' }
+    $ok = ($p.ExitCode -eq 0) -and ($got -eq $drawn) -and ($id -eq $esperadoId) -and $esperadoId
+    if (-not $ok) { $falhas++ }
+    Write-Host ('{0} clique pedido={1,-3} desenhado={2,-3} obtido={3,-3} evento={4}' -f $(if ($ok) { '[ok]  ' } else { '[FALHA]' }), $alvo, $drawn, $got, $id)
+    if (-not $ok) { Write-Host ('        esperado=' + $esperadoId) }
+}
+
+Write-Host ''
 if ($falhas -ne 0) {
     Write-Host ('FALHOU: ' + $falhas + ' divergencia(s)')
     exit 1
 }
-Write-Host ('ok: ' + $casos.Count + ' filtros + export CSV conferidos contra a contagem independente')
+Write-Host ('ok: ' + $casos.Count + ' filtros + export CSV + clique conferidos contra a contagem independente')
 exit 0

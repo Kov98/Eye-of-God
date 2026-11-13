@@ -89,6 +89,7 @@
 #include "autohide.hpp"
 #include "chatview.hpp"
 #include "timeline_export.hpp"
+#include "timeline_geometry.hpp"
 #include "timeline_index.hpp"
 #include "acquireview.hpp"
 #include "galleryview.hpp"
@@ -210,12 +211,84 @@ public:
     }
 
 public:
+    /* on_pick recebe o indice do evento na LISTA da Timeline (nao o indice do
+       ponto amostrado): a lista mostra tudo, o grafico amostra para desenhar. */
+    std::function<void(int)> on_pick;
+
     void set_events(const QVector<QDateTime>& times, const QStringList& labels) {
+        set_events(times, labels, QVector<int>());
+    }
+
+    void set_events(const QVector<QDateTime>& times, const QStringList& labels,
+                    const QVector<int>& source_rows) {
         times_ = times;
         labels_ = labels;
+        source_rows_ = source_rows;
+        when_ms_.clear();
+        when_ms_.reserve(times.size());
+        for (const QDateTime& when : times) when_ms_.append(when.toMSecsSinceEpoch());
         update();
     }
+
+    // Indice amostrado mais proximo de uma linha da lista (o grafico desenha no
+    // maximo ~80 pontos; a lista tem todos). -1 quando nao ha pontos.
+    int drawn_index_for_row(int row) const {
+        if (source_rows_.isEmpty()) return -1;
+        int best = 0;
+        int best_distance = qAbs(source_rows_.at(0) - row);
+        for (int i = 1; i < source_rows_.size(); ++i) {
+            const int distance = qAbs(source_rows_.at(i) - row);
+            if (distance < best_distance) {
+                best = i;
+                best_distance = distance;
+            }
+        }
+        return best;
+    }
+
+    int drawn_row(int index) const { return source_rows_.value(index, -1); }
+
+    double x_at_index(int index) const {
+        if (index < 0 || index >= when_ms_.size() || times_.isEmpty()) return -1.0;
+        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
+            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
+            times_.last().toMSecsSinceEpoch());
+        return olho::ui::timeline_x_at(plot, when_ms_.at(index));
+    }
+
+    // Converte um x do widget no indice do evento (na lista) ou -1.
+    int pick_at(double x) const {
+        if (when_ms_.isEmpty() || times_.isEmpty() || !times_.first().isValid()) return -1;
+        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
+            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
+            times_.last().toMSecsSinceEpoch());
+        // 8 px: a barra tem ~1 px de largura e o rotulo fica ao lado; sem folga o
+        // clique no rotulo nao abriria nada.
+        const int index = olho::ui::timeline_pick(plot, when_ms_, x, 8.0);
+        if (index < 0) return -1;
+        if (index < source_rows_.size()) return source_rows_.at(index);
+        return index;
+    }
+
 protected:
+    void mousePressEvent(QMouseEvent* event) override {
+        const int row = pick_at(event->position().x());
+        if (row >= 0 && on_pick) {
+            on_pick(row);
+            event->accept();
+            return;
+        }
+        QWidget::mousePressEvent(event);
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override {
+        // Maozinha quando ha evento embaixo: affordance antes do clique, e some
+        // quando o ponteiro esta no vazio.
+        setCursor(pick_at(event->position().x()) >= 0 ? Qt::PointingHandCursor
+                                                       : Qt::ArrowCursor);
+        QWidget::mouseMoveEvent(event);
+    }
+
     void paintEvent(QPaintEvent*) override {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -245,7 +318,6 @@ protected:
         if (!times_.isEmpty()) {
             const QDateTime first = times_.first();
             const QDateTime last = times_.last();
-            const qint64 span = qMax<qint64>(1, first.msecsTo(last));
 
             // ---- faixas por FONTE -------------------------------------------
             // Antes a altura era (i % 5), ou seja: posicao vertical sorteada pelo
@@ -298,9 +370,11 @@ protected:
             // indices de faixa antes de desenhar qualquer coisa.
             QVector<double> x_of(times_.size(), 0.0);
             QVector<int> count_of(lane_count, 0);
+            // Mesma conta do clique (timeline_geometry.hpp): uma fonte so.
+            const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
+                QRectF(rect()), first.toMSecsSinceEpoch(), last.toMSecsSinceEpoch());
             for (int i = 0; i < times_.size(); ++i) {
-                const double ratio = static_cast<double>(first.msecsTo(times_[i])) / span;
-                x_of[i] = area.left() + area.width() * ratio;
+                x_of[i] = olho::ui::timeline_x_at(plot, times_[i].toMSecsSinceEpoch());
                 QString key = labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed();
                 if (key.isEmpty()) key = QStringLiteral("Evento");
                 const int lane = lane_for_source(source_index.value(key));
@@ -398,6 +472,8 @@ public:
 private:
     QVector<QDateTime> times_;
     QStringList labels_;
+    QVector<int> source_rows_;   // ponto amostrado -> linha na lista filtrada
+    QVector<qint64> when_ms_;    // epoch ms, para o hit-test
     QString empty_title_ = QStringLiteral("Nenhum evento de timeline neste caso");
     QString empty_body_ = QStringLiteral(
         "A aba Tabela lista os arquivos do caso e o laudo carrega a evidencia. A linha do "
@@ -846,6 +922,8 @@ public:
     void set_pending_filter_spec(const QString& spec) { pending_filter_spec_ = spec; }
     // --export-csv do modo evidencia: exporta depois da carga e do filtro.
     void set_pending_export_path(const QString& path) { pending_export_path_ = path; }
+    // --click-row do modo evidencia: clica na barra da linha pedida (-1 = ultima).
+    void set_pending_click_row(int row) { pending_click_row_ = row; }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1101,6 +1179,7 @@ private:
     QAction* timeline_chrono_ = nullptr;
     QAction* timeline_export_ = nullptr;
     QString pending_export_path_;   // --export-csv do modo evidencia
+    int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
     int timeline_cap_ = 5000;
     bool timeline_chronological_ = false;
     QString timeline_cap_case_;
@@ -5709,6 +5788,16 @@ private:
         split->setChildrenCollapsible(false);
         outer->addWidget(split, 1);
 
+        // Clicar na barra do grafico seleciona o evento na lista (= Detalhes e Hex
+        // View). Antes o grafico era so um desenho: pico as 09:18 nao levava a
+        // lugar nenhum.
+        timeline_view_->on_pick = [this](int row) {
+            if (timeline_list_ == nullptr || timeline_list_model_ == nullptr) return;
+            if (row < 0 || row >= timeline_list_model_->rowCount()) return;
+            timeline_list_->selectRow(row);
+            timeline_list_->scrollTo(timeline_list_model_->index(row, 0));
+        };
+
         connect(timeline_list_->selectionModel(), &QItemSelectionModel::currentRowChanged,
                 this, [this](const QModelIndex& current, const QModelIndex&) {
                     if (!current.isValid()) return;
@@ -5828,12 +5917,15 @@ private:
         // Amostragem so para desenhar: com 5 mil eventos o grafico vira uma mancha
         // solida e o rotulo nao cabe. A contagem abaixo e sempre a real.
         const int stride = qMax(1, kept.events.size() / 80);
+        QVector<int> sampled_rows;
         for (int i = 0; i < kept.events.size(); i += stride) {
             times.append(kept.events.at(i).when);
             labels.append(kept.events.at(i).provider.left(22) + " #" +
                           kept.events.at(i).event_id);
+            // indice na LISTA: e o que o clique tem que devolver
+            sampled_rows.append(i);
         }
-        timeline_view_->set_events(times, labels);
+        timeline_view_->set_events(times, labels, sampled_rows);
 
         // A lista mostra TUDO o que passou pelo filtro (o grafico amostra para
         // desenhar). Selecionar uma linha alimenta Detalhes e Hex View.
@@ -5938,6 +6030,35 @@ private:
        evidencia chama com o --export-csv; os dois passam por aqui, entao a foto
        nao prova um caminho que o operador nao tem. Sempre imprime o resultado:
        "exportei" sem numero e afirmacao sem prova. */
+    /* Sintetiza um clique na barra que representa a linha pedida e informa o que o
+       hit-test devolveu. Passa por QMouseEvent -> mousePressEvent, e nao pelo
+       callback direto: chamar o callback provaria o callback, nao o clique. */
+    void click_timeline_row(int row) {
+        if (timeline_view_ == nullptr || timeline_list_model_ == nullptr) return;
+        const int total = timeline_list_model_->rowCount();
+        const int wanted = row < 0 ? total - 1 : row;
+        const int drawn = timeline_view_->drawn_index_for_row(wanted);
+        const double x = timeline_view_->x_at_index(drawn);
+        if (drawn < 0 || x < 0.0) {
+            std::printf("clique: pedido=%d sem ponto desenhado (lista=%d)\n", wanted, total);
+            std::fflush(stdout);
+            return;
+        }
+        const QPointF local(x, timeline_view_->height() / 2.0);
+        QMouseEvent press(QEvent::MouseButtonPress, local,
+                          timeline_view_->mapToGlobal(local.toPoint()), Qt::LeftButton,
+                          Qt::LeftButton, Qt::NoModifier);
+        QApplication::sendEvent(timeline_view_, &press);
+        const int selected = timeline_list_ != nullptr ? timeline_list_->currentIndex().row() : -1;
+        QString id;
+        if (selected >= 0 && selected < timeline_filtered_events_.size()) {
+            id = timeline_filtered_events_.at(selected).event_id;
+        }
+        std::printf("clique: pedido=%d desenhado=%d obtido=%d evento=%s\n", wanted,
+                    timeline_view_->drawn_row(drawn), selected, qUtf8Printable(id));
+        std::fflush(stdout);
+    }
+
     void export_filtered_timeline_to(const QString& path) {
         const olho::ui::timeline_export_result result = olho::ui::export_timeline_csv(
             path, timeline_filtered_events_, current_timeline_filter(), case_dir_);
@@ -6196,6 +6317,11 @@ private:
             const QString path = pending_export_path_;
             pending_export_path_.clear();
             export_filtered_timeline_to(path);
+        }
+        if (pending_click_row_ != -2) {
+            const int row = pending_click_row_;
+            pending_click_row_ = -2;
+            click_timeline_row(row);
         }
         if (status_label_ && !case_id.isEmpty()) {
             status_label_->setText(QString("Caso %1 carregado: %2 eventos.")
@@ -6611,6 +6737,7 @@ int run_gui(HINSTANCE) {
     QString shot_tab;
     QString shot_filter;
     QString shot_export;
+    int shot_click_row = -2;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -6629,6 +6756,8 @@ int run_gui(HINSTANCE) {
                     shot_filter = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--export-csv" && has_value) {
                     shot_export = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--click-row" && has_value) {
+                    shot_click_row = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--delay" && has_value) {
                     shot_delay_ms = QString::fromWCharArray(list[++i]).toInt();
                 }
@@ -6670,9 +6799,11 @@ int run_gui(HINSTANCE) {
     // argumentos (o caso mais recente de cases/) e ele roda no primeiro giro do
     // event loop. Chamar o setup agora faria o caso pedido ser sobrescrito pelo
     // automatico - foi exatamente o que aconteceu no primeiro teste.
-    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab, shot_filter, shot_export]() {
+    QTimer::singleShot(0, &window,
+                       [&window, shot_case, shot_tab, shot_filter, shot_export, shot_click_row]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
+        window.set_pending_click_row(shot_click_row);
         window.screenshot_setup(shot_case, shot_tab);
     });
 
