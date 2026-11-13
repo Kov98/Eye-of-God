@@ -170,4 +170,89 @@ timeline_load load_case_timeline(const QString& case_dir, int max_entries,
     return result;
 }
 
+namespace {
+
+// Os produtores nao combinam caixa entre si ("WhatsApp" no wa_recover, "whatsapp"
+// num export): comparar sem caixa e o que faz o combo funcionar com os dois.
+bool same_text(const QString& a, const QString& b) {
+    return a.compare(b, Qt::CaseInsensitive) == 0;
+}
+
+}  // namespace
+
+bool timeline_filter::empty() const {
+    return provider.isEmpty() && channel.isEmpty() && !from.isValid() && !to.isValid() &&
+           !cloud_only;
+}
+
+bool timeline_filter::has_time_window() const { return from.isValid() || to.isValid(); }
+
+bool timeline_event_matches(const timeline_event& event, const timeline_filter& filter) {
+    if (!filter.provider.isEmpty() && !same_text(event.provider, filter.provider)) return false;
+    if (!filter.channel.isEmpty() && !same_text(event.channel, filter.channel)) return false;
+    if (filter.cloud_only && !event.from_cloud) return false;
+    if (filter.has_time_window()) {
+        if (!event.when.isValid()) return false;
+        const QDate day = event.when.date();
+        if (filter.from.isValid() && day < filter.from) return false;
+        if (filter.to.isValid() && day > filter.to) return false;
+    }
+    return true;
+}
+
+timeline_filtered filter_timeline(const QVector<timeline_event>& events,
+                                  const timeline_filter& filter) {
+    timeline_filtered out;
+    out.events.reserve(events.size());
+    for (const timeline_event& event : events) {
+        if (timeline_event_matches(event, filter)) {
+            out.events.append(event);
+            ++out.matched;
+            continue;
+        }
+        ++out.hidden;
+        // Sem data nao e "fora do periodo" por escolha do operador: e limite do
+        // dado. Fica contado a parte para a tela poder dizer isso.
+        if (filter.has_time_window() && !event.when.isValid()) ++out.no_time;
+    }
+    return out;
+}
+
+QStringList timeline_providers(const QVector<timeline_event>& events) {
+    QStringList out;
+    for (const timeline_event& event : events) {
+        const QString provider = event.provider.trimmed();
+        if (provider.isEmpty()) continue;
+        bool seen = false;
+        for (const QString& known : out) {
+            if (same_text(known, provider)) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) out << provider;
+    }
+    out.sort(Qt::CaseInsensitive);
+    return out;
+}
+
+QStringList timeline_channels(const QVector<timeline_event>& events, const QString& provider) {
+    QStringList out;
+    for (const timeline_event& event : events) {
+        if (!provider.isEmpty() && !same_text(event.provider, provider)) continue;
+        const QString channel = event.channel.trimmed();
+        if (channel.isEmpty()) continue;
+        bool seen = false;
+        for (const QString& known : out) {
+            if (same_text(known, channel)) {
+                seen = true;
+                break;
+            }
+        }
+        if (!seen) out << channel;
+    }
+    out.sort(Qt::CaseInsensitive);
+    return out;
+}
+
 }  // namespace olho::ui

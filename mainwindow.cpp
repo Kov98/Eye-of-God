@@ -11,6 +11,7 @@
 #include <QClipboard>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDateEdit>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -372,24 +373,35 @@ protected:
             painter.setFont(empty_font);
             painter.setPen(QColor(theme::textPrimary()));
             painter.drawText(card.adjusted(14, 12, -14, 0), Qt::AlignHCenter | Qt::AlignTop,
-                             QStringLiteral("Nenhum evento de timeline neste caso"));
+                             empty_title_);
             QFont hint_font("Segoe UI", 8);
             painter.setFont(hint_font);
             painter.setPen(QColor(theme::textSecondary()));
             painter.drawText(card.adjusted(14, 34, -14, -8),
-                             Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap,
-                             QStringLiteral("A aba Tabela lista os arquivos do caso e o laudo "
-                                            "carrega a evidencia. A linha do tempo aparece "
-                                            "quando existe timeline.jsonl em qualquer pasta "
-                                            "do caso (raiz, recovered/, social/ ou cloud/)."));
+                             Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap, empty_body_);
         }
         painter.setPen(QColor(theme::textOnDocument()));
         painter.setFont(QFont("Segoe UI", 10, QFont::DemiBold));
         painter.drawText(18, 22, "TIMELINE / EVENTOS CORRELACIONADOS");
     }
+public:
+    /* O vazio tem DUAS causas e elas nao podem usar o mesmo texto: "o caso nao tem
+       timeline" e "o filtro escondeu os 2.519 eventos" sao fatos diferentes, e o
+       primeiro seria falso no segundo caso. */
+    void set_empty_text(const QString& title, const QString& body) {
+        empty_title_ = title;
+        empty_body_ = body;
+        update();
+    }
+
 private:
     QVector<QDateTime> times_;
     QStringList labels_;
+    QString empty_title_ = QStringLiteral("Nenhum evento de timeline neste caso");
+    QString empty_body_ = QStringLiteral(
+        "A aba Tabela lista os arquivos do caso e o laudo carrega a evidencia. A linha do "
+        "tempo aparece quando existe timeline.jsonl em qualquer pasta do caso (raiz, "
+        "recovered/, social/ ou cloud/).");
 };
 class ContourTabBar : public QTabBar {
 public:
@@ -828,6 +840,9 @@ public:
     // e confiavel, e uma foto tirada pelo proprio app e evidencia melhor que
     // nenhuma.
     void screenshot_setup(const QString& case_dir, const QString& tab_name);
+    // --filter do modo evidencia. Fica pendente porque a Timeline carrega em
+    // thread: no instante do setup o combo de provedores ainda esta vazio.
+    void set_pending_filter_spec(const QString& spec) { pending_filter_spec_ = spec; }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1093,6 +1108,17 @@ private:
     bool timeline_pending_ = false;     // pediram outra carga enquanto rodava
     QString timeline_pending_dir_;
     olho::ui::timeline_load timeline_result_;
+    // ---- filtro da Timeline (barra da aba) --------------------------------
+    // O estado do filtro mora nos widgets: current_timeline_filter() le deles.
+    // Guardar uma copia aqui daria duas verdades para o mesmo filtro.
+    QComboBox* timeline_provider_ = nullptr;
+    QComboBox* timeline_channel_ = nullptr;
+    QCheckBox* timeline_period_ = nullptr;
+    QDateEdit* timeline_from_ = nullptr;
+    QDateEdit* timeline_to_ = nullptr;
+    QCheckBox* timeline_cloud_only_ = nullptr;
+    QLabel* timeline_filter_count_ = nullptr;
+    QString pending_filter_spec_;   // --filter do modo evidencia, aplicado na carga
     QTimer* timeline_timer_ = nullptr;
     // Progresso da carga: o worker escreve, o timer le. Um atomico por bloco de
     // 5.000 linhas, sem lock e sem tocar em widget fora da thread da interface.
@@ -5227,8 +5253,7 @@ private:
         center_tabs_->setIconSize(QSize(16, 16));
         add_fixed_document(build_table_tab(), "tab_table.png", "Tabela");
         add_fixed_document(build_hex_tab(), "tab_hex.png", "Hex View");
-        timeline_view_ = new TimelineView;
-        add_fixed_document(timeline_view_, "tab_timeline.png", "Timeline");
+        add_fixed_document(build_timeline_page(), "tab_timeline.png", "Timeline");
         // Conversas recuperadas. O widget le o export do wa_recover e nao abre
         // banco nenhum: a GUI nunca precisa saber SQL.
         chat_view_ = new olho::ui::ChatView;
@@ -5499,6 +5524,317 @@ private:
         // quando a carga assincrona termina - aqui a tabela ainda esta vazia.
     }
 
+    /* ---- barra de filtro da Timeline -------------------------------------
+       Barra e grafico no mesmo documento. O filtro reprojeta o que ja esta em
+       timeline_result_ em vez de reler o caso, e a etiqueta da direita sempre diz
+       quantos ficaram de fora ("12 de 243 carregados"): grafico filtrado sem
+       denominador afirma mais do que o dado. */
+    static QDate day_from_stamp(const QString& text) {
+        if (text.isEmpty()) return QDate();
+        QDateTime when = QDateTime::fromString(text, Qt::ISODateWithMs);
+        if (!when.isValid()) when = QDateTime::fromString(text, Qt::ISODate);
+        return when.isValid() ? when.toLocalTime().date() : QDate();
+    }
+
+    QWidget* build_timeline_page() {
+        auto* page = new QWidget;
+        page->setObjectName("timelinePage");
+        auto* outer = new QVBoxLayout(page);
+        outer->setContentsMargins(0, 0, 0, 0);
+        outer->setSpacing(0);
+
+        auto* bar = new QWidget(page);
+        bar->setObjectName("timelineFilterBar");
+        bar->setAttribute(Qt::WA_StyledBackground, true);
+        bar->setFixedHeight(26);
+        // VS: separacao por nivel de fundo (#262626) + linha #0E0E0E, sem borda.
+        bar->setStyleSheet("QWidget#timelineFilterBar{background:#262626;"
+                           "border-bottom:1px solid #0E0E0E;}");
+        auto* row = new QHBoxLayout(bar);
+        row->setContentsMargins(8, 0, 8, 0);
+        row->setSpacing(6);
+        const auto caption = [bar](const QString& text) {
+            auto* label = new QLabel(text, bar);
+            label->setStyleSheet("color:#C8C8C8;background:transparent;");
+            return label;
+        };
+        const auto combo = [bar](const QString& first, const QString& name) {
+            auto* box = new QComboBox(bar);
+            box->setObjectName(name);
+            box->addItem(first);
+            box->setFixedHeight(20);
+            return box;
+        };
+        const auto date_edit = [bar](const QString& name) {
+            auto* edit = new QDateEdit(bar);
+            edit->setObjectName(name);
+            edit->setCalendarPopup(true);
+            edit->setDisplayFormat("yyyy-MM-dd");
+            edit->setFixedHeight(20);
+            edit->setEnabled(false);
+            return edit;
+        };
+        const auto checkbox = [bar](const QString& text, const QString& name) {
+            auto* box = new QCheckBox(text, bar);
+            box->setObjectName(name);
+            box->setStyleSheet("QCheckBox{color:#C8C8C8;background:transparent;}");
+            return box;
+        };
+
+        // Sem legendas: o proprio combo diz o que e ("Todos os provedores"), e a
+        // barra precisa caber no centro com os dois docks abertos (~895 px em 1440).
+        timeline_provider_ = combo(QStringLiteral("Todos os provedores"), "timelineProvider");
+        timeline_provider_->setToolTip("Provedor do evento");
+        timeline_provider_->setMinimumWidth(130);
+        row->addWidget(timeline_provider_);
+        timeline_channel_ = combo(QStringLiteral("Todos os canais"), "timelineChannel");
+        timeline_channel_->setToolTip("Canal dentro do provedor escolhido");
+        timeline_channel_->setMinimumWidth(140);
+        row->addWidget(timeline_channel_);
+        timeline_period_ = checkbox("Periodo", "timelinePeriod");
+        timeline_period_->setToolTip("Filtrar por um periodo de datas");
+        row->addWidget(timeline_period_);
+        timeline_from_ = date_edit("timelineFrom");
+        timeline_from_->setFixedWidth(96);
+        row->addWidget(timeline_from_);
+        auto* dash = caption("a");
+        dash->setToolTip("Ate esta data, inclusive");
+        row->addWidget(dash);
+        timeline_to_ = date_edit("timelineTo");
+        timeline_to_->setFixedWidth(96);
+        row->addWidget(timeline_to_);
+        timeline_cloud_only_ = checkbox("So nuvem", "timelineCloudOnly");
+        timeline_cloud_only_->setToolTip("Somente eventos vindos de cloud/");
+        row->addWidget(timeline_cloud_only_);
+        auto* clear = new QToolButton(bar);
+        clear->setObjectName("timelineFilterClear");
+        clear->setText(QString::fromUtf8("\u2715"));
+        clear->setToolTip("Limpar o filtro da Timeline");
+        clear->setFixedSize(20, 20);
+        clear->setFocusPolicy(Qt::NoFocus);
+        row->addWidget(clear);
+        row->addStretch(1);
+        timeline_filter_count_ = new QLabel(QStringLiteral("timeline vazia"), bar);
+        timeline_filter_count_->setObjectName("timelineFilterCount");
+        timeline_filter_count_->setStyleSheet("color:#9D9D9D;background:transparent;");
+        timeline_filter_count_->setMinimumWidth(130);
+        timeline_filter_count_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        row->addWidget(timeline_filter_count_);
+        outer->addWidget(bar);
+
+        timeline_view_ = new TimelineView(page);
+        outer->addWidget(timeline_view_, 1);
+
+        connect(timeline_provider_, &QComboBox::currentIndexChanged, this, [this](int) {
+            reload_timeline_filter_options();
+            apply_timeline_filter();
+        });
+        connect(timeline_channel_, &QComboBox::currentIndexChanged, this,
+                [this](int) { apply_timeline_filter(); });
+        connect(timeline_period_, &QCheckBox::toggled, this, [this](bool on) {
+            if (timeline_from_ != nullptr) timeline_from_->setEnabled(on);
+            if (timeline_to_ != nullptr) timeline_to_->setEnabled(on);
+            apply_timeline_filter();
+        });
+        connect(timeline_from_, &QDateEdit::dateChanged, this,
+                [this](QDate) { apply_timeline_filter(); });
+        connect(timeline_to_, &QDateEdit::dateChanged, this,
+                [this](QDate) { apply_timeline_filter(); });
+        connect(timeline_cloud_only_, &QCheckBox::toggled, this,
+                [this](bool) { apply_timeline_filter(); });
+        connect(clear, &QToolButton::clicked, this, [this]() { reset_timeline_filter(); });
+        return page;
+    }
+
+    olho::ui::timeline_filter current_timeline_filter() const {
+        olho::ui::timeline_filter filter;
+        if (timeline_provider_ != nullptr && timeline_provider_->currentIndex() > 0) {
+            filter.provider = timeline_provider_->currentText();
+        }
+        if (timeline_channel_ != nullptr && timeline_channel_->currentIndex() > 0) {
+            filter.channel = timeline_channel_->currentText();
+        }
+        if (timeline_period_ != nullptr && timeline_period_->isChecked()) {
+            if (timeline_from_ != nullptr && timeline_from_->date().isValid()) {
+                filter.from = timeline_from_->date();
+            }
+            if (timeline_to_ != nullptr && timeline_to_->date().isValid()) {
+                filter.to = timeline_to_->date();
+            }
+        }
+        if (timeline_cloud_only_ != nullptr && timeline_cloud_only_->isChecked()) {
+            filter.cloud_only = true;
+        }
+        return filter;
+    }
+
+    // Repovoa os combos com o que foi carregado, preservando a escolha do operador
+    // quando ela ainda existe no caso novo.
+    void reload_timeline_filter_options() {
+        if (timeline_provider_ == nullptr) return;
+        const QString keep_provider = timeline_provider_->currentIndex() > 0
+                                          ? timeline_provider_->currentText()
+                                          : QString();
+        const QSignalBlocker block_provider(timeline_provider_);
+        const QSignalBlocker block_channel(timeline_channel_);
+        timeline_provider_->clear();
+        timeline_provider_->addItem(QStringLiteral("Todos os provedores"));
+        timeline_provider_->addItems(olho::ui::timeline_providers(timeline_result_.events));
+        if (!keep_provider.isEmpty()) {
+            const int restored = timeline_provider_->findText(keep_provider);
+            if (restored > 0) timeline_provider_->setCurrentIndex(restored);
+        }
+        if (timeline_channel_ != nullptr) {
+            const QString keep_channel = timeline_channel_->currentIndex() > 0
+                                             ? timeline_channel_->currentText()
+                                             : QString();
+            const QString provider = timeline_provider_->currentIndex() > 0
+                                         ? timeline_provider_->currentText()
+                                         : QString();
+            timeline_channel_->clear();
+            timeline_channel_->addItem(QStringLiteral("Todos os canais"));
+            timeline_channel_->addItems(
+                olho::ui::timeline_channels(timeline_result_.events, provider));
+            if (!keep_channel.isEmpty()) {
+                const int restored = timeline_channel_->findText(keep_channel);
+                if (restored > 0) timeline_channel_->setCurrentIndex(restored);
+            }
+        }
+        // Periodo padrao = o proprio caso, enquanto o operador nao ligou o filtro;
+        // depois de ligado a data e dele.
+        const bool period_on = timeline_period_ != nullptr && timeline_period_->isChecked();
+        const QDate first_day = day_from_stamp(timeline_result_.first_stamp);
+        const QDate last_day = day_from_stamp(timeline_result_.last_stamp);
+        if (!period_on && first_day.isValid() && timeline_from_ != nullptr) {
+            const QSignalBlocker block_from(timeline_from_);
+            timeline_from_->setDate(first_day);
+        }
+        if (!period_on && last_day.isValid() && timeline_to_ != nullptr) {
+            const QSignalBlocker block_to(timeline_to_);
+            timeline_to_->setDate(last_day);
+        }
+    }
+
+    void apply_timeline_filter() {
+        if (timeline_view_ == nullptr) return;
+        const olho::ui::timeline_filter filter = current_timeline_filter();
+        const olho::ui::timeline_filtered kept =
+            olho::ui::filter_timeline(timeline_result_.events, filter);
+        QVector<QDateTime> times;
+        QStringList labels;
+        // Amostragem so para desenhar: com 5 mil eventos o grafico vira uma mancha
+        // solida e o rotulo nao cabe. A contagem abaixo e sempre a real.
+        const int stride = qMax(1, kept.events.size() / 80);
+        for (int i = 0; i < kept.events.size(); i += stride) {
+            times.append(kept.events.at(i).when);
+            labels.append(kept.events.at(i).provider.left(22) + " #" +
+                          kept.events.at(i).event_id);
+        }
+        timeline_view_->set_events(times, labels);
+        // Grafico vazio por filtro nao e a mesma coisa que caso sem timeline.
+        if (kept.matched == 0 && !timeline_result_.events.isEmpty()) {
+            timeline_view_->set_empty_text(
+                QStringLiteral("O filtro escondeu os %1 eventos carregados")
+                    .arg(timeline_result_.events.size()),
+                QStringLiteral("Nada passou pelo filtro atual. Limpe o filtro (x) ou amplie o "
+                               "periodo. A aba Tabela e o painel Detalhes continuam mostrando "
+                               "a janela inteira carregada."));
+        } else {
+            timeline_view_->set_empty_text(
+                QStringLiteral("Nenhum evento de timeline neste caso"),
+                QStringLiteral("A aba Tabela lista os arquivos do caso e o laudo carrega a "
+                               "evidencia. A linha do tempo aparece quando existe timeline.jsonl "
+                               "em qualquer pasta do caso (raiz, recovered/, social/ ou cloud/)."));
+        }
+        if (timeline_filter_count_ == nullptr) return;
+        const qint64 loaded = timeline_result_.events.size();
+        // A barra tem pouco espaco: nela vai o numero curto e o texto completo fica
+        // no tooltip (e no log do modo evidencia). Numero cortado na tela nao serve
+        // de medida, e "500 de 2519" sem contexto se le como 500 eventos no caso.
+        QString short_text;
+        QString long_text;
+        if (filter.empty()) {
+            short_text = loaded == 0 ? QStringLiteral("timeline vazia")
+                                     : QStringLiteral("%1 eventos").arg(loaded);
+            long_text = loaded == 0
+                            ? QStringLiteral("grafico: timeline vazia")
+                            : QStringLiteral("grafico: %1 eventos, sem filtro").arg(loaded);
+        } else {
+            short_text = QStringLiteral("%1 de %2").arg(kept.matched).arg(loaded);
+            long_text = QStringLiteral("grafico: %1 de %2 carregados").arg(kept.matched).arg(loaded);
+            if (kept.no_time > 0) {
+                long_text += QStringLiteral("  /  %1 sem data fora do periodo").arg(kept.no_time);
+            }
+            long_text += QStringLiteral(" (filtro esconde %1)").arg(kept.hidden);
+        }
+        timeline_filter_count_->setText(short_text);
+        timeline_filter_count_->setToolTip(long_text);
+        // No modo evidencia a barra fala: o numero que a foto mostra pode ser
+        // conferido no log, sem OCR do PNG.
+        if (g_gui_evidence_mode) {
+            std::printf("barra: %s\n", qUtf8Printable(long_text));
+            std::fflush(stdout);
+        }
+    }
+
+    void reset_timeline_filter() {
+        if (timeline_provider_ != nullptr) {
+            const QSignalBlocker block(timeline_provider_);
+            timeline_provider_->setCurrentIndex(0);
+        }
+        if (timeline_channel_ != nullptr) {
+            const QSignalBlocker block(timeline_channel_);
+            timeline_channel_->setCurrentIndex(0);
+        }
+        if (timeline_period_ != nullptr) {
+            const QSignalBlocker block(timeline_period_);
+            timeline_period_->setChecked(false);
+        }
+        if (timeline_from_ != nullptr) timeline_from_->setEnabled(false);
+        if (timeline_to_ != nullptr) timeline_to_->setEnabled(false);
+        if (timeline_cloud_only_ != nullptr) {
+            const QSignalBlocker block(timeline_cloud_only_);
+            timeline_cloud_only_->setChecked(false);
+        }
+        reload_timeline_filter_options();
+        apply_timeline_filter();
+    }
+
+    // Aplica o --filter do modo evidencia nos MESMOS widgets que o operador usa,
+    // para a foto provar o caminho real e nao um estado paralelo de teste.
+    void apply_filter_spec(const QString& spec) {
+        if (spec.isEmpty()) return;
+        for (const QString& part : spec.split(';', Qt::SkipEmptyParts)) {
+            const int eq = part.indexOf('=');
+            if (eq <= 0) continue;
+            const QString key = part.left(eq).trimmed().toLower();
+            const QString value = part.mid(eq + 1).trimmed();
+            if (key == "provider" && timeline_provider_ != nullptr) {
+                const int index = timeline_provider_->findText(value);
+                if (index > 0) timeline_provider_->setCurrentIndex(index);
+            } else if (key == "channel" && timeline_channel_ != nullptr) {
+                const int index = timeline_channel_->findText(value);
+                if (index > 0) timeline_channel_->setCurrentIndex(index);
+            } else if (key == "from" || key == "to") {
+                const QDate day = QDate::fromString(value, QStringLiteral("yyyy-MM-dd"));
+                if (!day.isValid()) continue;
+                if (timeline_period_ != nullptr) timeline_period_->setChecked(true);
+                if (key == "from" && timeline_from_ != nullptr) timeline_from_->setDate(day);
+                if (key == "to" && timeline_to_ != nullptr) timeline_to_->setDate(day);
+            } else if (key == "cloud" && timeline_cloud_only_ != nullptr) {
+                const bool on = !(value == "0" ||
+                                  value.compare(QStringLiteral("false"), Qt::CaseInsensitive) == 0);
+                timeline_cloud_only_->setChecked(on);
+            }
+        }
+        apply_timeline_filter();
+        std::printf("filtro: %s  ->  %s\n", qUtf8Printable(spec),
+                    timeline_filter_count_ != nullptr
+                        ? qUtf8Printable(timeline_filter_count_->text())
+                        : "-");
+        std::fflush(stdout);
+    }
+
     // Pede a carga da Timeline. Roda numa thread de trabalho: o corte por data
     // custa ~1 s em 200 mil eventos e a janela nao pode congelar por isso.
     // Se ja houver uma carga rodando, marca pendente em vez de bloquear ou perder
@@ -5583,8 +5919,6 @@ private:
     void apply_timeline(const QString& case_id) {
         if (!table_model_) return;
         const olho::ui::timeline_load& timeline = timeline_result_;
-        QVector<QDateTime> times;
-        QStringList labels;
         const int cloud_files = timeline.cloud_files;
         for (const olho::ui::timeline_event& event : timeline.events) {
             QList<QStandardItem*> items;
@@ -5601,8 +5935,6 @@ private:
             table_model_->appendRow(items);
             row_raw_.append(event.raw.toUtf8());
             row_time_.append(event.when);
-            times.append(event.when);
-            labels.append(event.provider.left(22) + " #" + event.event_id);
         }
 
         if (table_count_) {
@@ -5619,15 +5951,16 @@ private:
                       .arg(timeline.events.size())
                       .arg(cloud_files));
         }
-        if (timeline_view_) {
-            QVector<QDateTime> sampled_times;
-            QStringList sampled_labels;
-            const int stride = qMax(1, times.size() / 80);
-            for (int i = 0; i < times.size(); i += stride) {
-                sampled_times.append(times[i]);
-                sampled_labels.append(labels.value(i));
-            }
-            timeline_view_->set_events(sampled_times, sampled_labels);
+        // Combos e grafico saem do resultado recem-carregado. O filtro nao rele o
+        // caso: ele reprojeta o que ja esta em timeline_result_.
+        reload_timeline_filter_options();
+        apply_timeline_filter();
+        // --filter do modo evidencia entra AQUI e nao no setup: neste ponto os
+        // combos ja conhecem os provedores do caso recem-carregado.
+        if (!pending_filter_spec_.isEmpty()) {
+            const QString spec = pending_filter_spec_;
+            pending_filter_spec_.clear();
+            apply_filter_spec(spec);
         }
 
         append(QString("[case] timeline: %1 de %2 evento(s) em %3 arquivo(s), %4 cloud\n")
@@ -6106,6 +6439,7 @@ int run_gui(HINSTANCE) {
     QString shot_path;
     QString shot_case;
     QString shot_tab;
+    QString shot_filter;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -6120,6 +6454,8 @@ int run_gui(HINSTANCE) {
                     shot_case = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--tab" && has_value) {
                     shot_tab = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--filter" && has_value) {
+                    shot_filter = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--delay" && has_value) {
                     shot_delay_ms = QString::fromWCharArray(list[++i]).toInt();
                 }
@@ -6161,7 +6497,8 @@ int run_gui(HINSTANCE) {
     // argumentos (o caso mais recente de cases/) e ele roda no primeiro giro do
     // event loop. Chamar o setup agora faria o caso pedido ser sobrescrito pelo
     // automatico - foi exatamente o que aconteceu no primeiro teste.
-    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab]() {
+    QTimer::singleShot(0, &window, [&window, shot_case, shot_tab, shot_filter]() {
+        window.set_pending_filter_spec(shot_filter);
         window.screenshot_setup(shot_case, shot_tab);
     });
 

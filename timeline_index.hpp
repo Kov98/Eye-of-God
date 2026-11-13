@@ -72,6 +72,41 @@ timeline_load load_case_timeline(const QString& case_dir, int max_entries,
                                  timeline_cap_mode mode = timeline_cap_mode::first_in_file_order,
                                  const timeline_progress_fn& progress = {});
 
+// --- filtro de apresentacao ------------------------------------------------
+// Filtrar e decisao de apresentacao, nao de coleta: o dado bruto fica intacto em
+// timeline_load e o filtro so reprojeta o que ja foi carregado. Por isso ele mora
+// aqui e nao no laco de leitura - trocar de provedor nao pode custar outra varredura
+// de 200 mil linhas.
+//
+// O QUE O FILTRO ESCONDE CONTINUA SENDO CONTADO. Um grafico filtrado sem
+// denominador e uma afirmacao mais forte do que o dado: diz "o caso tem 12 eventos"
+// quando ele tem 243. A barra da Timeline mostra "12 de 243 carregados", e evento
+// sem data - que a janela de periodo nao consegue classificar - sai em campo proprio.
+struct timeline_filter {
+    QString provider;      // vazio = todos
+    QString channel;       // vazio = todos
+    QDate from;            // invalida = sem piso
+    QDate to;              // invalida = sem teto (inclusivo)
+    bool cloud_only = false;
+
+    bool empty() const;
+    bool has_time_window() const;
+};
+
+struct timeline_filtered {
+    QVector<timeline_event> events;  // mesma ordem da entrada
+    qint64 matched = 0;              // quantos passaram
+    qint64 hidden = 0;               // quantos o filtro tirou
+    qint64 no_time = 0;              // sem data, com janela de periodo ligada
+};
+
+bool timeline_event_matches(const timeline_event& event, const timeline_filter& filter);
+timeline_filtered filter_timeline(const QVector<timeline_event>& events,
+                                  const timeline_filter& filter);
+// Valores para os combos da barra: unicos, ordenados, ignorando maiusculas.
+QStringList timeline_providers(const QVector<timeline_event>& events);
+QStringList timeline_channels(const QVector<timeline_event>& events, const QString& provider);
+
 // Limite usado pela GUI. Exportado para o teste e o log falarem do mesmo numero.
 constexpr int kTimelineDisplayCap = 5000;
 

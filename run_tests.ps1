@@ -344,7 +344,7 @@ if (-not (Test-Path $shotExe)) {
 
 Write-Host ""
 Write-Host "=== 4. suites dos modulos ===" -ForegroundColor Cyan
-foreach ($s in @(@{n="iOS backup+keybag"; p=".oracle_ios\run_all.ps1"}, @{n="Android ADB+.ab"; p=".oracle_android\run_oracle.ps1"}, @{n="Galeria+EXIF"; p=".oracle_gallery\run_all.ps1"}, @{n="Timeline do caso"; p=".oracle_timeline\run_all.ps1"}, @{n="Rust formatguard"; p=".oracle_rust\run.ps1"}, @{n="Export social (DYI)"; p=".oracle_social\run_all.ps1"})) {
+foreach ($s in @(@{n="iOS backup+keybag"; p=".oracle_ios\run_all.ps1"}, @{n="Android ADB+.ab"; p=".oracle_android\run_oracle.ps1"}, @{n="Galeria+EXIF"; p=".oracle_gallery\run_all.ps1"}, @{n="Timeline do caso"; p=".oracle_timeline\run_all.ps1"}, @{n="Rust formatguard"; p=".oracle_rust\run.ps1"}, @{n="Export social (DYI)"; p=".oracle_social\run_all.ps1"}, @{n="Filtro da Timeline (GUI x contagem independente)"; p=".oracle_crash\verify_timeline_filter.ps1"})) {
     if (-not (Test-Path $s.p)) { Stage $s.n $false "runner ausente"; continue }
     $out = powershell -NoProfile -ExecutionPolicy Bypass -File $s.p 2>&1
     $code = $LASTEXITCODE

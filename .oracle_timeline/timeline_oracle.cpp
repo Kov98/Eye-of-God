@@ -208,6 +208,112 @@ int main(int argc, char** argv) {
     check("caso inexistente devolve vazio",
           empty.events.isEmpty() && empty.total == 0 && empty.files == 0);
 
+    // 9. Filtro de apresentacao da barra da Timeline. O que ele esconde tem que
+    //    continuar contado: matched + hidden fecha com o tamanho da entrada.
+    {
+        auto make = [](const QString& stamp, const QString& provider,
+                       const QString& channel, bool cloud) {
+            olho::ui::timeline_event event;
+            event.timestamp_text = stamp;
+            if (!stamp.isEmpty()) {
+                event.when = QDateTime::fromString(stamp, Qt::ISODateWithMs);
+                if (!event.when.isValid()) event.when = QDateTime::fromString(stamp, Qt::ISODate);
+                if (event.when.isValid()) event.when = event.when.toLocalTime();
+            }
+            event.provider = provider;
+            event.channel = channel;
+            event.from_cloud = cloud;
+            event.event_id = provider + QLatin1Char('-') + stamp;
+            return event;
+        };
+        QVector<olho::ui::timeline_event> sample;
+        sample << make(QStringLiteral("2023-11-14T10:00:00.000Z"), "WhatsApp",
+                       "WhatsApp/Messages", false);
+        sample << make(QStringLiteral("2023-11-15T11:30:00.000Z"), "WhatsApp",
+                       "WhatsApp/Calls", false);
+        sample << make(QStringLiteral("2023-11-20T09:00:00.000Z"), "Telegram",
+                       "Telegram/Messages", true);
+        sample << make(QString(), "Telegram", "Telegram/Deleted", false);
+
+        const olho::ui::timeline_filter none;
+        check("filtro vazio e declarado vazio", none.empty() && !none.has_time_window());
+        const olho::ui::timeline_filtered all = olho::ui::filter_timeline(sample, none);
+        check("sem filtro passa tudo", all.matched == sample.size() && all.hidden == 0,
+              QStringLiteral("passaram=%1").arg(all.matched));
+        check("sem filtro preserva a ordem",
+              all.events.size() == sample.size() &&
+                  all.events.value(0).provider == QStringLiteral("WhatsApp") &&
+                  all.events.value(3).channel == QStringLiteral("Telegram/Deleted"));
+
+        olho::ui::timeline_filter by_provider;
+        by_provider.provider = QStringLiteral("whatsapp");  // caixa diferente de proposito
+        const olho::ui::timeline_filtered provider_kept =
+            olho::ui::filter_timeline(sample, by_provider);
+        check("provedor ignora maiusculas", provider_kept.matched == 2,
+              QStringLiteral("passaram=%1").arg(provider_kept.matched));
+        check("provedor conta o que escondeu",
+              provider_kept.hidden == sample.size() - provider_kept.matched);
+
+        olho::ui::timeline_filter by_channel;
+        by_channel.channel = QStringLiteral("WhatsApp/Calls");
+        check("canal filtra o canal", olho::ui::filter_timeline(sample, by_channel).matched == 1);
+
+        olho::ui::timeline_filter cloud_only;
+        cloud_only.cloud_only = true;
+        const olho::ui::timeline_filtered cloud_kept =
+            olho::ui::filter_timeline(sample, cloud_only);
+        check("so nuvem pega o evento de cloud",
+              cloud_kept.matched == 1 &&
+                  cloud_kept.events.value(0).provider == QStringLiteral("Telegram"));
+
+        olho::ui::timeline_filter same_day;
+        same_day.from = QDate(2023, 11, 15);
+        same_day.to = QDate(2023, 11, 15);
+        check("janela de um dia inclui as bordas",
+              olho::ui::filter_timeline(sample, same_day).matched == 1);
+
+        olho::ui::timeline_filter window;
+        window.from = QDate(2023, 11, 14);
+        window.to = QDate(2023, 11, 16);
+        const olho::ui::timeline_filtered window_kept =
+            olho::ui::filter_timeline(sample, window);
+        check("janela exclui o que esta fora", window_kept.matched == 2);
+        check("evento sem data fica fora da janela e e contado",
+              window_kept.no_time == 1 && window_kept.hidden == 2,
+              QStringLiteral("sem data=%1 escondidos=%2")
+                  .arg(window_kept.no_time)
+                  .arg(window_kept.hidden));
+
+        // Sem janela de periodo nao existe criterio para descartar evento sem data.
+        olho::ui::timeline_filter provider_only;
+        provider_only.provider = QStringLiteral("Telegram");
+        const olho::ui::timeline_filtered telegram =
+            olho::ui::filter_timeline(sample, provider_only);
+        check("sem janela o evento sem data continua visivel",
+              telegram.matched == 2 && telegram.no_time == 0);
+
+        olho::ui::timeline_filter combined;
+        combined.provider = QStringLiteral("Telegram");
+        combined.cloud_only = true;
+        combined.from = QDate(2023, 11, 1);
+        combined.to = QDate(2023, 11, 30);
+        check("filtros combinados sao E, nao OU",
+              olho::ui::filter_timeline(sample, combined).matched == 1);
+
+        const QStringList providers = olho::ui::timeline_providers(sample);
+        check("lista de provedores e unica e ordenada",
+              providers == QStringList{QStringLiteral("Telegram"), QStringLiteral("WhatsApp")},
+              providers.join(","));
+        check("canais respeitam o provedor escolhido",
+              olho::ui::timeline_channels(sample, QStringLiteral("WhatsApp")).size() == 2);
+        check("canais sem provedor trazem todos",
+              olho::ui::timeline_channels(sample, QString()).size() == 4);
+        const olho::ui::timeline_filtered nothing =
+            olho::ui::filter_timeline(QVector<olho::ui::timeline_event>(), none);
+        check("entrada vazia devolve zeros",
+              nothing.matched == 0 && nothing.hidden == 0 && nothing.events.isEmpty());
+    }
+
     QTextStream(stdout) << QStringLiteral("\ntimeline_oracle: %1 verificacoes, %2 falha(s)\n")
                                .arg(checks)
                                .arg(failures);
