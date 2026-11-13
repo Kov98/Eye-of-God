@@ -2,13 +2,10 @@
 #include "timeline_export.hpp"
 
 #include <QCryptographicHash>
-#include <QDateTime>
 #include <QDir>
-#include <QFile>
-#include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QSaveFile>
+
+#include "export_publish.hpp"
 
 namespace olho::ui {
 namespace {
@@ -88,66 +85,28 @@ QByteArray build_jsonl(const QVector<timeline_event>& events) {
     return out;
 }
 
-// Publicacao comum: .tmp + rename (export interrompido nao deixa arquivo meio
-// escrito com nome final) e sidecar de procedencia ao lado.
+// A publicacao (QSaveFile + sidecar) mora em export_publish.cpp, compartilhada com
+// o export da Galeria: uma implementacao so, um so lugar para corrigir.
 timeline_export_result write_export(const QString& path, const QByteArray& bytes,
                                    const QString& format, const QString& hash_key,
                                    qint64 rows, const timeline_filter& filter,
                                    const QString& case_dir, const QString& payload_note) {
+    QJsonObject extra;
+    extra.insert(QStringLiteral("case_dir"), QDir(case_dir).absolutePath());
+    extra.insert(QStringLiteral("filter"), filter_text(filter));
+    extra.insert(QStringLiteral("scope"),
+                 QStringLiteral("janela carregada da Timeline (nao o banco do caso)"));
+    extra.insert(QStringLiteral("payload"), payload_note);
+    const export_result published =
+        publish_export(path, bytes, format, hash_key, rows, extra);
     timeline_export_result result;
-    result.csv_path = path;   // o campo serve para os dois formatos
-    result.meta_path = path + QStringLiteral(".meta.json");
-    if (path.isEmpty()) {
-        result.error = QStringLiteral("caminho vazio");
-        return result;
-    }
-    result.sha256 = sha256_hex(bytes);
-    result.bytes = bytes.size();
-    result.rows = rows;
-
-    // QSaveFile: grava num temporario e troca no commit. Antes era remove+rename,
-    // que tem uma janela em que o arquivo NAO existe - e um export anterior
-    // sumiria se o processo morresse ali.
-    QSaveFile payload(path);
-    if (!payload.open(QIODevice::WriteOnly)) {
-        result.error = QStringLiteral("nao consegui escrever ") + path;
-        return result;
-    }
-    if (payload.write(bytes) != bytes.size()) {
-        payload.cancelWriting();
-        result.error = QStringLiteral("escrita incompleta em ") + path;
-        return result;
-    }
-    if (!payload.commit()) {
-        result.error = QStringLiteral("nao consegui publicar ") + path;
-        return result;
-    }
-
-    QJsonObject meta;
-    meta.insert(QStringLiteral("format"), format);
-    meta.insert(QStringLiteral("generated_at_utc"),
-                QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
-    meta.insert(QStringLiteral("case_dir"), QDir(case_dir).absolutePath());
-    meta.insert(QStringLiteral("rows"), static_cast<double>(result.rows));
-    meta.insert(QStringLiteral("bytes"), static_cast<double>(result.bytes));
-    meta.insert(hash_key, result.sha256);
-    meta.insert(QStringLiteral("filter"), filter_text(filter));
-    meta.insert(QStringLiteral("scope"),
-                QStringLiteral("janela carregada da Timeline (nao o banco do caso)"));
-    meta.insert(QStringLiteral("payload"), payload_note);
-    const QByteArray meta_bytes = QJsonDocument(meta).toJson(QJsonDocument::Indented);
-    QSaveFile meta_file(result.meta_path);
-    if (!meta_file.open(QIODevice::WriteOnly)) {
-        result.error = QStringLiteral("arquivo escrito, mas o sidecar falhou: ") + result.meta_path;
-        return result;
-    }
-    meta_file.write(meta_bytes);
-    if (!meta_file.commit()) {
-        result.error = QStringLiteral("sidecar nao pode ser publicado: ") + result.meta_path;
-        return result;
-    }
-
-    result.ok = true;
+    result.ok = published.ok;
+    result.error = published.error;
+    result.csv_path = published.path;   // o campo serve para os dois formatos
+    result.meta_path = published.meta_path;
+    result.rows = published.rows;
+    result.bytes = published.bytes;
+    result.sha256 = published.sha256;
     return result;
 }
 

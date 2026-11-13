@@ -49,16 +49,19 @@ function Compile([string]$label, [string[]]$arguments) {
 }
 
 $gallery = Join-Path $root 'galleryview.cpp'
+# A galeria usa export_publish (manifesto da grade): o modulo entra em todo alvo
+# que liga galleryview.cpp, senao o link quebra com publish_export indefinido.
+$exportPublish = Join-Path $root 'export_publish.cpp'
 $oracle = Join-Path $here 'exif_oracle.cpp'
 $harness = Join-Path $here 'harness_main.cpp'
 $genbase = Join-Path $here 'gen_base.cpp'
 
 Compile 'galleryview.o' ($common + @('-fPIC', '-c', $gallery, '-o', (Join-Path $build 'galleryview.o')) + $qtFlags)
-Compile 'exif_oracle.exe' ($common + @($oracle, $gallery, '-o', (Join-Path $build 'exif_oracle.exe')) + $qtFlags)
-Compile 'harness.exe' ($common + @('-mwindows', $harness, $gallery, '-o', (Join-Path $build 'harness.exe')) + $qtFlags)
+Compile 'exif_oracle.exe' ($common + @($oracle, $gallery, $exportPublish, '-o', (Join-Path $build 'exif_oracle.exe')) + $qtFlags)
+Compile 'harness.exe' ($common + @('-mwindows', $harness, $gallery, $exportPublish, '-o', (Join-Path $build 'harness.exe')) + $qtFlags)
 Compile 'gen_base.exe' ($common + @($genbase, '-o', (Join-Path $build 'gen_base.exe')) + $qtFlags)
-Compile 'view_once_oracle.exe' ($common + @((Join-Path $here 'view_once_oracle.cpp'), $gallery, '-o', (Join-Path $build 'view_once_oracle.exe')) + $qtFlags)
-Compile 'scan_bench.exe' ($common + @((Join-Path $here 'scan_bench.cpp'), $gallery, '-o', (Join-Path $build 'scan_bench.exe')) + $qtFlags + @('-lpsapi'))
+Compile 'view_once_oracle.exe' ($common + @((Join-Path $here 'view_once_oracle.cpp'), $gallery, $exportPublish, '-o', (Join-Path $build 'view_once_oracle.exe')) + $qtFlags)
+Compile 'scan_bench.exe' ($common + @((Join-Path $here 'scan_bench.cpp'), $gallery, $exportPublish, '-o', (Join-Path $build 'scan_bench.exe')) + $qtFlags + @('-lpsapi'))
 
 Write-Host ''
 if ($script:failed.Count -gt 0) { throw ("build failed: " + ($script:failed -join ', ')) }

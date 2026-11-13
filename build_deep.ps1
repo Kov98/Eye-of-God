@@ -136,6 +136,7 @@ $guiSources = @(
     (Join-Path $root 'galleryview.cpp'),
     (Join-Path $root 'timeline_index.cpp'),
     (Join-Path $root 'timeline_export.cpp'),
+    (Join-Path $root 'export_publish.cpp'),
     (Join-Path $root 'ios_keybag.cpp'),
     (Join-Path $root 'ios_backup.cpp'),
     (Join-Path $root 'android_adb.cpp'),

@@ -2608,4 +2608,65 @@ bool GalleryView::item_view_once(int index) const {
     return d_->items.at(index).view_once;
 }
 
+export_result GalleryView::export_manifest_csv(const QString& path) {
+    export_result result;
+    if (!d_) {
+        result.error = QStringLiteral("galeria nao inicializada");
+        return result;
+    }
+    // Mesma regra de CSV do resto do produto (RFC 4180): sempre entre aspas.
+    const auto field = [](QByteArray& out, const QString& value) {
+        QByteArray bytes = value.toUtf8();
+        bytes.replace('"', "\"\"");
+        out.append('"');
+        out.append(bytes);
+        out.append('"');
+    };
+    QByteArray out;
+    out.append("\xEF\xBB\xBF", 3);
+    out.append("\"arquivo\",\"caminho\",\"bytes\",\"sha256\",\"tipo\",\"extensao\","
+               "\"exif_data\",\"view_once\"\r\n");
+    qint64 rows = 0;
+    for (int index : d_->visible) {
+        MediaItem& item = d_->items[index];
+        if (item.sha256.isEmpty()) item.sha256 = file_sha256(item.path);
+        field(out, item.name);
+        out.append(',');
+        field(out, item.rel);
+        out.append(',');
+        field(out, QString::number(item.bytes));
+        out.append(',');
+        field(out, item.sha256);
+        out.append(',');
+        field(out, kind_label(item.kind));
+        out.append(',');
+        field(out, item.suffix);
+        out.append(',');
+        field(out, item.exif.date_time_original);
+        out.append(',');
+        field(out, item.view_once ? QStringLiteral("1") : QStringLiteral("0"));
+        out.append("\r\n");
+        ++rows;
+    }
+    QJsonObject extra;
+    extra.insert(QStringLiteral("section"), QStringLiteral("galeria"));
+    extra.insert(QStringLiteral("directory"), QDir(d_->dir).absolutePath());
+    const QString kind = d_->kind_filter != nullptr ? d_->kind_filter->currentText() : QString();
+    const QString ext = d_->ext_filter != nullptr ? d_->ext_filter->currentText() : QString();
+    extra.insert(QStringLiteral("filter"),
+                 QStringLiteral("tipo=%1; extensao=%2; somente ver-uma-vez=%3")
+                     .arg(kind.isEmpty() ? QStringLiteral("todos") : kind,
+                          ext.isEmpty() ? QStringLiteral("todas") : ext,
+                          d_->only_view_once ? QStringLiteral("sim") : QStringLiteral("nao")));
+    extra.insert(QStringLiteral("scope"),
+                 QStringLiteral("grade da Galeria (o que esta na tela) - arquivos como estavam "
+                                "no disco no momento do export"));
+    extra.insert(QStringLiteral("payload"),
+                 QStringLiteral("colunas: arquivo, caminho, bytes, sha256, tipo, extensao, "
+                                "exif_data, view_once"));
+    return publish_export(path, out, QStringLiteral("olho-galeria-csv/1"),
+                          QStringLiteral("sha256_csv"), rows, extra);
+}
+
+
 }  // namespace olho::ui

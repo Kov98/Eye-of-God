@@ -993,6 +993,11 @@ public:
     void set_pending_export_jsonl_path(const QString& path) {
         pending_export_jsonl_path_ = path;
     }
+    // --gallery-dir / --export-gallery do modo evidencia.
+    void set_pending_gallery(const QString& dir, const QString& export_path) {
+        pending_gallery_dir_ = dir;
+        pending_gallery_export_ = export_path;
+    }
     // --click-row do modo evidencia: clica na barra da linha pedida (-1 = ultima).
     void set_pending_click_row(int row) { pending_click_row_ = row; }
     // --drag-rows A B do modo evidencia: arrasta da barra da linha A ate a da B.
@@ -1256,6 +1261,8 @@ private:
     QAction* timeline_export_ = nullptr;
     QString pending_export_path_;   // --export-csv do modo evidencia
     QString pending_export_jsonl_path_;   // --export-jsonl do modo evidencia
+    QString pending_gallery_dir_;         // --gallery-dir do modo evidencia
+    QString pending_gallery_export_;      // --export-gallery do modo evidencia
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
     int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
     int pending_drag_b_ = -2;
@@ -4946,6 +4953,22 @@ private:
             export_filtered_timeline_to(path);
         });
         timeline_export_->setEnabled(true);
+        // Galeria: o manifesto do que a grade mostra, com sha256 de cada arquivo.
+        view->addAction("Galeria: exportar o que esta na tela (CSV)", this, [this]() {
+            if (gallery_view_ == nullptr || gallery_view_->item_count() == 0) {
+                append("[galeria] nenhuma midia carregada; nada a exportar\n");
+                return;
+            }
+            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString suggested = QDir(base).filePath(
+                QStringLiteral("galeria-manifesto-%1.csv")
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Exportar manifesto da Galeria"), suggested,
+                QStringLiteral("CSV (*.csv)"));
+            if (path.isEmpty()) return;
+            export_gallery_manifest(path);
+        });
         // JSONL: a linha original, para quem vai reprocessar. O CSV e para planilha
         // e laudo; este e para ferramenta - e por ser a linha crua da para conferir
         // contra a fonte linha a linha.
@@ -6235,6 +6258,29 @@ private:
         std::fflush(stdout);
     }
 
+    /* Export da grade da Galeria. Mesmo padrao do export da Timeline: publicacao
+       atomica, sha256 e sidecar de procedencia (export_publish.cpp). */
+    void export_gallery_manifest(const QString& path) {
+        if (gallery_view_ == nullptr) return;
+        const olho::ui::export_result result = gallery_view_->export_manifest_csv(path);
+        if (!result.ok) {
+            append("[galeria] export falhou: " + result.error + "\n");
+            std::printf("galeria: FALHOU %s\n", qUtf8Printable(result.error));
+            std::fflush(stdout);
+            return;
+        }
+        append(QString("[galeria] %1 arquivo(s), %2 bytes\n[galeria] csv: %3\n[galeria] meta: %4\n"
+                       "[galeria] sha256: %5\n")
+                   .arg(result.rows)
+                   .arg(result.bytes)
+                   .arg(result.path, result.meta_path, result.sha256));
+        std::printf("galeria: linhas=%lld bytes=%lld sha256=%s arquivo=%s meta=%s\n",
+                    static_cast<long long>(result.rows),
+                    static_cast<long long>(result.bytes), qUtf8Printable(result.sha256),
+                    qUtf8Printable(result.path), qUtf8Printable(result.meta_path));
+        std::fflush(stdout);
+    }
+
     void export_filtered_timeline_to(const QString& path, bool jsonl = false) {
         const olho::ui::timeline_export_result result =
             jsonl ? olho::ui::export_timeline_jsonl(path, timeline_filtered_events_,
@@ -6805,6 +6851,17 @@ QString load_style_sheet() {
 } // namespace
 void MainWindow::screenshot_setup(const QString& case_dir, const QString& tab_name) {
     if (!case_dir.isEmpty()) load_case(case_dir);
+    // Galeria: a pasta pedida vence o autoload do construtor, e a varredura e
+    // drenada antes do export - senao o manifesto sairia com metade dos arquivos.
+    if (!pending_gallery_dir_.isEmpty() && gallery_view_ != nullptr) {
+        gallery_view_->load_directory(pending_gallery_dir_);
+        gallery_view_->run_scan_to_completion();
+    }
+    if (!pending_gallery_export_.isEmpty()) {
+        const QString path = pending_gallery_export_;
+        pending_gallery_export_.clear();
+        export_gallery_manifest(path);
+    }
     if (tab_name.isEmpty() || center_tabs_ == nullptr) return;
     for (int i = 0; i < center_tabs_->count(); ++i) {
         const QString text = center_tabs_->tabText(i);
@@ -6940,6 +6997,8 @@ int run_gui(HINSTANCE) {
     QString shot_filter;
     QString shot_export;
     QString shot_export_jsonl;
+    QString shot_gallery_dir;
+    QString shot_gallery_export;
     int shot_click_row = -2;
     int shot_drag_a = -2;
     int shot_drag_b = -2;
@@ -6963,6 +7022,10 @@ int run_gui(HINSTANCE) {
                     shot_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--export-jsonl" && has_value) {
                     shot_export_jsonl = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--gallery-dir" && has_value) {
+                    shot_gallery_dir = QString::fromWCharArray(list[++i]);
+                } else if (arg == "--export-gallery" && has_value) {
+                    shot_gallery_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--click-row" && has_value) {
                     shot_click_row = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--drag-rows" && i + 2 < count) {
@@ -7011,10 +7074,12 @@ int run_gui(HINSTANCE) {
     // automatico - foi exatamente o que aconteceu no primeiro teste.
     QTimer::singleShot(0, &window,
                        [&window, shot_case, shot_tab, shot_filter, shot_export, shot_export_jsonl,
-                        shot_click_row, shot_drag_a, shot_drag_b]() {
+                        shot_gallery_dir, shot_gallery_export, shot_click_row, shot_drag_a,
+                        shot_drag_b]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_export_jsonl_path(shot_export_jsonl);
+        window.set_pending_gallery(shot_gallery_dir, shot_gallery_export);
         window.set_pending_click_row(shot_click_row);
         window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
         window.screenshot_setup(shot_case, shot_tab);

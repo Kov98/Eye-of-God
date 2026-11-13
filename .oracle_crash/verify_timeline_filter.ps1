@@ -287,6 +287,51 @@ foreach ($alvo in @(0, -1)) {
 }
 
 Write-Host ''
+Write-Host '--- export do manifesto da Galeria (sha256 conferido por arquivo) ---'
+$galeriaFixture = Join-Path $here 'galeria_fixture'
+if (-not (Test-Path $galeriaFixture)) {
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $here 'make_gallery_fixture.ps1')
+}
+$manifesto = Join-Path $dir 'galeria_manifesto.csv'
+Remove-Item $manifesto, ($manifesto + '.meta.json'), ($manifesto + '.tmp') -Force -ErrorAction SilentlyContinue
+$o = Join-Path $dir 'out_galeria.txt'
+$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--gallery-dir', $galeriaFixture, '--export-gallery', $manifesto) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_galeria.txt')
+$log = @(Get-Content $o -ErrorAction SilentlyContinue)
+$linhaGaleria = @($log | Where-Object { $_ -match 'galeria: linhas=' }) | Select-Object -Last 1
+$galeriaOk = ($p.ExitCode -eq 0) -and ($linhaGaleria -match 'linhas=(\d+)')
+if (-not $galeriaOk) { $falhas++ }
+Write-Host ('{0} GUI exportou o manifesto  {1}' -f $(if ($galeriaOk) { '[ok]  ' } else { '[FALHA]' }), $linhaGaleria)
+
+if ($galeriaOk -and (Test-Path $manifesto)) {
+    $linhas = @(Import-Csv -Path $manifesto)
+    $temLinhas = ($linhas.Count -ge 3)
+    if (-not $temLinhas) { $falhas++ }
+    Write-Host ('{0} manifesto com {1} arquivo(s)' -f $(if ($temLinhas) { '[ok]  ' } else { '[FALHA]' }), $linhas.Count)
+
+    # Cada sha256 do manifesto tem que bater com o hash do arquivo no disco.
+    $divergentes = 0
+    $ausentes = 0
+    foreach ($linha in $linhas) {
+        $caminhoArquivo = Join-Path $galeriaFixture $linha.caminho
+        if (-not (Test-Path $caminhoArquivo)) { $ausentes++; continue }
+        $hashDisco = (Get-FileHash -Path $caminhoArquivo -Algorithm SHA256).Hash.ToLower()
+        if ($hashDisco -ne $linha.sha256) { $divergentes++ }
+    }
+    $hashesOk = ($divergentes -eq 0) -and ($ausentes -eq 0)
+    if (-not $hashesOk) { $falhas++ }
+    Write-Host ('{0} sha256 de cada arquivo confere  (divergentes={1} ausentes={2})' -f $(if ($hashesOk) { '[ok]  ' } else { '[FALHA]' }), $divergentes, $ausentes)
+
+    $hashCsv = (Get-FileHash -Path $manifesto -Algorithm SHA256).Hash.ToLower()
+    $metaGaleria = Get-Content -Raw ($manifesto + '.meta.json') | ConvertFrom-Json
+    $sideOk = ($hashCsv -eq $metaGaleria.sha256_csv) -and ($metaGaleria.rows -eq $linhas.Count)
+    if (-not $sideOk) { $falhas++ }
+    Write-Host ('{0} sidecar do manifesto bate  ({1}... / {2} linhas / secao={3})' -f $(if ($sideOk) { '[ok]  ' } else { '[FALHA]' }), $hashCsv.Substring(0, 12), $metaGaleria.rows, $metaGaleria.section)
+} else {
+    $falhas++
+    Write-Host '[FALHA] manifesto da galeria nao foi escrito'
+}
+
+Write-Host ''
 Write-Host '--- laudo cita o recorte e confere o hash dele ---'
 $pdf = Join-Path $dir 'laudo_recorte.pdf'
 $pdfTampered = Join-Path $dir 'laudo_recorte_adulterado.pdf'

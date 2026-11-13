@@ -26,6 +26,7 @@ $arguments = @('-std=c++17', '-O2', '-Wall', '-Wextra', '-I', $root,
                (Join-Path $here 'timeline_oracle.cpp'),
                (Join-Path $root 'timeline_index.cpp'),
                (Join-Path $root 'timeline_export.cpp'),
+               (Join-Path $root 'export_publish.cpp'),
                '-o', $exe) + $qtFlags
 $proc = Start-Process -FilePath $gpp -ArgumentList $arguments -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 $text = ''

@@ -21,6 +21,8 @@
 //   is written to survive truncated or hostile input instead of crashing.
 #pragma once
 
+#include "export_publish.hpp"   // publicacao de export: um caminho so no produto
+
 #include <QDateTime>
 #include <QSize>
 #include <QString>
@@ -131,6 +133,11 @@ public:
     // Opens the nth item of the current (filtered) list in the zoom view and
     // fills the metadata panel. Returns false when the index is out of range.
     bool open_index(int index);
+
+    // Exporta o que a GRADE esta mostrando (lista filtrada) em CSV + sidecar de
+    // procedencia. O sha256 de cada arquivo e calculado aqui quando ainda nao
+    // estava no cache: um manifesto com a coluna vazia nao prova nada.
+    export_result export_manifest_csv(const QString& path);
 
 private:
     struct Impl;
