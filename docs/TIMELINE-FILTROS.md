@@ -33,9 +33,11 @@ roxa no grafico.
    e a janela carregada (teto de exibicao, 5.000 por padrao), nao
    necessariamente o total do caso. O total do caso continua no rotulo da Tabela e
    na linha `[case] timeline: ...` do console.
-6. **Escopo: o grafico.** O filtro age no grafico da Timeline. A aba Tabela e o
-   painel Detalhes seguem mostrando a janela inteira - por isso o texto do
-   contador comeca com `grafico:`.
+6. **Escopo: a linha do tempo.** O filtro age no grafico E na lista da propria
+   aba Timeline (a lista mostra todos os eventos que passaram; o grafico amostra
+   para desenhar). A aba Tabela continua com a janela inteira, porque ela tambem
+   lista artefatos do sistema de arquivos. Selecionar uma linha da lista alimenta o
+   painel Detalhes e o Hex View.
 7. **Grafico vazio tem duas causas, com textos diferentes.** "Nenhum evento de
    timeline neste caso" so aparece quando `timeline.jsonl` nao existe; quando o
    filtro e que escondeu tudo, o cartao diz "O filtro escondeu os 2.519 eventos
@@ -70,7 +72,7 @@ nos mesmos widgets (nao existe caminho paralelo de teste):
 ```
 
 Chaves aceitas: `provider`, `channel`, `from`, `to` (`yyyy-MM-dd`), `cloud`
-(`1`/`0`). O log imprime `barra: grafico: 500 de 2519 carregados (filtro esconde 2019)`.
+(`1`/`0`). O log imprime `barra: timeline: 500 de 2519 carregados (filtro esconde 2019)`.
 
 ## Limites conhecidos
 

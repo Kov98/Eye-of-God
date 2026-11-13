@@ -1118,6 +1118,12 @@ private:
     QDateEdit* timeline_to_ = nullptr;
     QCheckBox* timeline_cloud_only_ = nullptr;
     QLabel* timeline_filter_count_ = nullptr;
+    // Lista propria da Timeline: o filtro vale no grafico E nesta lista. A tabela
+    // generica da aba Tabela continua com a janela inteira, porque ela tambem
+    // lista artefatos do sistema de arquivos.
+    QTableView* timeline_list_ = nullptr;
+    QStandardItemModel* timeline_list_model_ = nullptr;
+    QVector<olho::ui::timeline_event> timeline_filtered_events_;
     QString pending_filter_spec_;   // --filter do modo evidencia, aplicado na carga
     QTimer* timeline_timer_ = nullptr;
     // Progresso da carga: o worker escreve, o timer le. Um atomico por bloco de
@@ -4237,17 +4243,19 @@ private:
         return page;
     }
 
-    void update_details(int row) {
+    /* Um unico lugar preenche o painel Detalhes. A tabela generica e a lista da
+       Timeline chegam por caminhos diferentes, mas tem que mostrar a MESMA ficha:
+       duas copias divergiriam na primeira correcao. */
+    void fill_details(const QString& name, const QString& path, const QByteArray& raw,
+                      const QDateTime& when, const QString& status, const QString& type,
+                      const QString& offset_text) {
         if (details_name_ == nullptr) return;
-        if (row < 0 || row >= table_model_->rowCount()) return;
-        const QByteArray raw = row_raw_.value(row);
-        const QDateTime when = row_time_.value(row);
-        details_name_->setText(table_model_->item(row, 0)->text());
-        details_path_->setText(table_model_->item(row, 1)->text());
+        details_name_->setText(name);
+        details_path_->setText(path);
         details_size_->setText(QString("%1 bytes").arg(raw.size()));
-        details_status_->setText(table_model_->item(row, 4)->text());
-        details_type_->setText(raw.size() > 0 ? "Evento EVTX" : "Artefato");
-        details_offset_->setText(QString("linha %1").arg(row + 1));
+        details_status_->setText(status);
+        details_type_->setText(type);
+        details_offset_->setText(offset_text);
         details_created_->setText(when.isValid() ? when.toString("yyyy-MM-dd HH:mm:ss") : "-");
         details_modified_->setText(when.isValid() ? when.toString("yyyy-MM-dd HH:mm:ss") : "-");
         details_confidence_->setText(raw.size() > 0 ? "Alta (coleta)" : "Media");
@@ -4263,6 +4271,18 @@ private:
         details_hash_->setToolTip(hash);
         refresh_details_summary();
         apply_details_filter();
+    }
+
+    void update_details(int row) {
+        if (details_name_ == nullptr) return;
+        if (row < 0 || row >= table_model_->rowCount()) return;
+        const QByteArray raw = row_raw_.value(row);
+        fill_details(table_model_->item(row, 0)->text(),
+                     table_model_->item(row, 1)->text(), raw, row_time_.value(row),
+                     table_model_->item(row, 4)->text(),
+                     raw.size() > 0 ? QStringLiteral("Evento EVTX")
+                                    : QStringLiteral("Artefato"),
+                     QStringLiteral("linha %1").arg(row + 1));
     }
     QWidget* build_details_panel() {
         auto* shell = new QWidget;
@@ -5623,7 +5643,64 @@ private:
         outer->addWidget(bar);
 
         timeline_view_ = new TimelineView(page);
-        outer->addWidget(timeline_view_, 1);
+
+        // Lista da propria Timeline. Sem ela o filtro so mudava o desenho e o
+        // operador nao tinha onde ler o evento - a aba Tabela e generica e mostra
+        // outra coisa.
+        timeline_list_model_ = new QStandardItemModel(0, 5, this);
+        timeline_list_model_->setHorizontalHeaderLabels(
+            {"QUANDO", "PROVEDOR", "CANAL", "ID", "BYTES"});
+        timeline_list_ = new HoverTableView;
+        timeline_list_->setObjectName("timelineGrid");
+        timeline_list_->setModel(timeline_list_model_);
+        timeline_list_->setSortingEnabled(false);
+        timeline_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
+        timeline_list_->setSelectionMode(QAbstractItemView::SingleSelection);
+        timeline_list_->setAlternatingRowColors(true);
+        timeline_list_->setShowGrid(false);
+        timeline_list_->setWordWrap(false);
+        timeline_list_->verticalHeader()->setVisible(false);
+        timeline_list_->verticalHeader()->setDefaultSectionSize(24);
+        timeline_list_->horizontalHeader()->setStretchLastSection(false);
+        timeline_list_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+        timeline_list_->horizontalHeader()->resizeSection(0, 150);
+        timeline_list_->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+        timeline_list_->horizontalHeader()->resizeSection(1, 130);
+        timeline_list_->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+        timeline_list_->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Fixed);
+        timeline_list_->horizontalHeader()->resizeSection(3, 120);
+        timeline_list_->horizontalHeader()->setSectionResizeMode(4, QHeaderView::Fixed);
+        timeline_list_->horizontalHeader()->resizeSection(4, 80);
+        timeline_list_->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        timeline_list_->setMinimumHeight(140);
+
+        auto* split = new QSplitter(Qt::Vertical, page);
+        split->setObjectName("timelineSplit");
+        split->addWidget(timeline_view_);
+        split->addWidget(timeline_list_);
+        split->setStretchFactor(0, 3);
+        split->setStretchFactor(1, 2);
+        split->setChildrenCollapsible(false);
+        outer->addWidget(split, 1);
+
+        connect(timeline_list_->selectionModel(), &QItemSelectionModel::currentRowChanged,
+                this, [this](const QModelIndex& current, const QModelIndex&) {
+                    if (!current.isValid()) return;
+                    const int row = current.row();
+                    if (row < 0 || row >= timeline_filtered_events_.size()) return;
+                    const olho::ui::timeline_event& event = timeline_filtered_events_.at(row);
+                    fill_details(event.provider + " / " + event.event_id,
+                                 event.channel + " / record " + event.record_id,
+                                 event.raw.toUtf8(), event.when,
+                                 event.from_cloud ? QStringLiteral("Cloud")
+                                                  : QStringLiteral("Coleta"),
+                                 event.from_cloud ? QStringLiteral("Evento cloud")
+                                                  : QStringLiteral("Evento EVTX"),
+                                 QStringLiteral("linha %1 de %2")
+                                     .arg(row + 1)
+                                     .arg(timeline_filtered_events_.size()));
+                    if (hex_view_ != nullptr) hex_view_->set_data(event.raw.toUtf8());
+                });
 
         connect(timeline_provider_, &QComboBox::currentIndexChanged, this, [this](int) {
             reload_timeline_filter_options();
@@ -5731,14 +5808,45 @@ private:
                           kept.events.at(i).event_id);
         }
         timeline_view_->set_events(times, labels);
+
+        // A lista mostra TUDO o que passou pelo filtro (o grafico amostra para
+        // desenhar). Selecionar uma linha alimenta Detalhes e Hex View.
+        timeline_filtered_events_ = kept.events;
+        if (timeline_list_model_ != nullptr) {
+            timeline_list_model_->removeRows(0, timeline_list_model_->rowCount());
+            for (const olho::ui::timeline_event& event : kept.events) {
+                QList<QStandardItem*> items;
+                items << new QStandardItem(event.when.isValid()
+                                               ? event.when.toString("yyyy-MM-dd HH:mm:ss")
+                                               : QStringLiteral("-"));
+                items << new QStandardItem(event.provider);
+                items << new QStandardItem(event.channel);
+                items << new QStandardItem(event.event_id);
+                items << new QStandardItem(QStringLiteral("%1 B").arg(event.raw.size()));
+                timeline_list_model_->appendRow(items);
+            }
+            // Filtrar troca o conjunto: a selecao volta para a primeira linha, senao
+            // o painel Detalhes continuaria falando de um evento que nao esta na
+            // tela (foi assim que a foto pegou "WhatsApp/w60" com a lista em Telegram).
+            if (timeline_list_model_->rowCount() > 0 && timeline_list_ != nullptr) {
+                timeline_list_->selectRow(0);
+            }
+            // No modo evidencia a lista tambem fala: a foto mostra as linhas, mas
+            // o numero conferivel fica no log (sem OCR).
+            if (g_gui_evidence_mode) {
+                std::printf("lista: %d linhas\n", timeline_list_model_->rowCount());
+                std::fflush(stdout);
+            }
+        }
+
         // Grafico vazio por filtro nao e a mesma coisa que caso sem timeline.
         if (kept.matched == 0 && !timeline_result_.events.isEmpty()) {
             timeline_view_->set_empty_text(
                 QStringLiteral("O filtro escondeu os %1 eventos carregados")
                     .arg(timeline_result_.events.size()),
                 QStringLiteral("Nada passou pelo filtro atual. Limpe o filtro (x) ou amplie o "
-                               "periodo. A aba Tabela e o painel Detalhes continuam mostrando "
-                               "a janela inteira carregada."));
+                               "periodo. A aba Tabela continua mostrando a janela inteira "
+                               "carregada."));
         } else {
             timeline_view_->set_empty_text(
                 QStringLiteral("Nenhum evento de timeline neste caso"),
@@ -5757,11 +5865,11 @@ private:
             short_text = loaded == 0 ? QStringLiteral("timeline vazia")
                                      : QStringLiteral("%1 eventos").arg(loaded);
             long_text = loaded == 0
-                            ? QStringLiteral("grafico: timeline vazia")
-                            : QStringLiteral("grafico: %1 eventos, sem filtro").arg(loaded);
+                            ? QStringLiteral("timeline: vazia")
+                            : QStringLiteral("timeline: %1 eventos, sem filtro").arg(loaded);
         } else {
             short_text = QStringLiteral("%1 de %2").arg(kept.matched).arg(loaded);
-            long_text = QStringLiteral("grafico: %1 de %2 carregados").arg(kept.matched).arg(loaded);
+            long_text = QStringLiteral("timeline: %1 de %2 carregados").arg(kept.matched).arg(loaded);
             if (kept.no_time > 0) {
                 long_text += QStringLiteral("  /  %1 sem data fora do periodo").arg(kept.no_time);
             }
@@ -5951,17 +6059,9 @@ private:
                       .arg(timeline.events.size())
                       .arg(cloud_files));
         }
-        // Combos e grafico saem do resultado recem-carregado. O filtro nao rele o
-        // caso: ele reprojeta o que ja esta em timeline_result_.
-        reload_timeline_filter_options();
-        apply_timeline_filter();
-        // --filter do modo evidencia entra AQUI e nao no setup: neste ponto os
-        // combos ja conhecem os provedores do caso recem-carregado.
-        if (!pending_filter_spec_.isEmpty()) {
-            const QString spec = pending_filter_spec_;
-            pending_filter_spec_.clear();
-            apply_filter_spec(spec);
-        }
+        // O filtro da Timeline e aplicado NO FIM desta funcao, depois da selecao
+        // da tabela: se rodasse aqui, o selectRow(0) da tabela sobrescreveria o
+        // painel Detalhes e ele voltaria a falar de um evento fora da lista.
 
         append(QString("[case] timeline: %1 de %2 evento(s) em %3 arquivo(s), %4 cloud\n")
                    .arg(timeline.events.size())
@@ -6026,6 +6126,17 @@ private:
             table_->selectRow(0);
             update_details(0);
             if (hex_view_ && !row_raw_.isEmpty()) hex_view_->set_data(row_raw_.first());
+        }
+        // Combos, lista e grafico saem do resultado recem-carregado. O filtro nao
+        // rele o caso: ele reprojeta o que ja esta em timeline_result_.
+        reload_timeline_filter_options();
+        apply_timeline_filter();
+        // --filter do modo evidencia entra aqui e nao no setup: neste ponto os
+        // combos ja conhecem os provedores do caso recem-carregado.
+        if (!pending_filter_spec_.isEmpty()) {
+            const QString spec = pending_filter_spec_;
+            pending_filter_spec_.clear();
+            apply_filter_spec(spec);
         }
         if (status_label_ && !case_id.isEmpty()) {
             status_label_->setText(QString("Caso %1 carregado: %2 eventos.")

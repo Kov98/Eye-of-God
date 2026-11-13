@@ -59,14 +59,18 @@ foreach ($c in $casos) {
     $lines = @(Get-Content $o -ErrorAction SilentlyContinue)
     # O filtro e aplicado campo a campo (periodo, depois cada data): vale o ULTIMO
     # estado que a barra anunciou, nao um intermediario.
-    $final = @($lines | Where-Object { $_ -match 'grafico:' }) | Select-Object -Last 1
+    $final = @($lines | Where-Object { $_ -match 'timeline:' }) | Select-Object -Last 1
     $got = -1
-    if ($final -match 'grafico: (\d+) de (\d+) carregados') { $got = [int]$matches[1] }
-    elseif ($final -match 'grafico: (\d+) eventos, sem filtro') { $got = [int]$matches[1] }
-    $ok = ($p.ExitCode -eq 0) -and ($got -eq $c.esperado)
+    if ($final -match 'timeline: (\d+) de (\d+) carregados') { $got = [int]$matches[1] }
+    elseif ($final -match 'timeline: (\d+) eventos, sem filtro') { $got = [int]$matches[1] }
+    # A lista tem que ter exatamente as linhas que a barra anuncia.
+    $listLine = @($lines | Where-Object { $_ -match 'lista: \d+ linhas' }) | Select-Object -Last 1
+    $rows = -1
+    if ($listLine -match 'lista: (\d+) linhas') { $rows = [int]$matches[1] }
+    $ok = ($p.ExitCode -eq 0) -and ($got -eq $c.esperado) -and ($rows -eq $c.esperado)
     if (-not $ok) { $falhas++ }
     $label = if ($c.spec -eq '') { '(sem filtro)' } else { $c.spec }
-    Write-Host ('{0} {1,-32} independente={2,5}  gui={3,5}  exit={4}' -f $(if ($ok) { '[ok]  ' } else { '[FALHA]' }), $label, $c.esperado, $got, $p.ExitCode)
+    Write-Host ('{0} {1,-32} independente={2,5}  barra={3,5}  lista={4,5}  exit={5}' -f $(if ($ok) { '[ok]  ' } else { '[FALHA]' }), $label, $c.esperado, $got, $rows, $p.ExitCode)
 }
 Write-Host ''
 if ($falhas -ne 0) {
