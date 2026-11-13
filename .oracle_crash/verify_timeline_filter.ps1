@@ -287,6 +287,15 @@ foreach ($alvo in @(0, -1)) {
 }
 
 Write-Host ''
+Write-Host '--- menu Exibir > Exportar ---'
+$oMenu = Join-Path $dir 'out_menu.txt'
+$pMenu = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oMenu -RedirectStandardError (Join-Path $dir 'err_menu.txt')
+$linhaMenu = @(Get-Content $oMenu -ErrorAction SilentlyContinue | Where-Object { $_ -match 'menu Exportar:' }) | Select-Object -Last 1
+$menuOk = ($pMenu.ExitCode -eq 0) -and ($linhaMenu -match 'Timeline: o que esta filtrado \(CSV\)') -and ($linhaMenu -match 'Timeline: o que esta filtrado \(JSONL\)') -and ($linhaMenu -match 'Chat: as conversas carregadas') -and ($linhaMenu -match 'Galeria: o que esta na tela') -and ($linhaMenu -match '---')
+if (-not $menuOk) { $falhas++ }
+Write-Host ('{0} os quatro exports no submenu Exportar  {1}' -f $(if ($menuOk) { '[ok]  ' } else { '[FALHA]' }), $linhaMenu)
+
+Write-Host ''
 Write-Host '--- export das conversas (aba Chat) ---'
 $chatJson = Join-Path $root '.oracle\wa_e2e\conversations.json'
 if (-not (Test-Path $chatJson)) { $chatJson = Join-Path $root '.oracle\case_test\recovered\conversations.json' }

@@ -4939,12 +4939,12 @@ private:
         });
         timeline_chrono_->setCheckable(true);
         timeline_chrono_->setEnabled(false);
-        // Export do que esta na TELA (lista + filtro), com sidecar de procedencia.
-        // O export do caso inteiro e outro caminho (deep::forensic, a partir do
-        // banco): misturar os dois num botao so faria o laudo citar um recorte
-        // como se fosse o caso.
-        timeline_export_ = view->addAction("Timeline: exportar o que esta filtrado (CSV)",
-                                          this, [this]() {
+        // Os quatro exports num submenu so. Espalhados no Exibir, quem nao sabe que
+        // existem nao acha - e o export e a saida do trabalho, nao um detalhe.
+        // Ordem: Timeline (CSV, JSONL), separador, Chat, Galeria.
+        auto* export_menu = view->addMenu("Exportar");
+        timeline_export_ = export_menu->addAction("Timeline: o que esta filtrado (CSV)",
+                                                 this, [this]() {
             if (timeline_filtered_events_.isEmpty()) {
                 append("[export] a lista da Timeline esta vazia; nada a exportar\n");
                 return;
@@ -4960,39 +4960,10 @@ private:
             export_filtered_timeline_to(path);
         });
         timeline_export_->setEnabled(true);
-        // Chat: as conversas carregadas (e as recuperadas, quando a tela as mostra).
-        view->addAction("Chat: exportar as conversas (CSV)", this, [this]() {
-            if (chat_view_ == nullptr) return;
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
-            const QString suggested = QDir(base).filePath(
-                QStringLiteral("conversas-%1.csv")
-                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
-            const QString path = QFileDialog::getSaveFileName(
-                this, QStringLiteral("Exportar conversas"), suggested,
-                QStringLiteral("CSV (*.csv)"));
-            if (path.isEmpty()) return;
-            export_chat_messages(path);
-        });
-        // Galeria: o manifesto do que a grade mostra, com sha256 de cada arquivo.
-        view->addAction("Galeria: exportar o que esta na tela (CSV)", this, [this]() {
-            if (gallery_view_ == nullptr || gallery_view_->item_count() == 0) {
-                append("[galeria] nenhuma midia carregada; nada a exportar\n");
-                return;
-            }
-            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
-            const QString suggested = QDir(base).filePath(
-                QStringLiteral("galeria-manifesto-%1.csv")
-                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
-            const QString path = QFileDialog::getSaveFileName(
-                this, QStringLiteral("Exportar manifesto da Galeria"), suggested,
-                QStringLiteral("CSV (*.csv)"));
-            if (path.isEmpty()) return;
-            export_gallery_manifest(path);
-        });
         // JSONL: a linha original, para quem vai reprocessar. O CSV e para planilha
         // e laudo; este e para ferramenta - e por ser a linha crua da para conferir
         // contra a fonte linha a linha.
-        view->addAction("Timeline: exportar o que esta filtrado (JSONL)", this, [this]() {
+        export_menu->addAction("Timeline: o que esta filtrado (JSONL)", this, [this]() {
             if (timeline_filtered_events_.isEmpty()) {
                 append("[export] a lista da Timeline esta vazia; nada a exportar\n");
                 return;
@@ -5007,6 +4978,47 @@ private:
             if (path.isEmpty()) return;
             export_filtered_timeline_to(path, true);
         });
+        export_menu->addSeparator();
+        // Chat: as conversas carregadas (e as recuperadas, quando a tela as mostra).
+        export_menu->addAction("Chat: as conversas carregadas (CSV)", this, [this]() {
+            if (chat_view_ == nullptr) return;
+            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString suggested = QDir(base).filePath(
+                QStringLiteral("conversas-%1.csv")
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Exportar conversas"), suggested,
+                QStringLiteral("CSV (*.csv)"));
+            if (path.isEmpty()) return;
+            export_chat_messages(path);
+        });
+        // Galeria: o manifesto do que a grade mostra, com sha256 de cada arquivo.
+        export_menu->addAction("Galeria: o que esta na tela (CSV)", this, [this]() {
+            if (gallery_view_ == nullptr || gallery_view_->item_count() == 0) {
+                append("[galeria] nenhuma midia carregada; nada a exportar\n");
+                return;
+            }
+            const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
+            const QString suggested = QDir(base).filePath(
+                QStringLiteral("galeria-manifesto-%1.csv")
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
+            const QString path = QFileDialog::getSaveFileName(
+                this, QStringLiteral("Exportar manifesto da Galeria"), suggested,
+                QStringLiteral("CSV (*.csv)"));
+            if (path.isEmpty()) return;
+            export_gallery_manifest(path);
+        });
+        // No modo evidencia o menu fala - e DEPOIS de todos os itens entrarem: sem
+        // isso a unica prova de que os exports estao no lugar seria procurar o
+        // submenu na foto. (A primeira versao imprimia antes de Chat e Galeria.)
+        if (g_gui_evidence_mode) {
+            QStringList entries;
+            for (QAction* action : export_menu->actions()) {
+                entries << (action->isSeparator() ? QStringLiteral("---") : action->text());
+            }
+            std::printf("menu Exportar: %s\n", qUtf8Printable(entries.join(" | ")));
+            std::fflush(stdout);
+        }
 
         auto* tools = bar->addMenu("Ferramentas");
         const QStringList tool_names = {"Pericia", "Avancado", "Sanitizacao",
