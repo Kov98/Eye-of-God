@@ -94,6 +94,22 @@ seria silencioso - o grafico continuaria bonito e o clique passaria a abrir o
 vizinho. Os 13 checks de geometria do oraculo cobrem bordas, tolerancia, empate e
 vazio.
 
+## Zoom no eixo do tempo (roda do mouse)
+
+A roda sobre o grafico aproxima/afasta o tempo em torno do ponteiro (1,25x por
+passo). A ancora (o instante sob o cursor) fica parada, o eixo passa a rotular a
+**janela visivel** e o evento fora dela nao e desenhado.
+
+**Zoom e lente, nao filtro.** Ele nao altera o periodo da barra, nao muda a lista e
+nao muda o export: a lista continua com os 500 eventos filtrados e o CSV/JSONL
+continua sendo "a lista filtrada". Confundir os dois faria um gesto de navegacao
+alterar evidencia exportada — que e exatamente o tipo de coisa que nao pode
+acontecer num laudo.
+
+Limites: minimo de **1 s** de janela, maximo = a janela do caso (aproximar ate o
+fim e o mesmo que voltar). O botao **↺** (voltar o periodo a janela do caso) tambem
+**desfaz o zoom** — os dois significam "voltar a ver o caso inteiro".
+
 ## Arrastar no grafico recorta o periodo
 
 Arrastar o botao esquerdo no grafico (cursor vira cruz sobre a area) aplica o

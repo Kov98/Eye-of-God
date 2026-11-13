@@ -60,6 +60,13 @@ inline int timeline_pick(const timeline_plot& plot, const QVector<qint64>& when_
     return best;
 }
 
+// Fracao do eixo x onde o ponteiro esta (0 = borda esquerda, 1 = direita).
+inline double timeline_ratio_at(const timeline_plot& plot, double x) {
+    if (plot.area.width() <= 0.0) return 0.0;
+    const double ratio = (x - plot.area.left()) / plot.area.width();
+    return std::clamp(ratio, 0.0, 1.0);
+}
+
 // Intervalo de tempo coberto por um arraste no eixo x.
 struct timeline_span {
     qint64 from_ms = 0;
@@ -85,6 +92,42 @@ inline timeline_span timeline_span_for_x(const timeline_plot& plot, double x1, d
     span.to_ms = (std::max)(a, b);
     span.ok = true;
     return span;
+}
+
+// Zoom de EXIBICAO: mantem a ancora (fracao 0..1) parada e escala o intervalo pelo
+// fator, limitado a janela completa e a um minimo. Nao mexe em filtro: e uma lente,
+// e o export continua sendo "a lista filtrada".
+inline timeline_span timeline_zoom(const timeline_span& current, const timeline_span& full,
+                                  double anchor_ratio, double factor,
+                                  qint64 min_span_ms = 1000) {
+    timeline_span out;
+    const qint64 span = current.to_ms - current.from_ms;
+    const qint64 full_span = full.to_ms - full.from_ms;
+    if (span <= 0 || full_span <= 0 || factor <= 0.0) return out;
+    const double ratio = std::clamp(anchor_ratio, 0.0, 1.0);
+    const qint64 anchor = current.from_ms + static_cast<qint64>(ratio * double(span));
+    // Zoom para fora alem da janela do caso volta a janela inteira.
+    qint64 new_span = static_cast<qint64>(double(span) / factor);
+    if (new_span >= full_span) {
+        out = full;
+        out.ok = true;
+        return out;
+    }
+    new_span = (std::max)(min_span_ms, new_span);
+    qint64 from = anchor - static_cast<qint64>(ratio * double(new_span));
+    qint64 to = from + new_span;
+    if (from < full.from_ms) {
+        from = full.from_ms;
+        to = from + new_span;
+    }
+    if (to > full.to_ms) {
+        to = full.to_ms;
+        from = to - new_span;
+    }
+    out.from_ms = from;
+    out.to_ms = to;
+    out.ok = true;
+    return out;
 }
 
 }  // namespace olho::ui

@@ -248,6 +248,26 @@ $periodoMarcado = @($log | Where-Object { $_ -match 'arraste: ' }).Count -gt 0
 if (-not $periodoMarcado -or -not $tmpTocado) { $falhas++ }
 
 Write-Host ''
+Write-Host '--- zoom no eixo do tempo (lente, nao filtro) ---'
+$oZoom = Join-Path $dir 'out_zoom.txt'
+$pZoom = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--zoom', '3') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oZoom -RedirectStandardError (Join-Path $dir 'err_zoom.txt')
+$linhaZoom = @(Get-Content $oZoom -ErrorAction SilentlyContinue | Where-Object { $_ -match 'zoom: passos=' }) | Select-Object -Last 1
+$fator = 0.0
+if ($linhaZoom -match 'fator=([\d.,]+)x') { $fator = [double]($matches[1] -replace ',', '.') }
+$linhaBarraZoom = @(Get-Content $oZoom -ErrorAction SilentlyContinue | Where-Object { $_ -match 'timeline: \d+ de \d+ carregados' }) | Select-Object -Last 1
+$zoomOk = ($pZoom.ExitCode -eq 0) -and ($fator -ge 1.9) -and ($linhaBarraZoom -match 'timeline: 500 de 2519')
+if (-not $zoomOk) { $falhas++ }
+Write-Host ('{0} zoom 3 passos = {1}x e a lista continua 500  ({2})' -f $(if ($zoomOk) { '[ok]  ' } else { '[FALHA]' }), $fator, $linhaZoom)
+
+$oZoomReset = Join-Path $dir 'out_zoom_reset.txt'
+$pZoomReset = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--zoom', '3', '--reset-period') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oZoomReset -RedirectStandardError (Join-Path $dir 'err_zoom_reset.txt')
+$logZoomReset = @(Get-Content $oZoomReset -ErrorAction SilentlyContinue)
+$linhaResetZoom = @($logZoomReset | Where-Object { $_ -match 'zoom: reset' }) | Select-Object -Last 1
+$resetZoomOk = ($pZoomReset.ExitCode -eq 0) -and ($linhaResetZoom -match 'fator=1\.00x')
+if (-not $resetZoomOk) { $falhas++ }
+Write-Host ('{0} o botao de voltar o periodo tambem desfaz o zoom  ({1})' -f $(if ($resetZoomOk) { '[ok]  ' } else { '[FALHA]' }), $linhaResetZoom)
+
+Write-Host ''
 Write-Host '--- voltar o periodo a janela do caso ---'
 $oReset = Join-Path $dir 'out_reset.txt'
 $pReset = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--drag-rows', '0', '100', '--reset-period') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $oReset -RedirectStandardError (Join-Path $dir 'err_reset.txt')

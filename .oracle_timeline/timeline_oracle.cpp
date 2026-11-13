@@ -520,6 +520,36 @@ int main(int argc, char** argv) {
               quarter.ok && qAbs(quarter.to_ms - expected_quarter) <= 2,
               QStringLiteral("to=%1 esperado=%2").arg(quarter.to_ms).arg(expected_quarter));
 
+        // Zoom de exibicao: a ancora fica parada, o intervalo encolhe, e os limites
+        // sao a janela completa e um minimo de 1 s.
+        const olho::ui::timeline_span full_span{first, last, true};
+        const olho::ui::timeline_span zoomed = olho::ui::timeline_zoom(full_span, full_span,
+                                                                     0.5, 2.0);
+        check("zoom pela metade encolhe o intervalo",
+              zoomed.ok && (zoomed.to_ms - zoomed.from_ms) == (last - first) / 2,
+              QStringLiteral("%1..%2").arg(zoomed.from_ms).arg(zoomed.to_ms));
+        check("zoom mantem o centro parado",
+              qAbs(((zoomed.from_ms + zoomed.to_ms) / 2) - ((first + last) / 2)) <= 1);
+        const olho::ui::timeline_span left_anchored =
+            olho::ui::timeline_zoom(full_span, full_span, 0.0, 2.0);
+        check("ancora na borda esquerda mantem o inicio",
+              left_anchored.ok && left_anchored.from_ms == first);
+        const olho::ui::timeline_span back = olho::ui::timeline_zoom(zoomed, full_span, 0.5, 0.1);
+        check("zoom para fora alem da janela volta ao caso inteiro",
+              back.ok && back.from_ms == first && back.to_ms == last);
+        // Nome diferente do 'tiny' do bloco de arraste: os dois vivem no mesmo escopo.
+        const olho::ui::timeline_span tiny_window{first, first + 1500, true};
+        const olho::ui::timeline_span not_too_tiny =
+            olho::ui::timeline_zoom(tiny_window, full_span, 0.5, 4.0);
+        check("zoom respeita o minimo de 1 s",
+              not_too_tiny.ok && (not_too_tiny.to_ms - not_too_tiny.from_ms) >= 1000,
+              QStringLiteral("span=%1").arg(not_too_tiny.to_ms - not_too_tiny.from_ms));
+        check("zoom com fator zero nao inventa intervalo",
+              !olho::ui::timeline_zoom(full_span, full_span, 0.5, 0.0).ok);
+        check("fracao do eixo limita nas bordas",
+              qAbs(olho::ui::timeline_ratio_at(plot, plot.area.left() - 100.0)) < 0.0001 &&
+                  qAbs(olho::ui::timeline_ratio_at(plot, plot.area.right() + 100.0) - 1.0) < 0.0001);
+
         check("tolerancia e inclusiva na borda",
               olho::ui::timeline_pick(plot, close, olho::ui::timeline_x_at(plot, first) + 8.0,
                                       8.0) == 0 || true);

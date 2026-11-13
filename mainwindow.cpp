@@ -251,20 +251,74 @@ public:
 
     int drawn_row(int index) const { return source_rows_.value(index, -1); }
 
+    /* Zoom de EXIBICAO (roda do mouse). E lente, nao filtro: a lista e o export
+       continuam sendo o conjunto filtrado inteiro; so o desenho recorta o tempo.
+       Confundir os dois faria um gesto de navegacao alterar evidencia exportada. */
+    bool zoomed() const { return zoomed_; }
+
+    double zoom_factor() const {
+        if (!zoomed_ || times_.isEmpty()) return 1.0;
+        const qint64 full = times_.first().msecsTo(times_.last());
+        const qint64 shown = view_to_ms_ - view_from_ms_;
+        if (shown <= 0) return 1.0;
+        return double((std::max)(static_cast<qint64>(1), full)) / double(shown);
+    }
+
+    qint64 window_from_ms() const {
+        if (zoomed_) return view_from_ms_;
+        return times_.isEmpty() ? 0 : times_.first().toMSecsSinceEpoch();
+    }
+
+    qint64 window_to_ms() const {
+        if (zoomed_) return view_to_ms_;
+        return times_.isEmpty() ? 1 : times_.last().toMSecsSinceEpoch();
+    }
+
+    olho::ui::timeline_plot current_plot() const {
+        return olho::ui::make_timeline_plot(QRectF(rect()), window_from_ms(),
+                                            window_to_ms());
+    }
+
+    void reset_zoom() {
+        if (!zoomed_) return;
+        zoomed_ = false;
+        view_from_ms_ = 0;
+        view_to_ms_ = 0;
+        update();
+    }
+
+    // Uma rodada de zoom (< 1 aproxima, > 1 afasta) ancorada em anchor_x.
+    bool zoom_step(double anchor_x, double factor) {
+        if (times_.isEmpty() || !times_.first().isValid()) return false;
+        const olho::ui::timeline_span full{times_.first().toMSecsSinceEpoch(),
+                                           times_.last().toMSecsSinceEpoch(), true};
+        olho::ui::timeline_span current = full;
+        if (zoomed_) {
+            current.from_ms = view_from_ms_;
+            current.to_ms = view_to_ms_;
+        }
+        const olho::ui::timeline_plot plot = current_plot();
+        const double ratio = olho::ui::timeline_ratio_at(plot, anchor_x);
+        const olho::ui::timeline_span next =
+            olho::ui::timeline_zoom(current, full, ratio, factor);
+        if (!next.ok) return false;
+        const bool back_to_full = next.from_ms <= full.from_ms && next.to_ms >= full.to_ms;
+        zoomed_ = !back_to_full;
+        view_from_ms_ = next.from_ms;
+        view_to_ms_ = next.to_ms;
+        update();
+        return true;
+    }
+
     double x_at_index(int index) const {
         if (index < 0 || index >= when_ms_.size() || times_.isEmpty()) return -1.0;
-        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
-            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
-            times_.last().toMSecsSinceEpoch());
-        return olho::ui::timeline_x_at(plot, when_ms_.at(index));
+        return olho::ui::timeline_x_at(current_plot(), when_ms_.at(index));
     }
 
     // Converte um x do widget no indice do evento (na lista) ou -1.
     int pick_at(double x) const {
         if (when_ms_.isEmpty() || times_.isEmpty() || !times_.first().isValid()) return -1;
-        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
-            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
-            times_.last().toMSecsSinceEpoch());
+        const olho::ui::timeline_plot plot = current_plot();
         // 8 px: a barra tem ~1 px de largura e o rotulo fica ao lado; sem folga o
         // clique no rotulo nao abriria nada.
         const int index = olho::ui::timeline_pick(plot, when_ms_, x, 8.0);
@@ -329,6 +383,24 @@ protected:
         event->accept();
     }
 
+    // Roda do mouse: aproxima/afasta o tempo em torno do ponteiro. E lente de
+    // leitura - nao muda o filtro, a lista nem o export.
+    void wheelEvent(QWheelEvent* event) override {
+        const QPointF pos = event->position();
+        if (!plot_area().contains(pos)) {
+            QWidget::wheelEvent(event);
+            return;
+        }
+        const int delta = event->angleDelta().y();
+        if (delta == 0) {
+            QWidget::wheelEvent(event);
+            return;
+        }
+        const double factor = delta > 0 ? 1.25 : 0.8;
+        if (zoom_step(pos.x(), factor)) event->accept();
+        else QWidget::wheelEvent(event);
+    }
+
     // Area util do grafico, igual a do desenho.
     QRectF plot_area() const {
         return olho::ui::make_timeline_plot(QRectF(rect()), 0, 0).area;
@@ -336,10 +408,7 @@ protected:
 
     olho::ui::timeline_span span_for_drag() const {
         if (times_.isEmpty() || !times_.first().isValid()) return olho::ui::timeline_span();
-        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
-            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
-            times_.last().toMSecsSinceEpoch());
-        return olho::ui::timeline_span_for_x(plot, drag_start_x_, drag_x_);
+        return olho::ui::timeline_span_for_x(current_plot(), drag_start_x_, drag_x_);
     }
 
     void paintEvent(QPaintEvent*) override {
@@ -359,12 +428,16 @@ protected:
         // Eixo so quando existe dado. Antes ele imprimia "2026-10-20 .. 2026-10-24"
         // mesmo sem nenhum evento no caso: data inventada num laudo e inaceitavel.
         if (!times_.isEmpty()) {
-            const qint64 span = qMax<qint64>(1, times_.first().msecsTo(times_.last()));
+            // Eixo = janela VISIVEL (com zoom), nao o conjunto inteiro: rotular com
+            // a janela cheia enquanto o desenho mostra 10 minutos seria mentira.
+            const olho::ui::timeline_plot axis_plot = current_plot();
+            const qint64 span = axis_plot.span_ms;
             for (int i = 0; i <= 4; ++i) {
                 const int x = area.left() + area.width() * i / 4;
                 painter.drawLine(x, area.bottom(), x, area.bottom() + 6);
                 const QString axis =
-                    times_.first().addMSecs(span * i / 4).toString("MM-dd HH:mm");
+                    QDateTime::fromMSecsSinceEpoch(axis_plot.first_ms + span * i / 4)
+                        .toString("MM-dd HH:mm");
                 painter.drawText(x - 30, area.bottom() + 22, axis);
             }
         }
@@ -423,11 +496,17 @@ protected:
             // indices de faixa antes de desenhar qualquer coisa.
             QVector<double> x_of(times_.size(), 0.0);
             QVector<int> count_of(lane_count, 0);
-            // Mesma conta do clique (timeline_geometry.hpp): uma fonte so.
-            const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
-                QRectF(rect()), first.toMSecsSinceEpoch(), last.toMSecsSinceEpoch());
+            // Mesma conta do clique (timeline_geometry.hpp): uma fonte so, e com o
+            // zoom aplicado.
+            const olho::ui::timeline_plot plot = current_plot();
+            constexpr double kOutside = -1.0e9;   // fora da janela visivel
             for (int i = 0; i < times_.size(); ++i) {
-                x_of[i] = olho::ui::timeline_x_at(plot, times_[i].toMSecsSinceEpoch());
+                const qint64 ms = times_[i].toMSecsSinceEpoch();
+                if (ms < plot.first_ms || ms > plot.first_ms + plot.span_ms) {
+                    x_of[i] = kOutside;
+                    continue;
+                }
+                x_of[i] = olho::ui::timeline_x_at(plot, ms);
                 QString key = labels_.value(i).section(QStringLiteral(" #"), 0, 0).trimmed();
                 if (key.isEmpty()) key = QStringLiteral("Evento");
                 const int lane = lane_for_source(source_index.value(key));
@@ -441,6 +520,7 @@ protected:
             const int buckets = qBound(8, area.width() / 10, 160);
             QVector<QVector<int>> histogram(lane_count, QVector<int>(buckets, 0));
             for (int i = 0; i < times_.size(); ++i) {
+                if (x_of.at(i) < -1.0e8) continue;   // fora do zoom
                 const double ratio = (x_of.at(i) - area.left()) / double(qMax(1, area.width()));
                 const int bucket = qBound(0, int(ratio * (buckets - 1) + 0.5), buckets - 1);
                 ++histogram[lane_of.at(i)][bucket];
@@ -465,6 +545,7 @@ protected:
             }
 
             for (int i = 0; i < times_.size(); ++i) {
+                if (x_of.at(i) < -1.0e8) continue;   // fora do zoom
                 const int lane = lane_of.at(i);
                 const double y = area.top() + lane_height * (lane + 0.5);
                 const QPointF point(x_of.at(i), y);
@@ -541,6 +622,9 @@ private:
     bool dragging_ = false;      // botao esquerdo pressionado no grafico
     double drag_start_x_ = 0.0;
     double drag_x_ = 0.0;
+    bool zoomed_ = false;        // janela de exibicao menor que o conjunto filtrado
+    qint64 view_from_ms_ = 0;
+    qint64 view_to_ms_ = 0;
     QString empty_title_ = QStringLiteral("Nenhum evento de timeline neste caso");
     QString empty_body_ = QStringLiteral(
         "A aba Tabela lista os arquivos do caso e o laudo carrega a evidencia. A linha do "
@@ -1014,6 +1098,8 @@ public:
     }
     // --reset-period do modo evidencia: desfaz o arraste na mesma execucao.
     void set_pending_reset_period(bool on) { pending_reset_period_ = on; }
+    // --zoom N do modo evidencia: N passos de roda no centro do grafico.
+    void set_pending_zoom(int steps) { pending_zoom_steps_ = steps; }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1277,6 +1363,7 @@ private:
     bool pending_print_report_args_ = false;   // --print-report-args
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
     bool pending_reset_period_ = false;   // --reset-period do modo evidencia
+    int pending_zoom_steps_ = 0;          // --zoom N do modo evidencia
     int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
     int pending_drag_b_ = -2;
     int timeline_cap_ = 5000;
@@ -6204,6 +6291,23 @@ private:
 
     // Periodo = janela do caso (primeiro e ultimo evento), mantendo os outros
     // filtros. E o desfazer do arraste.
+    /* Zoom de exibicao pelo modo evidencia: N passos no centro do grafico (positivo
+       aproxima). Imprime fator e janela - a foto mostra o desenho, o log diz o numero. */
+    void apply_evidence_zoom(int steps) {
+        if (timeline_view_ == nullptr || steps == 0) return;
+        const double anchor = timeline_view_->width() * 0.5;
+        for (int i = 0; i < qAbs(steps); ++i) {
+            timeline_view_->zoom_step(anchor, steps > 0 ? 1.25 : 0.8);
+        }
+        const QDateTime from = QDateTime::fromMSecsSinceEpoch(timeline_view_->window_from_ms());
+        const QDateTime to = QDateTime::fromMSecsSinceEpoch(timeline_view_->window_to_ms());
+        std::printf("zoom: passos=%d fator=%.2fx janela=%s..%s\n", steps,
+                    timeline_view_->zoom_factor(),
+                    qUtf8Printable(from.toString("yyyy-MM-dd HH:mm:ss")),
+                    qUtf8Printable(to.toString("yyyy-MM-dd HH:mm:ss")));
+        std::fflush(stdout);
+    }
+
     void reset_timeline_period() {
         if (timeline_period_ == nullptr || timeline_from_ == nullptr ||
             timeline_to_ == nullptr) {
@@ -6215,6 +6319,12 @@ private:
         timeline_period_->setChecked(true);
         timeline_from_->setDateTime(first);
         timeline_to_->setDateTime(last);
+        // O mesmo botao desfaz o zoom: os dois sao "voltar a ver o caso inteiro".
+        if (timeline_view_ != nullptr) {
+            timeline_view_->reset_zoom();
+            std::printf("zoom: reset fator=%.2fx\n", timeline_view_->zoom_factor());
+            std::fflush(stdout);
+        }
         append("[timeline] periodo voltou a janela do caso\n");
     }
 
@@ -6667,6 +6777,11 @@ private:
             pending_drag_a_ = -2;
             pending_drag_b_ = -2;
             drag_timeline_rows(a, b);
+        }
+        if (pending_zoom_steps_ != 0) {
+            const int steps = pending_zoom_steps_;
+            pending_zoom_steps_ = 0;
+            apply_evidence_zoom(steps);
         }
         if (pending_reset_period_) {
             pending_reset_period_ = false;
@@ -7127,6 +7242,7 @@ int run_gui(HINSTANCE) {
     int shot_drag_b = -2;
     bool shot_reset_period = false;
     bool shot_print_report_args = false;
+    int shot_zoom = 0;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -7161,6 +7277,8 @@ int run_gui(HINSTANCE) {
                     shot_reset_period = true;
                 } else if (arg == "--print-report-args") {
                     shot_print_report_args = true;
+                } else if (arg == "--zoom" && has_value) {
+                    shot_zoom = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--drag-rows" && i + 2 < count) {
                     shot_drag_a = QString::fromWCharArray(list[++i]).toInt();
                     shot_drag_b = QString::fromWCharArray(list[++i]).toInt();
@@ -7209,7 +7327,7 @@ int run_gui(HINSTANCE) {
                        [&window, shot_case, shot_tab, shot_filter, shot_export, shot_export_jsonl,
                         shot_gallery_dir, shot_gallery_export, shot_chat_json,
                         shot_chat_export, shot_click_row, shot_drag_a, shot_drag_b,
-                        shot_reset_period, shot_print_report_args]() {
+                        shot_reset_period, shot_print_report_args, shot_zoom]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_export_jsonl_path(shot_export_jsonl);
@@ -7219,6 +7337,7 @@ int run_gui(HINSTANCE) {
         window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
         window.set_pending_reset_period(shot_reset_period);
         window.set_pending_print_report_args(shot_print_report_args);
+        window.set_pending_zoom(shot_zoom);
         window.screenshot_setup(shot_case, shot_tab);
     });
 
