@@ -10,7 +10,7 @@ roxa no grafico.
 |---|---|
 | combo de provedor | so os eventos daquele provedor (`WhatsApp`, `Telegram`, `Google`...) |
 | combo de canal | so aquele canal dentro do provedor escolhido |
-| `Periodo` + duas datas | janela de datas, limites **inclusivos**, na data **local** do evento |
+| `Periodo` + duas datas | janela de **data e hora** (minuto), limites **inclusivos**, no horario **local** do evento |
 | `So nuvem` | so eventos vindos de `cloud/` |
 | `x` | limpa o filtro inteiro |
 | contador a direita | numero curto (`500 de 2519`); tooltip e log com o texto completo |
@@ -93,6 +93,28 @@ instante e janela). Duas copias divergiriam na primeira correcao, e o defeito
 seria silencioso - o grafico continuaria bonito e o clique passaria a abrir o
 vizinho. Os 13 checks de geometria do oraculo cobrem bordas, tolerancia, empate e
 vazio.
+
+## Arrastar no grafico recorta o periodo
+
+Arrastar o botao esquerdo no grafico (cursor vira cruz sobre a area) aplica o
+intervalo de tempo coberto na janela de periodo da barra. O retangulo do arraste
+aparece enquanto o botao esta pressionado.
+
+- **Regra de 3 px**: menos que isso e clique (abre o evento), mais que isso e
+  arraste. Decidir no `press` obrigaria a escolher entre um gesto e outro antes do
+  operador terminar o movimento.
+- **Arrastar da direita para a esquerda vale igual** (as bordas sao ordenadas).
+- Arraste que sai da area e **limitado a janela** do caso.
+- A precisao e de **segundo** no filtro e de **minuto** no campo (o campo mostra
+  `yyyy-MM-dd HH:mm`); o intervalo exato vai no console: `[timeline] arraste:
+  periodo 2023-11-15 05:00:00 -> 2023-11-15 05:51:02`.
+
+### Por que o filtro passou a ter hora
+
+Antes `Periodo` era por dia. Num caso de WhatsApp com 2.519 eventos em duas horas,
+filtrar por dia nao recorta nada - e arrastar no grafico seria decorativo. A janela
+(`timeline_filter::from/to`) agora e `QDateTime` e compara o instante local do
+evento. A granularidade do campo e minuto; o do arraste, segundo.
 
 ## Exportar o que esta filtrado (CSV)
 

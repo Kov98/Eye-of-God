@@ -85,8 +85,11 @@ timeline_load load_case_timeline(const QString& case_dir, int max_entries,
 struct timeline_filter {
     QString provider;      // vazio = todos
     QString channel;       // vazio = todos
-    QDate from;            // invalida = sem piso
-    QDate to;              // invalida = sem teto (inclusivo)
+    // Janela com HORA, nao so dia: num caso de WhatsApp os eventos cabem em duas
+    // horas e um filtro por dia nao recorta nada. Comparacao em data/hora local,
+    // que e o fuso em que a janela foi lida.
+    QDateTime from;        // invalida = sem piso
+    QDateTime to;          // invalida = sem teto (inclusivo)
     bool cloud_only = false;
 
     bool empty() const;

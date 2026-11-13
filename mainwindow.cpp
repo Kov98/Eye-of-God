@@ -12,6 +12,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDateEdit>
+#include <QDateTimeEdit>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -214,6 +215,8 @@ public:
     /* on_pick recebe o indice do evento na LISTA da Timeline (nao o indice do
        ponto amostrado): a lista mostra tudo, o grafico amostra para desenhar. */
     std::function<void(int)> on_pick;
+    // Arraste no eixo x: devolve o intervalo de tempo coberto (epoch ms).
+    std::function<void(qint64, qint64)> on_range;
 
     void set_events(const QVector<QDateTime>& times, const QStringList& labels) {
         set_events(times, labels, QVector<int>());
@@ -271,22 +274,72 @@ public:
     }
 
 protected:
+    /* Clique e arraste saem do MESMO botao. A regra e a distancia percorrida:
+       menos de 3 px e clique (abre o evento), mais que isso e arraste (recorta o
+       periodo). Decidir no press faria escolher entre um gesto e outro sem o
+       operador ter chance de completar o movimento. */
     void mousePressEvent(QMouseEvent* event) override {
-        const int row = pick_at(event->position().x());
-        if (row >= 0 && on_pick) {
-            on_pick(row);
-            event->accept();
+        if (event->button() != Qt::LeftButton) {
+            QWidget::mousePressEvent(event);
             return;
         }
-        QWidget::mousePressEvent(event);
+        dragging_ = true;
+        drag_start_x_ = event->position().x();
+        drag_x_ = drag_start_x_;
+        event->accept();
     }
 
     void mouseMoveEvent(QMouseEvent* event) override {
-        // Maozinha quando ha evento embaixo: affordance antes do clique, e some
-        // quando o ponteiro esta no vazio.
-        setCursor(pick_at(event->position().x()) >= 0 ? Qt::PointingHandCursor
-                                                       : Qt::ArrowCursor);
+        if (dragging_) {
+            drag_x_ = event->position().x();
+            update();
+            event->accept();
+            return;
+        }
+        // Maozinha quando ha evento embaixo (clique abre); cruz na area do grafico
+        // (arraste recorta); seta fora.
+        const QPointF pos = event->position();
+        if (pick_at(pos.x()) >= 0) {
+            setCursor(Qt::PointingHandCursor);
+        } else if (plot_area().contains(pos)) {
+            setCursor(Qt::CrossCursor);
+        } else {
+            setCursor(Qt::ArrowCursor);
+        }
         QWidget::mouseMoveEvent(event);
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override {
+        if (!dragging_) {
+            QWidget::mouseReleaseEvent(event);
+            return;
+        }
+        dragging_ = false;
+        drag_x_ = event->position().x();
+        const olho::ui::timeline_span span = span_for_drag();
+        if (span.ok) {
+            if (on_range) on_range(span.from_ms, span.to_ms);
+        } else {
+            // Arraste curto: e um clique. So aqui o evento e aberto, para nao
+            // abrir um a cada tentativa de recortar.
+            const int row = pick_at(drag_x_);
+            if (row >= 0 && on_pick) on_pick(row);
+        }
+        update();
+        event->accept();
+    }
+
+    // Area util do grafico, igual a do desenho.
+    QRectF plot_area() const {
+        return olho::ui::make_timeline_plot(QRectF(rect()), 0, 0).area;
+    }
+
+    olho::ui::timeline_span span_for_drag() const {
+        if (times_.isEmpty() || !times_.first().isValid()) return olho::ui::timeline_span();
+        const olho::ui::timeline_plot plot = olho::ui::make_timeline_plot(
+            QRectF(rect()), times_.first().toMSecsSinceEpoch(),
+            times_.last().toMSecsSinceEpoch());
+        return olho::ui::timeline_span_for_x(plot, drag_start_x_, drag_x_);
     }
 
     void paintEvent(QPaintEvent*) override {
@@ -432,6 +485,17 @@ protected:
                 painter.setPen(QColor(theme::textDim()));
                 painter.drawText(QPointF(x, area.top() + lane_height * lane + 14.0), text);
             }
+            // Retangulo do arraste em curso: sem ele o operador arrasta no escuro.
+            if (dragging_) {
+                const double left = qMin(drag_start_x_, drag_x_);
+                const double width = qMax(1.0, qAbs(drag_x_ - drag_start_x_));
+                QColor veil(theme::accent());
+                veil.setAlpha(48);
+                painter.setPen(QPen(QColor(theme::accent()), 1));
+                painter.setBrush(veil);
+                painter.drawRect(QRectF(left, area.top(), width, area.height()));
+                painter.setBrush(Qt::NoBrush);
+            }
         } else {
             // ESTADO VAZIO HONESTO.
             //
@@ -474,6 +538,9 @@ private:
     QStringList labels_;
     QVector<int> source_rows_;   // ponto amostrado -> linha na lista filtrada
     QVector<qint64> when_ms_;    // epoch ms, para o hit-test
+    bool dragging_ = false;      // botao esquerdo pressionado no grafico
+    double drag_start_x_ = 0.0;
+    double drag_x_ = 0.0;
     QString empty_title_ = QStringLiteral("Nenhum evento de timeline neste caso");
     QString empty_body_ = QStringLiteral(
         "A aba Tabela lista os arquivos do caso e o laudo carrega a evidencia. A linha do "
@@ -924,6 +991,11 @@ public:
     void set_pending_export_path(const QString& path) { pending_export_path_ = path; }
     // --click-row do modo evidencia: clica na barra da linha pedida (-1 = ultima).
     void set_pending_click_row(int row) { pending_click_row_ = row; }
+    // --drag-rows A B do modo evidencia: arrasta da barra da linha A ate a da B.
+    void set_pending_drag_rows(int a, int b) {
+        pending_drag_a_ = a;
+        pending_drag_b_ = b;
+    }
     // A carga da Timeline roda em thread; a foto tem que esperar ela assentar.
     bool timeline_busy() const { return timeline_running_; }
 
@@ -1180,6 +1252,8 @@ private:
     QAction* timeline_export_ = nullptr;
     QString pending_export_path_;   // --export-csv do modo evidencia
     int pending_click_row_ = -2;    // --click-row do modo evidencia (-2 = nao pedido)
+    int pending_drag_a_ = -2;       // --drag-rows do modo evidencia
+    int pending_drag_b_ = -2;
     int timeline_cap_ = 5000;
     bool timeline_chronological_ = false;
     QString timeline_cap_case_;
@@ -1198,8 +1272,8 @@ private:
     QComboBox* timeline_provider_ = nullptr;
     QComboBox* timeline_channel_ = nullptr;
     QCheckBox* timeline_period_ = nullptr;
-    QDateEdit* timeline_from_ = nullptr;
-    QDateEdit* timeline_to_ = nullptr;
+    QDateTimeEdit* timeline_from_ = nullptr;
+    QDateTimeEdit* timeline_to_ = nullptr;
     QCheckBox* timeline_cloud_only_ = nullptr;
     QLabel* timeline_filter_count_ = nullptr;
     // Lista propria da Timeline: o filtro vale no grafico E nesta lista. A tabela
@@ -5654,11 +5728,11 @@ private:
        timeline_result_ em vez de reler o caso, e a etiqueta da direita sempre diz
        quantos ficaram de fora ("12 de 243 carregados"): grafico filtrado sem
        denominador afirma mais do que o dado. */
-    static QDate day_from_stamp(const QString& text) {
-        if (text.isEmpty()) return QDate();
+    static QDateTime time_from_stamp(const QString& text) {
+        if (text.isEmpty()) return QDateTime();
         QDateTime when = QDateTime::fromString(text, Qt::ISODateWithMs);
         if (!when.isValid()) when = QDateTime::fromString(text, Qt::ISODate);
-        return when.isValid() ? when.toLocalTime().date() : QDate();
+        return when.isValid() ? when.toLocalTime() : QDateTime();
     }
 
     QWidget* build_timeline_page() {
@@ -5690,11 +5764,13 @@ private:
             box->setFixedHeight(20);
             return box;
         };
+        // Data E hora: num caso de WhatsApp os eventos cabem em duas horas, e um
+        // filtro por dia nao recortaria nada.
         const auto date_edit = [bar](const QString& name) {
-            auto* edit = new QDateEdit(bar);
+            auto* edit = new QDateTimeEdit(bar);
             edit->setObjectName(name);
             edit->setCalendarPopup(true);
-            edit->setDisplayFormat("yyyy-MM-dd");
+            edit->setDisplayFormat("yyyy-MM-dd HH:mm");
             edit->setFixedHeight(20);
             edit->setEnabled(false);
             return edit;
@@ -5720,13 +5796,13 @@ private:
         timeline_period_->setToolTip("Filtrar por um periodo de datas");
         row->addWidget(timeline_period_);
         timeline_from_ = date_edit("timelineFrom");
-        timeline_from_->setFixedWidth(96);
+        timeline_from_->setFixedWidth(132);
         row->addWidget(timeline_from_);
         auto* dash = caption("a");
-        dash->setToolTip("Ate esta data, inclusive");
+        dash->setToolTip("Ate esta data e hora, inclusive");
         row->addWidget(dash);
         timeline_to_ = date_edit("timelineTo");
-        timeline_to_->setFixedWidth(96);
+        timeline_to_->setFixedWidth(132);
         row->addWidget(timeline_to_);
         timeline_cloud_only_ = checkbox("So nuvem", "timelineCloudOnly");
         timeline_cloud_only_->setToolTip("Somente eventos vindos de cloud/");
@@ -5788,6 +5864,23 @@ private:
         split->setChildrenCollapsible(false);
         outer->addWidget(split, 1);
 
+        // Arrastar no grafico recorta o periodo na barra: o grafico passa a ser
+        // entrada de filtro, nao so desenho.
+        timeline_view_->on_range = [this](qint64 from_ms, qint64 to_ms) {
+            if (timeline_period_ == nullptr || timeline_from_ == nullptr ||
+                timeline_to_ == nullptr) {
+                return;
+            }
+            const QDateTime from = QDateTime::fromMSecsSinceEpoch(from_ms);
+            const QDateTime to = QDateTime::fromMSecsSinceEpoch(to_ms);
+            timeline_period_->setChecked(true);
+            timeline_from_->setDateTime(from);
+            timeline_to_->setDateTime(to);
+            append(QString("[timeline] arraste: periodo %1 -> %2\n")
+                       .arg(from.toString("yyyy-MM-dd HH:mm:ss"),
+                            to.toString("yyyy-MM-dd HH:mm:ss")));
+        };
+
         // Clicar na barra do grafico seleciona o evento na lista (= Detalhes e Hex
         // View). Antes o grafico era so um desenho: pico as 09:18 nao levava a
         // lugar nenhum.
@@ -5828,10 +5921,10 @@ private:
             if (timeline_to_ != nullptr) timeline_to_->setEnabled(on);
             apply_timeline_filter();
         });
-        connect(timeline_from_, &QDateEdit::dateChanged, this,
-                [this](QDate) { apply_timeline_filter(); });
-        connect(timeline_to_, &QDateEdit::dateChanged, this,
-                [this](QDate) { apply_timeline_filter(); });
+        connect(timeline_from_, &QDateTimeEdit::dateTimeChanged, this,
+                [this](const QDateTime&) { apply_timeline_filter(); });
+        connect(timeline_to_, &QDateTimeEdit::dateTimeChanged, this,
+                [this](const QDateTime&) { apply_timeline_filter(); });
         connect(timeline_cloud_only_, &QCheckBox::toggled, this,
                 [this](bool) { apply_timeline_filter(); });
         connect(clear, &QToolButton::clicked, this, [this]() { reset_timeline_filter(); });
@@ -5847,11 +5940,11 @@ private:
             filter.channel = timeline_channel_->currentText();
         }
         if (timeline_period_ != nullptr && timeline_period_->isChecked()) {
-            if (timeline_from_ != nullptr && timeline_from_->date().isValid()) {
-                filter.from = timeline_from_->date();
+            if (timeline_from_ != nullptr && timeline_from_->dateTime().isValid()) {
+                filter.from = timeline_from_->dateTime();
             }
-            if (timeline_to_ != nullptr && timeline_to_->date().isValid()) {
-                filter.to = timeline_to_->date();
+            if (timeline_to_ != nullptr && timeline_to_->dateTime().isValid()) {
+                filter.to = timeline_to_->dateTime();
             }
         }
         if (timeline_cloud_only_ != nullptr && timeline_cloud_only_->isChecked()) {
@@ -5895,15 +5988,15 @@ private:
         // Periodo padrao = o proprio caso, enquanto o operador nao ligou o filtro;
         // depois de ligado a data e dele.
         const bool period_on = timeline_period_ != nullptr && timeline_period_->isChecked();
-        const QDate first_day = day_from_stamp(timeline_result_.first_stamp);
-        const QDate last_day = day_from_stamp(timeline_result_.last_stamp);
-        if (!period_on && first_day.isValid() && timeline_from_ != nullptr) {
+        const QDateTime first_when = time_from_stamp(timeline_result_.first_stamp);
+        const QDateTime last_when = time_from_stamp(timeline_result_.last_stamp);
+        if (!period_on && first_when.isValid() && timeline_from_ != nullptr) {
             const QSignalBlocker block_from(timeline_from_);
-            timeline_from_->setDate(first_day);
+            timeline_from_->setDateTime(first_when);
         }
-        if (!period_on && last_day.isValid() && timeline_to_ != nullptr) {
+        if (!period_on && last_when.isValid() && timeline_to_ != nullptr) {
             const QSignalBlocker block_to(timeline_to_);
-            timeline_to_->setDate(last_day);
+            timeline_to_->setDateTime(last_when);
         }
     }
 
@@ -6048,7 +6141,13 @@ private:
         QMouseEvent press(QEvent::MouseButtonPress, local,
                           timeline_view_->mapToGlobal(local.toPoint()), Qt::LeftButton,
                           Qt::LeftButton, Qt::NoModifier);
+        // Clique so abre no RELEASE (o press pode virar arraste), entao o press
+        // sozinho nao selecionaria nada - foi o que a primeira versao fazia.
+        QMouseEvent release(QEvent::MouseButtonRelease, local,
+                            timeline_view_->mapToGlobal(local.toPoint()), Qt::LeftButton,
+                            Qt::NoButton, Qt::NoModifier);
         QApplication::sendEvent(timeline_view_, &press);
+        QApplication::sendEvent(timeline_view_, &release);
         const int selected = timeline_list_ != nullptr ? timeline_list_->currentIndex().row() : -1;
         QString id;
         if (selected >= 0 && selected < timeline_filtered_events_.size()) {
@@ -6056,6 +6155,49 @@ private:
         }
         std::printf("clique: pedido=%d desenhado=%d obtido=%d evento=%s\n", wanted,
                     timeline_view_->drawn_row(drawn), selected, qUtf8Printable(id));
+        std::fflush(stdout);
+    }
+
+    /* Sintetiza arraste entre as barras de duas linhas da lista. Passa por
+       QMouseEvent (press/move/release), entao exercita o mesmo caminho do mouse -
+       inclusive a regra de 3 px que separa clique de arraste. */
+    void drag_timeline_rows(int a, int b) {
+        if (timeline_view_ == nullptr || timeline_from_ == nullptr) return;
+        const int total = timeline_list_model_ != nullptr ? timeline_list_model_->rowCount() : 0;
+        const int row_a = a < 0 ? total - 1 : a;
+        const int row_b = b < 0 ? total - 1 : b;
+        const int idx_a = timeline_view_->drawn_index_for_row(row_a);
+        const int idx_b = timeline_view_->drawn_index_for_row(row_b);
+        const double x1 = timeline_view_->x_at_index(idx_a);
+        const double x2 = timeline_view_->x_at_index(idx_b);
+        if (x1 < 0.0 || x2 < 0.0) {
+            std::printf("arraste: sem ponto desenhado para as linhas %d..%d\n", row_a, row_b);
+            std::fflush(stdout);
+            return;
+        }
+        const double y = timeline_view_->height() / 2.0;
+        const QPointF p1(x1, y);
+        const QPointF p2(x2, y);
+        QMouseEvent press(QEvent::MouseButtonPress, p1,
+                          timeline_view_->mapToGlobal(p1.toPoint()), Qt::LeftButton,
+                          Qt::LeftButton, Qt::NoModifier);
+        QMouseEvent move(QEvent::MouseMove, p2, timeline_view_->mapToGlobal(p2.toPoint()),
+                         Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+        QMouseEvent release(QEvent::MouseButtonRelease, p2,
+                            timeline_view_->mapToGlobal(p2.toPoint()), Qt::LeftButton,
+                            Qt::NoButton, Qt::NoModifier);
+        QApplication::sendEvent(timeline_view_, &press);
+        QApplication::sendEvent(timeline_view_, &move);
+        QApplication::sendEvent(timeline_view_, &release);
+        const int listed = timeline_list_model_ != nullptr ? timeline_list_model_->rowCount() : -1;
+        std::printf("arraste: linhas %d..%d desenhadas %d..%d x=%.1f..%.1f periodo=%s..%s lista=%d\n",
+                    row_a, row_b, timeline_view_->drawn_row(idx_a),
+                    timeline_view_->drawn_row(idx_b), x1, x2,
+                    qUtf8Printable(timeline_from_->dateTime().toString("yyyy-MM-dd HH:mm:ss")),
+                    qUtf8Printable(timeline_to_ != nullptr
+                                       ? timeline_to_->dateTime().toString("yyyy-MM-dd HH:mm:ss")
+                                       : QString("-")),
+                    listed);
         std::fflush(stdout);
     }
 
@@ -6099,11 +6241,18 @@ private:
                 const int index = timeline_channel_->findText(value);
                 if (index > 0) timeline_channel_->setCurrentIndex(index);
             } else if (key == "from" || key == "to") {
-                const QDate day = QDate::fromString(value, QStringLiteral("yyyy-MM-dd"));
-                if (!day.isValid()) continue;
+                // Aceita "yyyy-MM-dd HH:mm" e "yyyy-MM-dd". No formato so-dia,
+                // "to" vai para o fim do dia: um limite superior a 00:00 excluiria
+                // o proprio dia que o operador pediu.
+                QDateTime when = QDateTime::fromString(value, QStringLiteral("yyyy-MM-dd HH:mm"));
+                if (!when.isValid()) {
+                    const QDate day = QDate::fromString(value, QStringLiteral("yyyy-MM-dd"));
+                    if (!day.isValid()) continue;
+                    when = QDateTime(day, key == "to" ? QTime(23, 59, 59, 999) : QTime(0, 0));
+                }
                 if (timeline_period_ != nullptr) timeline_period_->setChecked(true);
-                if (key == "from" && timeline_from_ != nullptr) timeline_from_->setDate(day);
-                if (key == "to" && timeline_to_ != nullptr) timeline_to_->setDate(day);
+                if (key == "from" && timeline_from_ != nullptr) timeline_from_->setDateTime(when);
+                if (key == "to" && timeline_to_ != nullptr) timeline_to_->setDateTime(when);
             } else if (key == "cloud" && timeline_cloud_only_ != nullptr) {
                 const bool on = !(value == "0" ||
                                   value.compare(QStringLiteral("false"), Qt::CaseInsensitive) == 0);
@@ -6322,6 +6471,13 @@ private:
             const int row = pending_click_row_;
             pending_click_row_ = -2;
             click_timeline_row(row);
+        }
+        if (pending_drag_a_ != -2 && pending_drag_b_ != -2) {
+            const int a = pending_drag_a_;
+            const int b = pending_drag_b_;
+            pending_drag_a_ = -2;
+            pending_drag_b_ = -2;
+            drag_timeline_rows(a, b);
         }
         if (status_label_ && !case_id.isEmpty()) {
             status_label_->setText(QString("Caso %1 carregado: %2 eventos.")
@@ -6738,6 +6894,8 @@ int run_gui(HINSTANCE) {
     QString shot_filter;
     QString shot_export;
     int shot_click_row = -2;
+    int shot_drag_a = -2;
+    int shot_drag_b = -2;
     int shot_delay_ms = 800;
     {
         int count = 0;
@@ -6758,6 +6916,9 @@ int run_gui(HINSTANCE) {
                     shot_export = QString::fromWCharArray(list[++i]);
                 } else if (arg == "--click-row" && has_value) {
                     shot_click_row = QString::fromWCharArray(list[++i]).toInt();
+                } else if (arg == "--drag-rows" && i + 2 < count) {
+                    shot_drag_a = QString::fromWCharArray(list[++i]).toInt();
+                    shot_drag_b = QString::fromWCharArray(list[++i]).toInt();
                 } else if (arg == "--delay" && has_value) {
                     shot_delay_ms = QString::fromWCharArray(list[++i]).toInt();
                 }
@@ -6800,10 +6961,12 @@ int run_gui(HINSTANCE) {
     // event loop. Chamar o setup agora faria o caso pedido ser sobrescrito pelo
     // automatico - foi exatamente o que aconteceu no primeiro teste.
     QTimer::singleShot(0, &window,
-                       [&window, shot_case, shot_tab, shot_filter, shot_export, shot_click_row]() {
+                       [&window, shot_case, shot_tab, shot_filter, shot_export, shot_click_row,
+                        shot_drag_a, shot_drag_b]() {
         window.set_pending_filter_spec(shot_filter);
         window.set_pending_export_path(shot_export);
         window.set_pending_click_row(shot_click_row);
+        window.set_pending_drag_rows(shot_drag_a, shot_drag_b);
         window.screenshot_setup(shot_case, shot_tab);
     });
 

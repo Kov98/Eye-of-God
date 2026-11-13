@@ -31,8 +31,12 @@ QString filter_text(const timeline_filter& filter) {
     QStringList parts;
     if (!filter.provider.isEmpty()) parts << QStringLiteral("provider=") + filter.provider;
     if (!filter.channel.isEmpty()) parts << QStringLiteral("channel=") + filter.channel;
-    if (filter.from.isValid()) parts << QStringLiteral("from=") + filter.from.toString(Qt::ISODate);
-    if (filter.to.isValid()) parts << QStringLiteral("to=") + filter.to.toString(Qt::ISODate);
+    if (filter.from.isValid()) {
+        parts << QStringLiteral("from=") + filter.from.toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    }
+    if (filter.to.isValid()) {
+        parts << QStringLiteral("to=") + filter.to.toString(QStringLiteral("yyyy-MM-dd HH:mm"));
+    }
     if (filter.cloud_only) parts << QStringLiteral("cloud=1");
     return parts.join(QStringLiteral("; "));
 }

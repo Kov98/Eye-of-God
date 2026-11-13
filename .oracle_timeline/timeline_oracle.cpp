@@ -271,15 +271,21 @@ int main(int argc, char** argv) {
               cloud_kept.matched == 1 &&
                   cloud_kept.events.value(0).provider == QStringLiteral("Telegram"));
 
+        // Limites tirados das proprias datas locais dos eventos: o teste nao pode
+        // depender do fuso da maquina que roda o oraculo.
+        const QDate day_second = sample.at(1).when.date();
+        const QDate day_first = sample.at(0).when.date();
+        const QDate day_third = sample.at(2).when.date();
         olho::ui::timeline_filter same_day;
-        same_day.from = QDate(2023, 11, 15);
-        same_day.to = QDate(2023, 11, 15);
+        same_day.from = QDateTime(day_second, QTime(0, 0));
+        same_day.to = QDateTime(day_second, QTime(23, 59, 59, 999));
         check("janela de um dia inclui as bordas",
               olho::ui::filter_timeline(sample, same_day).matched == 1);
 
         olho::ui::timeline_filter window;
-        window.from = QDate(2023, 11, 14);
-        window.to = QDate(2023, 11, 16);
+        // Cobre os dois primeiros dias: o evento do dia 20 fica fora de proposito.
+        window.from = QDateTime(day_first, QTime(0, 0));
+        window.to = QDateTime(day_second, QTime(23, 59, 59, 999));
         const olho::ui::timeline_filtered window_kept =
             olho::ui::filter_timeline(sample, window);
         check("janela exclui o que esta fora", window_kept.matched == 2);
@@ -288,6 +294,19 @@ int main(int argc, char** argv) {
               QStringLiteral("sem data=%1 escondidos=%2")
                   .arg(window_kept.no_time)
                   .arg(window_kept.hidden));
+
+        // Precisao de minuto: o widget agora tem hora, e num caso de WhatsApp os
+        // eventos cabem em minutos.
+        olho::ui::timeline_filter by_minute;
+        const QDateTime that_minute = sample.at(1).when;
+        by_minute.from = that_minute;
+        by_minute.to = that_minute.addSecs(59);
+        check("janela com minuto inclui o evento daquele minuto",
+              olho::ui::filter_timeline(sample, by_minute).matched == 1);
+        by_minute.from = that_minute.addSecs(60);
+        by_minute.to = that_minute.addSecs(3600);
+        check("janela com minuto exclui o evento anterior",
+              olho::ui::filter_timeline(sample, by_minute).matched == 0);
 
         // Sem janela de periodo nao existe criterio para descartar evento sem data.
         olho::ui::timeline_filter provider_only;
@@ -300,8 +319,8 @@ int main(int argc, char** argv) {
         olho::ui::timeline_filter combined;
         combined.provider = QStringLiteral("Telegram");
         combined.cloud_only = true;
-        combined.from = QDate(2023, 11, 1);
-        combined.to = QDate(2023, 11, 30);
+        combined.from = QDateTime(day_third, QTime(0, 0));
+        combined.to = combined.from.addDays(7);
         check("filtros combinados sao E, nao OU",
               olho::ui::filter_timeline(sample, combined).matched == 1);
 
@@ -476,6 +495,31 @@ int main(int argc, char** argv) {
         const double near_second = olho::ui::timeline_x_at(plot, first + step) - 1.0;
         check("do outro lado vence o segundo",
               olho::ui::timeline_pick(plot, close, near_second, 8.0) == 1);
+        // Intervalo de um arraste: as duas bordas, invertido, curto demais e fora.
+        const olho::ui::timeline_span full = olho::ui::timeline_span_for_x(
+            plot, plot.area.left(), plot.area.right());
+        check("arraste de ponta a ponta cobre a janela",
+              full.ok && full.from_ms == first && full.to_ms == last,
+              QStringLiteral("%1..%2").arg(full.from_ms).arg(full.to_ms));
+        const olho::ui::timeline_span reversed = olho::ui::timeline_span_for_x(
+            plot, plot.area.right(), plot.area.left());
+        check("arrastar da direita para a esquerda da o mesmo intervalo",
+              reversed.ok && reversed.from_ms == full.from_ms && reversed.to_ms == full.to_ms);
+        const olho::ui::timeline_span tiny = olho::ui::timeline_span_for_x(
+            plot, plot.area.left() + 10.0, plot.area.left() + 11.0);
+        check("arraste menor que 3 px nao vira periodo", !tiny.ok);
+        const olho::ui::timeline_span clamped = olho::ui::timeline_span_for_x(
+            plot, plot.area.left() - 500.0, plot.area.right() + 500.0);
+        check("arraste fora da area e limitado a janela",
+              clamped.ok && clamped.from_ms == first && clamped.to_ms == last);
+        const double quarter_x = plot.area.left() + plot.area.width() * 0.25;
+        const olho::ui::timeline_span quarter = olho::ui::timeline_span_for_x(
+            plot, plot.area.left(), quarter_x);
+        const qint64 expected_quarter = first + plot.span_ms / 4;
+        check("arraste de um quarto cobre um quarto do tempo",
+              quarter.ok && qAbs(quarter.to_ms - expected_quarter) <= 2,
+              QStringLiteral("to=%1 esperado=%2").arg(quarter.to_ms).arg(expected_quarter));
+
         check("tolerancia e inclusiva na borda",
               olho::ui::timeline_pick(plot, close, olho::ui::timeline_x_at(plot, first) + 8.0,
                                       8.0) == 0 || true);

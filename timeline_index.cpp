@@ -193,9 +193,8 @@ bool timeline_event_matches(const timeline_event& event, const timeline_filter& 
     if (filter.cloud_only && !event.from_cloud) return false;
     if (filter.has_time_window()) {
         if (!event.when.isValid()) return false;
-        const QDate day = event.when.date();
-        if (filter.from.isValid() && day < filter.from) return false;
-        if (filter.to.isValid() && day > filter.to) return false;
+        if (filter.from.isValid() && event.when < filter.from) return false;
+        if (filter.to.isValid() && event.when > filter.to) return false;
     }
     return true;
 }

@@ -52,7 +52,9 @@ foreach ($c in $casos) {
     $png = Join-Path $dir 'tmp.png'
     if ($c.png) { $png = Join-Path $shots $c.png }
     $a = @('--screenshot', $png, '--case', $caso, '--tab', 'Timeline')
-    if ($c.spec -ne '') { $a += @('--filter', $c.spec) }
+    # Aspas: a especificacao pode ter espaco (janela com hora), e Start-Process
+    # junta a lista de argumentos sem cotar.
+    if ($c.spec -ne '') { $a += @('--filter', ('"' + $c.spec + '"')) }
     $o = Join-Path $dir 'out.txt'
     $e = Join-Path $dir 'err.txt'
     $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList $a -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError $e
@@ -81,7 +83,7 @@ $meta = $csv + '.meta.json'
 Remove-Item $csv, $meta, ($csv + '.tmp') -Force -ErrorAction SilentlyContinue
 $o = Join-Path $dir 'out_export.txt'
 $e = Join-Path $dir 'err_export.txt'
-$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', 'provider=Telegram', '--export-csv', $csv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError $e
+$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--export-csv', $csv) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError $e
 $log = @(Get-Content $o -ErrorAction SilentlyContinue)
 $exportLine = @($log | Where-Object { $_ -match 'export: linhas=' }) | Select-Object -Last 1
 $exportOk = ($p.ExitCode -eq 0) -and ($exportLine -match 'linhas=(\d+)')
@@ -127,6 +129,78 @@ if ($exportOk -and (Test-Path $csv)) {
 }
 
 Write-Host ''
+Write-Host '--- janela com HORA (o filtro deixou de ser por dia) ---'
+function Count-Between([datetime]$fromLocal, [datetime]$toLocal) {
+    $total = 0
+    foreach ($f in @(Get-ChildItem -Path $caso -Recurse -Filter timeline.jsonl -File)) {
+        foreach ($line in (Get-Content $f.FullName)) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $row = $line | ConvertFrom-Json
+            $local = [datetime]::Parse($row.timestamp_utc, $null, [System.Globalization.DateTimeStyles]::RoundtripKind).ToLocalTime()
+            if ($local -ge $fromLocal -and $local -le $toLocal) { $total++ }
+        }
+    }
+    return $total
+}
+$janelas = @(
+    @{ from = '2023-11-15 08:00'; to = '2023-11-15 08:30' },
+    @{ from = '2023-11-15 07:00'; to = '2023-11-15 07:05' },
+    @{ from = '2023-11-15 00:00'; to = '2023-11-15 23:59' }
+)
+foreach ($janela in $janelas) {
+    $desde = [datetime]::ParseExact($janela.from, 'yyyy-MM-dd HH:mm', [System.Globalization.CultureInfo]::InvariantCulture)
+    $ate = [datetime]::ParseExact($janela.to, 'yyyy-MM-dd HH:mm', [System.Globalization.CultureInfo]::InvariantCulture)
+    $esperado = Count-Between $desde $ate
+    $spec = 'from=' + $janela.from + ';to=' + $janela.to
+    $o = Join-Path $dir 'out_min.txt'
+    $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', ('"' + $spec + '"')) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_min.txt')
+    $log = @(Get-Content $o -ErrorAction SilentlyContinue)
+    $final = @($log | Where-Object { $_ -match 'timeline: ' }) | Select-Object -Last 1
+    $got = -1
+    if ($final -match 'timeline: (\d+) de (\d+) carregados') { $got = [int]$matches[1] }
+    elseif ($final -match 'timeline: (\d+) eventos, sem filtro') { $got = [int]$matches[1] }
+    $ok = ($p.ExitCode -eq 0) -and ($got -eq $esperado)
+    if (-not $ok) { $falhas++ }
+    Write-Host ('{0} {1,-42} independente={2,5}  gui={3,5}' -f $(if ($ok) { '[ok]  ' } else { '[FALHA]' }), $spec, $esperado, $got)
+}
+
+Write-Host ''
+Write-Host '--- arraste no grafico recorta o periodo ---'
+$o = Join-Path $dir 'out_drag.txt'
+$p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--drag-rows', '0', '100') -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_drag.txt')
+$log = @(Get-Content $o -ErrorAction SilentlyContinue)
+$arraste = @($log | Where-Object { $_ -match 'arraste: linhas' }) | Select-Object -Last 1
+$perOk = $false
+$esperadoDrag = -1
+$guiDrag = -1
+if ($arraste -match 'periodo=(.+?)\.\.(.+?) lista=(-?\d+)') {
+    $desdeStr = $matches[1]
+    $ateStr = $matches[2]
+    $guiDrag = [int]$matches[3]
+    $desde = [datetime]::ParseExact($desdeStr, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture)
+    $ate = [datetime]::ParseExact($ateStr, 'yyyy-MM-dd HH:mm:ss', [System.Globalization.CultureInfo]::InvariantCulture)
+    $esperadoDrag = 0
+    foreach ($f in @(Get-ChildItem -Path $caso -Recurse -Filter timeline.jsonl -File)) {
+        foreach ($line in (Get-Content $f.FullName)) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $row = $line | ConvertFrom-Json
+            if ($row.provider -ne 'Telegram') { continue }
+            $local = [datetime]::Parse($row.timestamp_utc, $null, [System.Globalization.DateTimeStyles]::RoundtripKind).ToLocalTime()
+            if ($local -ge $desde -and $local -le $ate) { $esperadoDrag++ }
+        }
+    }
+    $perOk = ($guiDrag -eq $esperadoDrag) -and ($guiDrag -gt 0)
+}
+if (-not $perOk) { $falhas++ }
+Write-Host ('{0} periodo aplicado pelo arraste  {1}' -f $(if ($perOk) { '[ok]  ' } else { '[FALHA]' }), $arraste)
+Write-Host ('        independente={0}  gui={1}' -f $esperadoDrag, $guiDrag)
+$tmpTocado = $false
+if ($arraste) { $tmpTocado = $true }
+# O arraste tem que ter mudado o filtro de periodo: a barra passa a mostrar Periodo marcado.
+$periodoMarcado = @($log | Where-Object { $_ -match 'arraste: ' }).Count -gt 0
+if (-not $periodoMarcado -or -not $tmpTocado) { $falhas++ }
+
+Write-Host ''
 Write-Host '--- clique no grafico pula para o evento ---'
 # Ids na ordem cronologica, calculados do arquivo cru (o C++ nao participa).
 $ordenados = New-Object System.Collections.Generic.List[object]
@@ -149,7 +223,7 @@ Write-Host ('    eventos Telegram em ordem cronologica: ' + $cronologico.Count)
 
 foreach ($alvo in @(0, -1)) {
     $o = Join-Path $dir 'out_click.txt'
-    $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', 'provider=Telegram', '--click-row', $alvo) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_click.txt')
+    $p = Start-Process -FilePath (Join-Path $root 'OlhoDeDeus_gui.exe') -ArgumentList @('--screenshot', (Join-Path $dir 'tmp.png'), '--case', $caso, '--tab', 'Timeline', '--filter', '"provider=Telegram"', '--click-row', $alvo) -NoNewWindow -Wait -PassThru -RedirectStandardOutput $o -RedirectStandardError (Join-Path $dir 'err_click.txt')
     $log = @(Get-Content $o -ErrorAction SilentlyContinue)
     $line = @($log | Where-Object { $_ -match 'clique: pedido=' }) | Select-Object -Last 1
     $got = -1; $drawn = -1; $id = ''

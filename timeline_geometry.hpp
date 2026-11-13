@@ -55,4 +55,31 @@ inline int timeline_pick(const timeline_plot& plot, const QVector<qint64>& when_
     return best;
 }
 
+// Intervalo de tempo coberto por um arraste no eixo x.
+struct timeline_span {
+    qint64 from_ms = 0;
+    qint64 to_ms = 0;
+    bool ok = false;
+};
+
+// Arraste menor que min_px nao vira periodo: clique tremido nao pode encolher a
+// janela para 10 ms e esconder o caso inteiro.
+inline timeline_span timeline_span_for_x(const timeline_plot& plot, double x1, double x2,
+                                         double min_px = 3.0) {
+    timeline_span span;
+    if (plot.area.width() <= 0.0) return span;
+    if (qAbs(x2 - x1) < min_px) return span;
+    const auto x_to_ms = [&plot](double x) {
+        double ratio = (x - plot.area.left()) / plot.area.width();
+        ratio = qBound(0.0, ratio, 1.0);
+        return plot.first_ms + static_cast<qint64>(ratio * static_cast<double>(plot.span_ms));
+    };
+    const qint64 a = x_to_ms(x1);
+    const qint64 b = x_to_ms(x2);
+    span.from_ms = qMin(a, b);   // arrastar da direita para a esquerda vale igual
+    span.to_ms = qMax(a, b);
+    span.ok = true;
+    return span;
+}
+
 }  // namespace olho::ui
