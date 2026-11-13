@@ -1287,6 +1287,11 @@ private:
     QTableView* timeline_list_ = nullptr;
     QStandardItemModel* timeline_list_model_ = nullptr;
     QVector<olho::ui::timeline_event> timeline_filtered_events_;
+    // Guarda o par (carga, filtro) que ja esta na tela: reconstruir 5.000 linhas
+    // para o mesmo resultado e desperdicio que aparece como lentidao no arraste.
+    int timeline_generation_ = 0;
+    int last_applied_generation_ = -1;
+    olho::ui::timeline_filter last_applied_filter_;
     QString pending_filter_spec_;   // --filter do modo evidencia, aplicado na carga
     QTimer* timeline_timer_ = nullptr;
     // Progresso da carga: o worker escreve, o timer le. Um atomico por bloco de
@@ -4933,7 +4938,7 @@ private:
             const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("timeline-filtrada-%1.csv")
-                    .arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")));
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
             const QString path = QFileDialog::getSaveFileName(
                 this, QStringLiteral("Exportar timeline filtrada"), suggested,
                 QStringLiteral("CSV (*.csv)"));
@@ -4952,7 +4957,7 @@ private:
             const QString base = case_dir_.isEmpty() ? QDir::homePath() : case_dir_;
             const QString suggested = QDir(base).filePath(
                 QStringLiteral("timeline-filtrada-%1.jsonl")
-                    .arg(QDateTime::currentDateTime().toString("yyyyMMdd-HHmmss")));
+                    .arg(QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss")));
             const QString path = QFileDialog::getSaveFileName(
                 this, QStringLiteral("Exportar timeline filtrada (JSONL)"), suggested,
                 QStringLiteral("JSONL (*.jsonl)"));
@@ -6026,6 +6031,10 @@ private:
     void apply_timeline_filter() {
         if (timeline_view_ == nullptr) return;
         const olho::ui::timeline_filter filter = current_timeline_filter();
+        if (timeline_generation_ == last_applied_generation_ &&
+            filter == last_applied_filter_) {
+            return;   // mesmo filtro, mesma carga: a tela ja esta certa
+        }
         const olho::ui::timeline_filtered kept =
             olho::ui::filter_timeline(timeline_result_.events, filter);
         QVector<QDateTime> times;
@@ -6111,6 +6120,8 @@ private:
         }
         timeline_filter_count_->setText(short_text);
         timeline_filter_count_->setToolTip(long_text);
+        last_applied_generation_ = timeline_generation_;
+        last_applied_filter_ = filter;
         // No modo evidencia a barra fala: o numero que a foto mostra pode ser
         // conferido no log, sem OCR do PNG.
         if (g_gui_evidence_mode) {
@@ -6478,6 +6489,9 @@ private:
             update_details(0);
             if (hex_view_ && !row_raw_.isEmpty()) hex_view_->set_data(row_raw_.first());
         }
+        // Carga nova invalida o cache do filtro: os mesmos criterios passam a
+        // valer sobre outro conjunto de eventos.
+        ++timeline_generation_;
         // Combos, lista e grafico saem do resultado recem-carregado. O filtro nao
         // rele o caso: ele reprojeta o que ja esta em timeline_result_.
         reload_timeline_filter_options();

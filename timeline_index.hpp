@@ -96,6 +96,15 @@ struct timeline_filter {
     bool has_time_window() const;
 };
 
+// Comparacao campo a campo: a GUI usa isto para nao reconstruir a lista quando o
+// filtro nao mudou de verdade (cada widget emite sinal, e um periodo ajustado
+// campo a campo dispara tres vezes com o mesmo resultado no fim).
+inline bool operator==(const timeline_filter& a, const timeline_filter& b) {
+    return a.provider == b.provider && a.channel == b.channel && a.from == b.from &&
+           a.to == b.to && a.cloud_only == b.cloud_only;
+}
+inline bool operator!=(const timeline_filter& a, const timeline_filter& b) { return !(a == b); }
+
 struct timeline_filtered {
     QVector<timeline_event> events;  // mesma ordem da entrada
     qint64 matched = 0;              // quantos passaram

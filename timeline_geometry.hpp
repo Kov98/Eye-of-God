@@ -12,6 +12,9 @@
 #include <QVector>
 #include <QtGlobal>
 
+#include <algorithm>
+#include <cmath>
+
 namespace olho::ui {
 
 struct timeline_plot {
@@ -27,7 +30,9 @@ inline timeline_plot make_timeline_plot(const QRectF& widget_rect, qint64 first_
     timeline_plot plot;
     plot.area = widget_rect.adjusted(150, 34, -26, -44);
     plot.first_ms = first_ms;
-    plot.span_ms = qMax<qint64>(1, last_ms - first_ms);
+    // Parenteses: no Windows min/max sao macros, e (std::max)(...) e o jeito seguro
+    // (regra HDR-3 do mesmo linter).
+    plot.span_ms = (std::max)(static_cast<qint64>(1), last_ms - first_ms);
     return plot;
 }
 
@@ -45,7 +50,7 @@ inline int timeline_pick(const timeline_plot& plot, const QVector<qint64>& when_
     int best = -1;
     double best_distance = 0.0;
     for (int i = 0; i < when_ms.size(); ++i) {
-        const double distance = qAbs(timeline_x_at(plot, when_ms.at(i)) - x);
+        const double distance = std::fabs(timeline_x_at(plot, when_ms.at(i)) - x);
         if (distance > tolerance_px) continue;
         if (best < 0 || distance < best_distance) {
             best = i;
@@ -68,16 +73,16 @@ inline timeline_span timeline_span_for_x(const timeline_plot& plot, double x1, d
                                          double min_px = 3.0) {
     timeline_span span;
     if (plot.area.width() <= 0.0) return span;
-    if (qAbs(x2 - x1) < min_px) return span;
+    if (std::fabs(x2 - x1) < min_px) return span;
     const auto x_to_ms = [&plot](double x) {
         double ratio = (x - plot.area.left()) / plot.area.width();
-        ratio = qBound(0.0, ratio, 1.0);
+        ratio = std::clamp(ratio, 0.0, 1.0);
         return plot.first_ms + static_cast<qint64>(ratio * static_cast<double>(plot.span_ms));
     };
     const qint64 a = x_to_ms(x1);
     const qint64 b = x_to_ms(x2);
-    span.from_ms = qMin(a, b);   // arrastar da direita para a esquerda vale igual
-    span.to_ms = qMax(a, b);
+    span.from_ms = (std::min)(a, b);   // arrastar da direita para a esquerda vale igual
+    span.to_ms = (std::max)(a, b);
     span.ok = true;
     return span;
 }

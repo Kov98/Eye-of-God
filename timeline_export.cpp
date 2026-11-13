@@ -8,6 +8,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 
 namespace olho::ui {
 namespace {
@@ -104,24 +105,20 @@ timeline_export_result write_export(const QString& path, const QByteArray& bytes
     result.bytes = bytes.size();
     result.rows = rows;
 
-    const QString temp_path = path + QStringLiteral(".tmp");
-    {
-        QFile temp(temp_path);
-        if (!temp.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            result.error = QStringLiteral("nao consegui escrever ") + temp_path;
-            return result;
-        }
-        if (temp.write(bytes) != bytes.size()) {
-            temp.close();
-            QFile::remove(temp_path);
-            result.error = QStringLiteral("escrita incompleta em ") + temp_path;
-            return result;
-        }
-        temp.close();
+    // QSaveFile: grava num temporario e troca no commit. Antes era remove+rename,
+    // que tem uma janela em que o arquivo NAO existe - e um export anterior
+    // sumiria se o processo morresse ali.
+    QSaveFile payload(path);
+    if (!payload.open(QIODevice::WriteOnly)) {
+        result.error = QStringLiteral("nao consegui escrever ") + path;
+        return result;
     }
-    QFile::remove(path);
-    if (!QFile::rename(temp_path, path)) {
-        QFile::remove(temp_path);
+    if (payload.write(bytes) != bytes.size()) {
+        payload.cancelWriting();
+        result.error = QStringLiteral("escrita incompleta em ") + path;
+        return result;
+    }
+    if (!payload.commit()) {
         result.error = QStringLiteral("nao consegui publicar ") + path;
         return result;
     }
@@ -139,13 +136,16 @@ timeline_export_result write_export(const QString& path, const QByteArray& bytes
                 QStringLiteral("janela carregada da Timeline (nao o banco do caso)"));
     meta.insert(QStringLiteral("payload"), payload_note);
     const QByteArray meta_bytes = QJsonDocument(meta).toJson(QJsonDocument::Indented);
-    QFile meta_file(result.meta_path);
-    if (!meta_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    QSaveFile meta_file(result.meta_path);
+    if (!meta_file.open(QIODevice::WriteOnly)) {
         result.error = QStringLiteral("arquivo escrito, mas o sidecar falhou: ") + result.meta_path;
         return result;
     }
     meta_file.write(meta_bytes);
-    meta_file.close();
+    if (!meta_file.commit()) {
+        result.error = QStringLiteral("sidecar nao pode ser publicado: ") + result.meta_path;
+        return result;
+    }
 
     result.ok = true;
     return result;
